@@ -15,15 +15,32 @@
           "options": {
             "browser": "src/main.ts",
             "tsConfig": "tsconfig.app.json",
-            "assets": [
-              {
-                "glob": "**/*",
-                "input": "public"
-              }
-            ],
-            "styles": [
-              "src/styles.css"
-            ],
+          "assets": [
+  {
+    "glob": "**/*",
+    "input": "public",
+    "output": "."
+  },
+  {
+    "glob": "**/*",
+    "input": "src/assets",
+    "output": "assets"
+  }
+],
+"styles": [
+  "node_modules/bootstrap/dist/css/bootstrap.min.css",
+  "node_modules/@fortawesome/fontawesome-free/css/all.min.css",
+  "src/styles.css",
+  "src/assets/css/style.css"
+],
+"scripts": [
+  "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js",
+  "node_modules/simple-datatables/dist/umd/simple-datatables.js",
+  "src/assets/js/scripts.js",
+  "src/assets/js/datatables-simple-demo.js"
+]
+
+,
             "server": "src/main.server.ts",
             "outputMode": "server",
             "ssr": {

@@ -1,0 +1,168 @@
+
+
+<div class="container-fluid px-4">
+  <h1 class="mt-4">User Listings</h1>
+  <ol class="breadcrumb mb-4">
+    <li class="breadcrumb-item">Listing</li>
+    <li class="breadcrumb-item active">All users</li>
+  </ol>
+
+  <div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span>User Listings</span>
+      <div class="input-group">
+        <input 
+          type="text" 
+          class="form-control" 
+          placeholder="Search by name, username, or email..." 
+          (input)="onSearch($any($event).target.value)"
+          #searchInput
+        />
+        <button 
+          class="btn btn-outline-secondary" 
+          type="button" 
+          (click)="onSearch(''); searchInput.value = ''">
+          ✕
+        </button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover">
+          <thead class="table-light">
+            <tr>
+              <th>#</th>
+              <th>FirstName</th>
+              <th>LastName</th>
+              <th>UserName</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Address</th>
+              <th>Roles</th>
+              <th>Managed Companies</th>
+              <th>Action</th>
+              <th>Roles Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (user of filteredUsers(); track user.id; let i = $index) {
+              <tr>
+                <td>{{ i + 1 }}</td>
+                <td>{{ user.firstName || 'N/A' }}</td>
+                <td>{{ user.lastName || 'N/A' }}</td>
+                <td>{{ user.userName }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.phoneNumber || 'N/A' }}</td>
+                <td>{{ user.address || 'N/A' }}</td>
+                <td>
+                  @for (role of user.roles; track role) {
+                    <span class="badge bg-primary me-1">{{ role }}</span>
+                  }
+                </td>
+                <td>
+  @for (mc of user.managedCompanies; track mc.companyId) {
+    <div class="badge bg-info text-dark me-1 mb-1">
+      {{ mc.companyName }} <small class="text-muted">({{ mc.companyType }})</small>
+    </div>
+  }
+  @if (!user.managedCompanies || user.managedCompanies.length === 0) {
+    <span class="text-muted">None</span>
+  }
+</td>
+                 <td>
+                    <button class="btn btn-sm btn-outline-danger ms-2" (click)="deleteUser(user.id, user.email)">
+                    Delete
+                  </button>
+                </td>
+                <td>
+                  <div class="btn-group d-flex" role="group">
+<!-- Hotel -->
+@if (!user.roles.includes('HotelAdmin')) {
+  <button class="btn btn-sm btn-outline-success ms-1" (click)="openCompanyModal(user, 'HotelAdmin', 'hotel')">
+    + Hotel
+  </button>
+}
+
+<!-- Flight -->
+@if (!user.roles.includes('FlightAdmin')) {
+  <button class="btn btn-sm btn-outline-info ms-1"  (click)="openCompanyModal(user, 'FlightAdmin', 'flight')">
+    + Flight
+  </button>
+}
+
+<!-- Car Rental -->
+@if (!user.roles.includes('CarRentalAdmin')) {
+  <button class="btn btn-sm btn-outline-warning ms-1"  (click)="openCompanyModal(user, 'CarRentalAdmin', 'carrental')">
+    + Car
+  </button>
+}
+
+<!-- Tour -->
+@if (!user.roles.includes('TourAdmin')) {
+  <button class="btn btn-sm btn-outline-primary ms-1"  (click)="openCompanyModal(user, 'TourAdmin', 'tour')">
+    + Tour
+  </button>
+}
+                       <!-- @if (!user.roles.includes('SuperAdmin')) {
+          <button class="btn btn-sm btn-outline-danger ms-1" (click)="assignRole(user.id, 'SuperAdmin')">+ SuperAdmin</button>
+        } -->
+
+                    @for (role of user.roles; track role) {
+                      <button class="btn btn-sm btn-outline-secondary ms-1"  (click)="removeRole(user.id, role)">- {{ role }}</button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+<!-- ✅ Company Selection Modal -->
+@if (isModalOpen) {
+  <div class="modal fade show" style="display: block;" aria-modal="true" role="dialog">
+    <div class="modal-dialog" (click)="$event.stopPropagation()">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Assign {{ currentAction?.companyType }}</h5>
+          <button type="button" class="btn-close" (click)="isModalOpen = false"></button>
+        </div>
+        <div class="modal-body">
+          <label class="form-label">Select an available {{ currentAction?.companyType }}</label>
+        <select
+  [(ngModel)]="selectedCompanyId"
+  class="form-select"
+  [disabled]="companies().length === 0"
+>
+  <option value="" disabled selected>
+    {{ companies().length ? 'Choose a company...' : 'No unassigned companies' }}
+  </option>
+  @for (company of companies(); track company.id) {
+    <option [value]="company.id">{{ company.name }}</option>
+  }
+</select>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="isModalOpen = false">
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="btn btn-primary"
+            (click)="assignRole()"
+            [disabled]="!selectedCompanyId"
+          >
+            Assign
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ✅ Backdrop outside the modal content -->
+@if (isModalOpen) {
+  <div class="modal-backdrop fade show" style="display: block;"></div>
+}
+</div>

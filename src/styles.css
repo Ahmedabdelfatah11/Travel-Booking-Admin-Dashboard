@@ -1,1 +1,19 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+    --main-color: #a0d9cb;
+    --secondary-color: #0eb39d;
+    --third-color:#31dac3;
+}
+.bg-dark,.navbar-dark
+{
+    background-color: var(--secondary-color) !important;
+}
+
+.title
+{
+    font-size: 25px !important;
+}
+
+.sb-nav-link-icon
+{
+    color: #808080 !important;
+}

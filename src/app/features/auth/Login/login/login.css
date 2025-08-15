@@ -1,0 +1,210 @@
+.auth-container {
+display: flex;
+height: 100vh;
+}
+
+.form-section {
+flex: 1;
+padding: 60px;
+display: flex;
+flex-direction: column;
+justify-content: center;
+max-width: 500px;
+}
+
+.image-section {
+flex: 1;
+display: flex;
+align-items: center;
+justify-content: center; 
+}
+
+.image-section img {
+width: 100%;
+height: auto;
+border-radius: 20px;
+}
+
+.logo {
+width: 120px;
+margin-bottom: 30px;
+}
+
+h2 {
+font-weight: 600;
+margin-bottom: 10px;
+}
+
+p {
+margin-bottom: 30px;
+color: #888;
+}
+
+.form-group {
+margin-bottom: 20px;
+}
+
+.form-group input {
+width: 100%;
+padding: 12px;
+border: 1px solid #ddd;
+border-radius: 8px;
+}
+
+.password-wrapper {
+position: relative;
+}
+
+.password-wrapper i {
+position: absolute;
+right: 12px;
+top: 12px;
+cursor: pointer;
+}
+
+.options {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 20px;
+}
+
+.btn-submit {
+width: 100%;
+padding: 12px;
+background-color: #a2dbc0;
+border: none;
+border-radius: 8px;
+color: white;
+font-weight: 600;
+}
+
+.signup-prompt {
+text-align: center;
+margin: 20px 0;
+}
+
+.social-login {
+display: flex;
+justify-content: space-around;
+margin-top: 20px;
+}
+
+.social-login button {
+border: 1px solid #ddd;
+border-radius: 8px;
+width: 50px;
+height: 50px;
+background-color: white;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
+.custom-img {
+max-width: 450px;
+width: 90%;
+height: auto;
+border-radius: 20px;
+}
+
+/* Remove card styles */
+.p-4 {
+box-shadow: none !important;
+border-radius: 0 !important;
+background-color: transparent;
+}
+
+.btn-facebook {
+background-color: #1877F2;
+color: white;
+border: none;
+}
+
+.btn-facebook:hover {
+background-color: #145ec9;
+}
+
+.btn-google {
+background-color: #DB4437;
+color: white;
+border: none;
+}
+
+.btn-google:hover {
+background-color: #b3352b;
+}
+
+.btn-apple {
+background-color: #333333;
+color: white;
+border: none;
+}
+
+.btn-apple:hover {
+background-color: #1c1c1c;
+}
+
+.btn-login {
+background-color: #37d1bd;
+color: white;
+border: none;
+width: 100%;
+}
+
+.btn-login:hover {
+background-color: #30a192;
+}
+
+/* Responsive Styling */
+@media (max-width: 768px) {
+.auth-container {
+    flex-direction: column;
+    height: auto;
+}
+
+.image-section {
+    order: -1;
+    padding: 10px 20px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.form-section {
+    max-width: 100%;
+    padding: 30px 20px;
+}
+
+.custom-img {
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    border-radius: 20px;
+    object-fit: contain;
+    display: block;
+    margin-top: 500px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.btn-login {
+    font-size: 16px;
+}
+
+.social-login button {
+    width: 45px;
+    height: 45px;
+    font-size: 18px;
+}
+
+h2 {
+    font-size: 24px;
+}
+
+p {
+    font-size: 14px;
+}
+
+.form-group input {
+    padding: 10px;
+}
+}
