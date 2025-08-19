@@ -1,0 +1,126 @@
+<div class="sb-nav-fixed">  <!-- or keep class on root -->
+        <nav class="sb-topnav navbar navbar-expand bg-light p-0  border-bottom border-1">
+            <!-- Navbar Brand-->
+            <a class="navbar-brand ps-3  border-end border-1 h-100 title" >Travel</a>
+            <!-- Sidebar Toggle-->
+            <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0 ms-2" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+            <!-- Navbar Search-->
+            <form class="d-none d-md-inline-block form-inline ms-auto me-0 me-md-3 my-2 my-md-0 ">
+                <div class="input-group ">
+                    <input class="form-control" type="text" placeholder="Search for..." aria-label="Search for..." aria-describedby="btnNavbarSearch" />
+                    <button class="btn btn-primary" id="btnNavbarSearch" type="button"><i class="fas fa-search"></i></button>
+                </div>
+            </form>
+            <!-- Navbar-->
+            <ul class="navbar-nav ms-auto ms-md-0 me-3 me-lg-4">
+                
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" id="navbarDropdown"  role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-user fa-fw"></i></a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                        <li><a class="dropdown-item" >Settings</a></li>
+                        <li><a class="dropdown-item" >Activity Log</a></li>
+                        <li><hr class="dropdown-divider" /></li>
+                        <li><a class="dropdown-item" >Logout</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+        <div id="layoutSidenav">
+            <div id="layoutSidenav_nav">
+                <nav class="sb-sidenav accordion sb-sidenav-light border-end border-1" id="sidenavAccordion">
+                    <div class="sb-sidenav-menu">
+                        <div class="nav">
+                            <!-- <div class="sb-sidenav-menu-heading">Core</div> -->
+                            <a class="nav-link mt-3" routerLink="dashboard" routerLinkActive="active">
+                                <div class="sb-nav-link-icon"><i class="fa-solid fa-house"></i></div>
+                                Dashboard
+                            </a>
+
+                                <!-- Tour Agencies -->
+                        <!-- Parent link just toggles collapse -->
+<!-- Parent link just toggles collapse -->
+ @if (isTourAdmin()){
+<a class="nav-link collapsed mb-1" data-bs-toggle="collapse" data-bs-target="#Tour" aria-expanded="false" aria-controls="Tour">
+  <div class="sb-nav-link-icon">
+       <img src="assets/imgs/dates.png" alt="Dates" style="width: 20px; height: 20px;">
+  </div>
+  <span>Tours</span>
+  <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+</a>
+
+<!-- Child links handle routing -->
+<div class="collapse" id="Tour" data-bs-parent="#sidenavAccordion">
+  <nav class="sb-sidenav-menu-nested nav">
+    <a class="nav-link" routerLink="tours/create" routerLinkActive="active">Create Tour</a>
+    <a class="nav-link" routerLink="tours" routerLinkActive="active">All Tours</a>
+  </nav>
+</div>
+ }
+
+                                <!-- Booking -->
+                                 
+                            <a class="nav-link collapsed mb-1"  data-bs-toggle="collapse" data-bs-target="#Booking" aria-expanded="false" aria-controls="collapseLayouts">
+                                <div class="sb-nav-link-icon">
+                                    <i class="fa-solid fa-lock"></i>
+                                </div>
+                                <div>
+                                    <span>Booking</span>
+                                </div>
+                                <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+                            </a>
+                            <div class="collapse" id="Booking" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordion">
+                                <nav class="sb-sidenav-menu-nested nav">
+                                    <a class="nav-link" routerLink="booking">All</a>
+                                    <a class="nav-link"  routerLink="booking/confirmed">Confirmed</a>
+                                    <a class="nav-link"  routerLink="booking/pending">Pending</a>
+                                    <a class="nav-link"  routerLink="booking/cancelled">Cancelled</a>
+                                </nav>
+                                </div>
+
+                                <!-- Reviews -->
+                          <a class="nav-link"  routerLink="reviews">
+                                <div class="sb-nav-link-icon"><i class="fas fa-sync-alt"></i></div>
+                                Reviews
+                            </a>
+                          <a class="nav-link"  routerLink="wishlist">
+                                <div class="sb-nav-link-icon"><i class="fa-solid fa-heart"></i></div>
+                                Wishlist
+                            </a>
+                          <a class="nav-link"  routerLink="settings">
+                                <div class="sb-nav-link-icon"><i class="fa-solid fa-gear"></i></div>
+                                Setting
+                            </a>
+                          <a class="nav-link" (click)="logout()">
+                                <div class="sb-nav-link-icon"><i class="fas fa-power-off"></i></div>
+                                Log out
+                            </a>
+                        </div>
+                    </div>
+                    <!-- <div class="sb-sidenav-footer">
+                        <div class="small">Logged in as:</div>
+                        Start Bootstrap
+                    </div> -->
+                </nav>
+            </div>
+            <div id="layoutSidenav_content">
+                <main>
+                  <div class="container-fluid px-4">
+        <!-- This is where child pages will load -->
+        <router-outlet></router-outlet>
+      </div>
+                </main>
+                <footer class="py-4 bg-light mt-auto">
+                    <div class="container-fluid px-4">
+                        <div class="d-flex align-items-center justify-content-between small">
+                            <div class="text-muted">Copyright &copy; Your Website 2022</div>
+                            <div>
+                                <a >Privacy Policy</a>
+                                &middot;
+                                <a >Terms &amp; Conditions</a>
+                            </div>
+                        </div>
+                    </div>
+                </footer>
+            </div>
+        </div>
+        </div>

@@ -1,25 +1,11 @@
-import { inject, PLATFORM_ID } from '@angular/core';
-import { CanActivateFn, Router } from '@angular/router';
+// super-admin-guard-guard.ts
+import { inject } from '@angular/core';
+import { CanActivateChildFn, Router } from '@angular/router';
 import { Auth } from '../services/auth';
-import { isPlatformBrowser } from '@angular/common';
 
-export const superAdminGuard: CanActivateFn = () => {
-  const authService = inject(Auth);
+export const superAdminGuard: CanActivateChildFn = () => {
+  const auth = inject(Auth);
   const router = inject(Router);
-  const platformId = inject(PLATFORM_ID);
-
-  // ❌ During SSR, block
-  if (!isPlatformBrowser(platformId)) {
-    return false;
-  }
-
-  // ✅ Check login and role from localStorage
-  if (authService.isLoggedIn() && authService.hasRole('SuperAdmin')) {
-    return true;
-  }
-
-  // ❌ No access → redirect
-  router.navigate(['/login']); // or '/unauthorized' if you prefer
-  return false;
+  if (auth.isLoggedIn() && auth.hasRole('SuperAdmin')) return true;
+  return router.createUrlTree(['/login']);
 };
-

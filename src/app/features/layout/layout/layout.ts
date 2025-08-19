@@ -13,9 +13,11 @@ export class Layout {
     @Input() isSpecialPage = false;
   auth = inject(Auth);
   router = inject(Router);
-  logout() {
+
+
+   logout() {
     this.auth.Logout();
-    this.router.navigate(['/login']);
+    this.router.navigate(['/login'], { replaceUrl: true });
   }
    isSuperAdmin(): boolean {
     return this.auth.hasRole('SuperAdmin');

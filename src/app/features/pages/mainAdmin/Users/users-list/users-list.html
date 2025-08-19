@@ -104,7 +104,7 @@
   </button>
 }
                        <!-- @if (!user.roles.includes('SuperAdmin')) {
-          <button class="btn btn-sm btn-outline-danger ms-1" (click)="assignRole(user.id, 'SuperAdmin')">+ SuperAdmin</button>
+          <button class="btn btn-sm btn-outline-danger ms-1" (click)="openCompanyModal(user, 'SuperAdmin', 'tour')">+ SuperAdmin</button>
         } -->
 
                     @for (role of user.roles; track role) {
@@ -119,8 +119,8 @@
       </div>
     </div>
   </div>
-<!-- ✅ Company Selection Modal -->
-@if (isModalOpen) {
+
+  @if (isModalOpen) {
   <div class="modal fade show" style="display: block;" aria-modal="true" role="dialog">
     <div class="modal-dialog" (click)="$event.stopPropagation()">
       <div class="modal-content">

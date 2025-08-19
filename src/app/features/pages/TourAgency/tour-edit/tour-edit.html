@@ -1,0 +1,430 @@
+<div class="container-fluid px-4 py-5">
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a routerLink="/dashboard" class="text-primary text-decoration-none">Dashboard</a></li>
+      <li class="breadcrumb-item"><a routerLink="/tour-admin/tours" class="text-primary text-decoration-none">Tours</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Edit Tour</li>
+    </ol>
+  </nav>
+
+  <!-- Page Title -->
+  <h2 class="mb-4 fw-bold text-primary">Edit Tour</h2>
+
+  <!-- Tour Company Info (Read-only) -->
+  <div class="alert alert-info d-flex align-items-center mb-4">
+    <i class="fas fa-building me-2"></i>
+    <strong>Company:</strong> {{ getCompanyName(addTourForm.get('tourCompanyId')?.value) }}
+  </div>
+
+  <!-- Reactive Form -->
+  <form (ngSubmit)="onSubmit()" [formGroup]="addTourForm">
+    <div class="row g-4">
+
+      <!-- Tour Title -->
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Tour Title *</label>
+        <input
+          type="text"
+          class="form-control form-control-lg"
+          formControlName="name"
+          placeholder="e.g., Nile Cruise Adventure"
+        />
+        <div class="text-danger small" *ngIf="addTourForm.get('name')?.invalid && addTourForm.get('name')?.touched">
+          <span *ngIf="addTourForm.get('name')?.errors?.['required']">Title is required.</span>
+          <span *ngIf="addTourForm.get('name')?.errors?.['minlength']">Minimum 3 characters.</span>
+        </div>
+      </div>
+
+      <!-- Destination -->
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Destination *</label>
+        <input
+          type="text"
+          class="form-control form-control-lg"
+          formControlName="destination"
+          placeholder="e.g., Luxor, Egypt"
+        />
+        <div class="text-danger small" *ngIf="addTourForm.get('destination')?.invalid && addTourForm.get('destination')?.touched">
+          Destination is required.
+        </div>
+      </div>
+
+      <!-- Start Date -->
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Start Date *</label>
+        <input
+          type="date"
+          class="form-control form-control-lg"
+          formControlName="startDate"
+        />
+        <div class="text-danger small" *ngIf="addTourForm.get('startDate')?.invalid && addTourForm.get('startDate')?.touched">
+          Start date is required.
+        </div>
+      </div>
+
+      <!-- End Date -->
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">End Date *</label>
+        <input
+          type="date"
+          class="form-control form-control-lg"
+          formControlName="endDate"
+        />
+        <div class="text-danger small" *ngIf="addTourForm.get('endDate')?.invalid && addTourForm.get('endDate')?.touched">
+          End date must be after start date.
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="col-12">
+        <label class="form-label fw-semibold">Description *</label>
+        <textarea
+          class="form-control"
+          rows="4"
+          formControlName="description"
+          placeholder="Describe the tour experience, highlights, and itinerary..."
+        ></textarea>
+        <div class="text-danger small" *ngIf="addTourForm.get('description')?.invalid && addTourForm.get('description')?.touched">
+          Description is required (min 10 chars).
+        </div>
+      </div>
+
+      <!-- Price -->
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Price (EGP) *</label>
+        <div class="input-group">
+          <span class="input-group-text">E£</span>
+          <input
+            type="number"
+            step="0.01"
+            class="form-control form-control-lg"
+            formControlName="price"
+            placeholder="999.99"
+          />
+        </div>
+        <div class="text-danger small" *ngIf="addTourForm.get('price')?.invalid && addTourForm.get('price')?.touched">
+          Valid price is required.
+        </div>
+      </div>
+
+      <!-- Category -->
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Category *</label>
+        <select class="form-select form-select-lg" formControlName="category">
+          <option value="">Select a category</option>
+          <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+        </select>
+        <div class="text-danger small" *ngIf="addTourForm.get('category')?.invalid && addTourForm.get('category')?.touched">
+          Category is required.
+        </div>
+      </div>
+
+      <!-- Min & Max Group Size -->
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Min Group Size</label>
+        <input
+          type="number"
+          class="form-control form-control-lg"
+          formControlName="minGroupSize"
+          placeholder="6"
+        />
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Max Group Size</label>
+        <input
+          type="number"
+          class="form-control form-control-lg"
+          formControlName="maxGroupSize"
+          placeholder="20"
+        />
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Max Guests *</label>
+        <input
+          type="number"
+          class="form-control form-control-lg"
+          formControlName="maxGuests"
+          placeholder="30"
+        />
+        <div class="text-danger small" *ngIf="addTourForm.get('maxGuests')?.invalid && addTourForm.get('maxGuests')?.touched">
+          Required and must be ≥ 1.
+        </div>
+      </div>
+
+      <!-- Languages -->
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Languages</label>
+        <input
+          type="text"
+          class="form-control form-control-lg"
+          formControlName="languages"
+          placeholder="e.g., English, French"
+        />
+      </div>
+
+      <!-- Tour Company Dropdown -->
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Tour Company *</label>
+        <select
+          class="form-select form-select-lg"
+          formControlName="tourCompanyId"
+          [disabled]="true"
+        >
+          <option value="" disabled>Select a company</option>
+          @for (company of tourCompanies; track company.id) {
+            <option [value]="company.id">{{ company.name }}</option>
+          }
+        </select>
+        <div class="form-text">Cannot be changed in edit mode.</div>
+      </div>
+
+    </div>
+
+    <!-- 🖼️ Main Image Upload -->
+    <div class="row mt-4">
+      <div class="col-12">
+        <label class="form-label fw-semibold">Upload New Main Image (Optional)</label>
+        <input
+          type="file"
+          class="form-control mb-2"
+          (change)="onMainImageSelected($event)"
+          accept="image/*"
+        />
+        <div class="form-text">Replace main image (leave blank to keep current).</div>
+
+        <!-- Main Image Preview -->
+        <div class="mt-3" *ngIf="mainImagePreview || mainImage">
+          <h6>Preview Main Image:</h6>
+          <img
+             [src]="currentTour ? getImageUrl(currentTour.imageUrl) : (mainImagePreview || 'https://via.placeholder.com/400x250?text=No+Image')"
+            alt="Main Tour Image"
+            class="img-fluid rounded border"
+            style="max-height: 300px; object-fit: cover;"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- 🖼️ Gallery Image Upload -->
+   <!-- 🖼️ Gallery Image Upload -->
+<div class="row mt-4">
+  <div class="col-12">
+    <label class="form-label fw-semibold">Upload New Gallery Images (Optional)</label>
+    <input
+      type="file"
+      class="form-control mb-2"
+      (change)="onGalleryImagesSelected($event)"
+      accept="image/*"
+      multiple
+    />
+    <div class="form-text">
+      Replace gallery (leave blank to keep existing). You can upload up to 6 new images.
+    </div>
+
+    <!-- ✅ Show Existing Gallery Images -->
+    <div class="mt-3" *ngIf="currentGalleryUrls.length > 0">
+      <h6>Current Gallery Images ({{ currentGalleryUrls.length }}/6):</h6>
+      <div class="d-flex flex-wrap gap-3">
+        @for (imgUrl of currentGalleryUrls; track $index) {
+          <div class="position-relative" style="width: 120px; height: 120px;">
+            <img
+              [src]="imgUrl"
+              alt="Gallery {{ $index + 1 }}"
+              class="rounded img-fluid h-100 w-100"
+              style="object-fit: cover;"
+            />
+            <!-- Optional: Add "Replace" or "Remove" if supported by backend -->
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Show New Uploads -->
+    <div class="mt-3" *ngIf="galleryFiles.length > 0">
+      <h6>New Gallery Previews ({{ galleryFiles.length }}/6):</h6>
+      <div class="d-flex flex-wrap gap-3">
+        @for (img of galleryFiles; track $index) {
+          <div class="position-relative" style="width: 120px; height: 120px;">
+            <img
+              [src]="img.url"
+              alt="Gallery {{ $index + 1 }}"
+              class="rounded img-fluid h-100 w-100"
+              style="object-fit: cover;"
+            />
+            <button
+              type="button"
+              class="btn btn-sm btn-danger position-absolute"
+              style="top: -10px; right: -10px; width: 26px; height: 26px; padding: 0; border-radius: 50%; font-size: 14px; line-height: 1;"
+              (click)="removeGalleryImage($index)"
+            >
+              &times;
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>
+
+    <!-- ✅ What's Included / Excluded -->
+    <div class="row mt-5">
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">What's Included (4–10 items)</label>
+        <div formArrayName="includedItems" class="bg-light p-3 rounded border">
+          @for (item of includedItemsArray.controls; track $index) {
+            <div class="input-group input-group-sm mb-2">
+              <input
+                type="text"
+                class="form-control"
+                [formControlName]="$index"
+                maxlength="25"
+                placeholder="e.g., Camel ride"
+              />
+              <button
+                type="button"
+                class="btn btn-sm btn-outline-danger"
+                (click)="removeIncludedItem($index)"
+                *ngIf="includedItemsArray.length > 4"
+              >
+                ×
+              </button>
+            </div>
+          }
+          <button
+            type="button"
+            class="btn btn-sm btn-outline-success"
+            (click)="addIncludedItem()"
+            [disabled]="includedItemsArray.length >= 10"
+          >
+            + Add Item
+          </button>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">What's Excluded (4–10 items)</label>
+        <div formArrayName="excludedItems" class="bg-light p-3 rounded border">
+          @for (item of excludedItemsArray.controls; track $index) {
+            <div class="input-group input-group-sm mb-2">
+              <input
+                type="text"
+                class="form-control"
+                [formControlName]="$index"
+                maxlength="25"
+                placeholder="e.g., Lunch"
+              />
+              <button
+                type="button"
+                class="btn btn-sm btn-outline-danger"
+                (click)="removeExcludedItem($index)"
+                *ngIf="excludedItemsArray.length > 4"
+              >
+                ×
+              </button>
+            </div>
+          }
+          <button
+            type="button"
+            class="btn btn-sm btn-outline-success"
+            (click)="addExcludedItem()"
+            [disabled]="excludedItemsArray.length >= 10"
+          >
+            + Add Item
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 🎟️ Tickets -->
+    <div class="col-12 mt-5">
+      <h5 class="mb-3 fw-semibold text-success">
+        <i class="fas fa-ticket-alt me-2"></i>
+        Ticket Types
+      </h5>
+      <div formArrayName="tickets" class="border rounded p-3 bg-light">
+        @for (ticket of tickets.controls; track $index) {
+          <div [formGroupName]="$index" class="row g-2 mb-3 align-items-center">
+            <div class="col-md-3">
+              <input type="text" class="form-control" formControlName="type" placeholder="e.g., Adult" />
+            </div>
+            <div class="col-md-3">
+              <div class="input-group">
+                <span class="input-group-text">E£</span>
+                <input type="number" step="0.01" class="form-control" formControlName="price" placeholder="1200" />
+              </div>
+            </div>
+            <div class="col-md-3">
+              <input type="number" class="form-control" formControlName="availableQuantity" placeholder="Qty" />
+            </div>
+            <div class="col-md-2">
+              <div class="form-check mt-2">
+                <input class="form-check-input" type="checkbox" formControlName="isActive" />
+                <label class="form-check-label">Active</label>
+              </div>
+            </div>
+            <div class="col-md-1">
+              <button
+                type="button"
+                class="btn btn-sm btn-outline-danger"
+                (click)="removeTicket($index)"
+                [disabled]="tickets.length === 1"
+              >
+                &times;
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+      <button type="button" class="btn btn-outline-primary btn-sm mt-2" (click)="addTicket()">
+        <i class="fas fa-plus-circle me-1"></i> Add Ticket
+      </button>
+    </div>
+
+    <!-- ❓ FAQs -->
+    <div class="col-12 mt-5">
+      <h5 class="mb-3 fw-semibold text-info">
+        <i class="fas fa-question-circle me-2"></i>
+        Frequently Asked Questions
+      </h5>
+      <div formArrayName="questions" class="border rounded p-3 bg-light">
+        @for (q of questions.controls; track $index) {
+          <div [formGroupName]="$index" class="row g-2 mb-2">
+            <div class="col-md-5">
+              <input type="text" class="form-control" formControlName="questionText" placeholder="Enter question" />
+            </div>
+            <div class="col-md-5">
+              <input type="text" class="form-control" formControlName="answerText" placeholder="Enter answer" />
+            </div>
+            <div class="col-md-2">
+              <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeQuestion($index)">&times;</button>
+            </div>
+          </div>
+        }
+      </div>
+      <button type="button" class="btn btn-outline-secondary btn-sm mt-2" (click)="addQuestion()">
+        <i class="fas fa-plus-circle me-1"></i> Add FAQ
+      </button>
+    </div>
+
+    <!-- ✅ Submit -->
+    <div class="col-12 mt-5 d-flex gap-3">
+      <button
+        type="submit"
+        class="btn btn-primary btn-lg px-5"
+        [disabled]="addTourForm.invalid"
+      >
+        <i class="fas fa-save me-2"></i>
+        Update Tour
+      </button>
+      <a routerLink="/tour-admin/tours" class="btn btn-outline-secondary btn-lg">Cancel</a>
+    </div>
+  </form>
+
+  <!-- Footer Note -->
+  <div class="text-center text-muted mt-4">
+    <small>
+      <strong>*</strong> Required fields. You can skip image uploads to keep current ones.
+    </small>
+  </div>
+</div>

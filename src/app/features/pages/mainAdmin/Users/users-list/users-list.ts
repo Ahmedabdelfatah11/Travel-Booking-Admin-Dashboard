@@ -4,6 +4,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { Auth } from '../../../../../core/services/auth';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { ToastService } from '../../../../../core/services/toast-service';
 
 @Component({
   selector: 'app-users-list',
@@ -17,7 +18,7 @@ export class UsersList {
   auth = inject(Auth);
   router = inject(Router);
   @Inject(PLATFORM_ID) private platformId!: Object;
-
+ toastService = inject(ToastService); 
 
   //Some Properties
   // users-list.ts
@@ -45,8 +46,6 @@ users = signal<User[]>([]);
 }
  constructor() {
     afterNextRender(() => {
-      console.log('🌍 Running in browser (afterNextRender)');
-
       if (!this.auth.isLoggedIn()) {
         this.router.navigate(['/login']);
         return;
@@ -63,11 +62,9 @@ users = signal<User[]>([]);
 
 
 loadUsers() {
-  console.log('📡 loadUsers() called');
   this.loading.set(true);
 
   const token = this.auth.getToken();
-  console.log('🔑 Token:', token ? 'Exists' : 'MISSING!');
 
   if (!token) {
     this.error.set('No auth token');
@@ -75,41 +72,31 @@ loadUsers() {
     return;
   }
 
-  console.log('🚀 Making HTTP request...');
   this.http.get<UsersResponse>(`${this.apiUrl}/users?pageIndex=1&pageSize=100`, {
     headers: this.getAuthHeaders()
   }).subscribe({
     next: (res) => {
-       console.log('✅ Fresh data after remove:', res.data);
       this.users.set(res.data);
       this.filteredUsers.set(res.data);
-      console.log('✅ FULL RESPONSE:', res);
       if (!res?.data) {
-        console.error('❌ Response missing .data', res);
         this.error.set('Invalid response format');
         this.loading.set(false);
         return;
       }
-      console.log('✅ Users loaded:', res.data);
       this.users.set(res.data);
       this.filteredUsers.set(res.data);
       this.loading.set(false);
     },
     error: (err) => {
-      console.error('❌ API Error:', err);
-      console.error('❌ Status:', err.status);
-      console.error('❌ Message:', err.message);
-      console.error('❌ Error body:', err.error);
+    
 
       this.error.set(`Failed to load users: ${err.status} ${err.message}`);
       this.loading.set(false);
 
       if (err.status === 401) {
-        console.log('🔐 Unauthorized — logging out');
         this.auth.Logout();
         this.router.navigate(['/login']);
       } else if (err.status === 0) {
-        console.warn('🌐 Network error (CORS or cert issue?)');
         this.error.set('Network error — check console and HTTPS');
       }
     }
@@ -140,12 +127,11 @@ loadUsers() {
       this.http.delete(`${this.apiUrl}/delete-user/${id}`, { headers: this.getAuthHeaders() })
         .subscribe({
           next: () => {
-            alert('User deleted successfully');
+            this.toastService.show('User deleted successfully', 'success');
             this.loadUsers(); // Refresh list
           },
           error: (err) => {
-            console.error('Delete failed', err);
-            alert('Failed to delete user. Try again.');
+            this.toastService.show('Failed to delete user. Try again.', 'error');
           }
         });
     }
@@ -153,7 +139,7 @@ loadUsers() {
 //Roles
 assignRole() {
   if (!this.currentAction || !this.selectedCompanyId) {
-    alert('Please select a company');
+    this.toastService.show('Please select a company', 'error');
     return;
   }
 
@@ -165,13 +151,12 @@ assignRole() {
   this.http.post(`${this.apiUrl}/assign-role`, dto, { headers: this.getAuthHeaders() })
     .subscribe({
       next: (res: any) => {
-        alert(`${role} assigned to company successfully`);
+       this.toastService.show(`${role} assigned to company successfully`, 'success');
         this.loadUsers();
         this.isModalOpen = false;
       },
       error: (err) => {
-        console.error('Assign failed', err);
-        alert('Failed: ' + (err.error?.message || 'Unknown error'));
+       this.toastService.show('Failed: ' + (err.error?.message || 'Unknown error'), 'error');
       }
     });
 }
@@ -179,7 +164,6 @@ assignRole() {
 
 
 removeRole(userId: string, role: string) {
-  console.log('🗑️ removeRole called', { userId, role });
 
   // if (!isPlatformBrowser(this.platformId)) return;
 
@@ -187,7 +171,7 @@ removeRole(userId: string, role: string) {
   this.http.post(`${this.apiUrl}/remove-role`, dto, { headers: this.getAuthHeaders() })
     .subscribe({
       next: () => {
-        alert(`${role} removed successfully`);
+        this.toastService.show(`${role} removed successfully`, 'success');
         
         // Force reload
         this.loadUsers();
@@ -196,21 +180,15 @@ removeRole(userId: string, role: string) {
         setTimeout(() => {
           const users = this.users();
           const user = users.find(u => u.id === userId);
-          console.log('🔍 User after removal:', user?.roles);
         }, 1000);
       },
       error: (err) => {
-        console.error('Remove role failed', err);
-        alert('Failed to remove role');
+         this.toastService.show('Failed to remove role', 'error');
       }
     });
 }
 
-//Load Companies By Type
 loadCompanies(companyType: string) {
-  console.log('📞 Loading companies for type:', companyType);
-
-  // 🔗 Map to correct endpoint
   const urlMap: Record<string, string> = {
     'hotel': `${this.companyApiUrl}api/HotelCompany`,
     'flight': `${this.companyApiUrl}FlightCompany`,
@@ -221,20 +199,16 @@ loadCompanies(companyType: string) {
   const url = urlMap[companyType.toLowerCase()];
 
   if (!url) {
-    console.error('❌ No URL mapped for companyType:', companyType);
    this.companies.set([]);
     return;
   }
 
-  console.log('📡 Fetching from:', url);
 
   this.http.get<any[]>(url, { headers: this.getAuthHeaders() }).subscribe({
 next: (res: any) => {
-  console.log('✅ Raw API response:', res);
 
   const companiesData = Array.isArray(res) ? res : res.data;
   if (!companiesData || !Array.isArray(companiesData)) {
-    console.warn('⚠️ No valid data array found');
     this.companies.set([]);
     return;
   }
@@ -244,7 +218,6 @@ next: (res: any) => {
     return !adminId;
   });
 
-  console.log('✅ Unassigned companies:', unassigned);
 
   this.companies.set(
     unassigned.map((item: any) => ({
@@ -253,12 +226,10 @@ next: (res: any) => {
     }))
   );
 
-  console.log('✅ Final dropdown options:', this.companies());
 },
 error: (err) => {
-  console.error(`❌ Failed to load ${companyType} companies`, err);
   this.companies.set([]);
-  alert(`Failed to load ${companyType} list.`);
+  this.toastService.show(`Failed to load ${companyType} list.`, 'error');
 }
   });
 }
@@ -266,12 +237,11 @@ error: (err) => {
 
 openCompanyModal(user: User, role: string, companyType: string) {
   this.currentAction = { userId: user.id, role, companyType };
-  console.log('✅ currentAction set:', this.currentAction);
 
 this.selectedCompanyId.set(null);
-  this.companies.set([]);      // ← Clear previous list
-  this.isModalOpen = true;    // ← Show modal
+  this.companies.set([]);     
+  this.isModalOpen = true;    
 
-  this.loadCompanies(companyType); // 🔥 Load companies here!
+  this.loadCompanies(companyType); 
 }
 }
