@@ -1,1 +1,207 @@
-<p>booking-cancelled works!</p>
+ <div class="container-fluid px-4">
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h1 class="h3 mb-0 text-gray-800">
+                <i class="fas fa-times-circle me-2 text-danger"></i>
+                Cancelled Bookings
+              </h1>
+              <p class="mb-0 text-muted">Review and manage cancelled reservations</p>
+            </div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-outline-primary" (click)="loadCancelledBookings()">
+                <i class="fas fa-sync-alt me-1"></i>
+                Refresh
+              </button>
+              <button class="btn btn-primary" routerLink="/booking">
+                <i class="fas fa-list me-1"></i>
+                All Bookings
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Statistics Row -->
+      <div class="row mb-4">
+        <div class="col-xl-6 col-md-6 mb-4">
+          <div class="card border-left-danger shadow h-100 py-2">
+            <div class="card-body">
+              <div class="row no-gutters align-items-center">
+                <div class="col mr-2">
+                  <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                    Total Cancelled
+                  </div>
+                  <div class="h5 mb-0 font-weight-bold text-gray-800">{{ cancelledBookings.length }}</div>
+                </div>
+                <div class="col-auto">
+                  <i class="fas fa-ban fa-2x text-gray-300"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-6 col-md-6 mb-4">
+          <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+              <div class="row no-gutters align-items-center">
+                <div class="col mr-2">
+                  <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                    Revenue Lost
+                  </div>
+                  <div class="h5 mb-0 font-weight-bold text-gray-800">{{ getTotalLostRevenue() | currency }}</div>
+                </div>
+                <div class="col-auto">
+                  <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading Spinner -->
+      <div *ngIf="loading" class="text-center py-5">
+        <div class="spinner-border text-danger" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2 text-muted">Loading cancelled bookings...</p>
+      </div>
+
+      <!-- Error Alert -->
+      <div *ngIf="error" class="alert alert-danger" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        {{ error }}
+      </div>
+
+      <!-- Cancelled Bookings Card -->
+      <div class="card shadow mb-4" *ngIf="!loading && !error">
+        <div class="card-header py-3">
+          <h6 class="m-0 font-weight-bold text-danger">
+            <i class="fas fa-ban me-2"></i>
+            Cancelled Bookings ({{ cancelledBookings.length }} items)
+          </h6>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Booking ID</th>
+                  <th>Customer</th>
+                  <th>Service</th>
+                  <th>Details</th>
+                  <th>Original Dates</th>
+                  <th>Lost Amount</th>
+                  <th>Cancellation Reason</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let booking of cancelledBookings">
+                  <td>
+                    <span class="badge bg-danger">#{{ booking.id }}</span>
+                  </td>
+                  <td>
+                    <div class="d-flex align-items-center">
+                      <div class="avatar-sm bg-danger text-white rounded-circle d-flex align-items-center justify-content-center me-2">
+                        <i class="fas fa-user-times"></i>
+                      </div>
+                      <div>
+                        <div class="fw-bold">{{ booking.customerEmail }}</div>
+                        <small class="text-danger">Cancelled</small>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="badge bg-secondary text-white">
+                      <i [class]="getBookingTypeIcon(booking.bookingType)" class="me-1"></i>
+                      {{ getBookingTypeLabel(booking.bookingType.toString()) }}
+                    </span>
+                  </td>
+              <td>
+                <div *ngIf="booking.agencyDetails" class="small">
+                  <!-- Room Details -->
+                 <div *ngIf="booking.bookingType.toString() === 'Room'">
+                    <strong>{{ getRoomDetails(booking.agencyDetails).roomType || 'Room' }}</strong><br>
+                    <span class="text-muted">{{ getRoomDetails(booking.agencyDetails).roomId || 'Hotel' }}</span>
+                </div>
+                <!-- Car -->
+                    <div *ngIf="booking.bookingType.toString() === 'Car'">
+                    <strong>{{ getCarDetails(booking.agencyDetails).carModel || 'Car' }}</strong><br>
+                    <span class="text-muted">{{ getCarDetails(booking.agencyDetails).endDate || 'Vehicle' }}</span>
+                    </div>
+                  <!-- Flight Details -->
+                    <div *ngIf="booking.bookingType.toString() === 'Flight'">
+                    <strong>{{ getFlightDetails(booking.agencyDetails).flightId || 'Flight' }}</strong><br>
+                    <span class="text-muted">
+                        {{ getFlightDetails(booking.agencyDetails).departureAirport }} →
+                        {{ getFlightDetails(booking.agencyDetails).arrivalAirport }}
+                    </span>
+                    </div>
+                        <!-- Tour -->
+                        <div *ngIf="booking.bookingType.toString() === 'Tour' ">
+                        <strong>{{ getTourDetails(booking.agencyDetails).tourName || 'Tour' }}</strong><br>
+                        <span class="text-muted">{{ getTourDetails(booking.agencyDetails).destination || 'Destination' }}</span>
+                        </div>
+                </div>
+                <div *ngIf="!booking.agencyDetails" class="text-muted small">
+                  Details not available
+                </div>
+              </td>
+                  <td>
+                    <div class="small">
+                      <div class="text-decoration-line-through text-muted">
+                        <i class="fas fa-calendar-times text-danger me-1"></i>{{ formatDate(booking.startDate) }}
+                      </div>
+                      <div class="text-decoration-line-through text-muted">
+                        <i class="fas fa-calendar-times text-danger me-1"></i>{{ formatDate(booking.endDate) }}
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="fw-bold text-danger" *ngIf="booking.totalPrice">
+                      -{{ formatCurrency(booking.totalPrice) }}
+                    </span>
+                    <span class="text-muted" *ngIf="!booking.totalPrice">N/A</span>
+                  </td>
+                  <td>
+                    <small class="text-muted">
+                      {{ getCancellationReason(booking) }}
+                    </small>
+                  </td>
+                  <td>
+                    <div class="btn-group" role="group">
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-info"
+                        (click)="viewDetails(booking)"
+                        title="View Details"
+                      >
+                        <i class="fas fa-eye"></i>
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-danger"
+                        (click)="deleteBooking(booking.id)"
+                        title="Delete Record"
+                      >
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <!-- Empty State -->
+            <div *ngIf="cancelledBookings.length === 0" class="text-center py-5">
+              <i class="fas fa-check fa-3x text-success mb-3"></i>
+              <h5 class="text-muted">No cancelled bookings</h5>
+              <p class="text-muted">Great news! You have no cancelled bookings at the moment.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>

@@ -21,6 +21,7 @@
   },
   "private": true,
   "dependencies": {
+    "@angular/animations": "^20.1.7",
     "@angular/common": "^20.0.0",
     "@angular/compiler": "^20.0.0",
     "@angular/core": "^20.0.0",
@@ -31,8 +32,10 @@
     "@angular/ssr": "^20.0.4",
     "@fortawesome/fontawesome-free": "^7.0.0",
     "@popperjs/core": "^2.11.8",
+    "boostrap": "^2.0.0",
     "bootstrap": "^5.3.7",
     "express": "^5.1.0",
+    "ngx-toastr": "^19.0.0",
     "rxjs": "~7.8.0",
     "simple-datatables": "^10.0.0",
     "tslib": "^2.3.0"
@@ -41,6 +44,7 @@
     "@angular/build": "^20.0.4",
     "@angular/cli": "^20.0.4",
     "@angular/compiler-cli": "^20.0.0",
+    "@types/bootstrap": "^5.2.10",
     "@types/express": "^5.0.1",
     "@types/jasmine": "~5.1.0",
     "@types/node": "^20.19.10",

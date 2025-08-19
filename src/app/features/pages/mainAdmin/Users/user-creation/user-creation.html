@@ -1,1 +1,477 @@
-<p>user-creation works!</p>
+<div class="container-fluid px-4">
+  <!-- Header Section -->
+  <div class="d-flex justify-content-between align-items-center mt-4 mb-4">
+    <div>
+      <h1 class="mb-0">Create New User</h1>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+          <li class="breadcrumb-item">
+            <a href="#" (click)="goBack()" class="text-decoration-none">User Management</a>
+          </li>
+          <li class="breadcrumb-item active" aria-current="page">Create User</li>
+        </ol>
+      </nav>
+    </div>
+    <button type="button" class="btn btn-outline-secondary" (click)="goBack()">
+      <i class="fas fa-arrow-left me-2"></i>Back to Users
+    </button>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-8 col-xl-6 mx-auto">
+      <!-- Alert Messages -->
+      @if (success()) {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+          <i class="fas fa-check-circle me-2"></i>
+          {{ success() }}
+          <button type="button" class="btn-close" (click)="clearMessages()"></button>
+        </div>
+      }
+
+      @if (error()) {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          {{ error() }}
+          <button type="button" class="btn-close" (click)="clearMessages()"></button>
+        </div>
+      }
+
+      <!-- Main Form Card -->
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-user-plus me-2"></i>User Information
+          </h5>
+        </div>
+        
+        <div class="card-body">
+          <form [formGroup]="userForm" (ngSubmit)="onSubmit()" novalidate>
+            <!-- Personal Information Section -->
+            <div class="row mb-4">
+              <div class="col-12">
+                <h6 class="text-muted mb-3">
+                  <i class="fas fa-user me-2"></i>Personal Information
+                </h6>
+              </div>
+              
+              <!-- First Name -->
+              <div class="col-md-6 mb-3">
+                <label for="firstName" class="form-label">
+                  First Name <span class="text-danger">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="firstName"
+                  class="form-control"
+                  [class.is-invalid]="hasError('firstName')"
+                  [class.is-valid]="userForm.get('firstName')?.valid && userForm.get('firstName')?.touched"
+                  formControlName="firstName"
+                  placeholder="Enter first name"
+                  autocomplete="given-name"
+                />
+                @if (hasError('firstName')) {
+                  <div class="invalid-feedback">
+                    {{ getErrorMessage('firstName') }}
+                  </div>
+                }
+              </div>
+
+              <!-- Last Name -->
+              <div class="col-md-6 mb-3">
+                <label for="lastName" class="form-label">
+                  Last Name <span class="text-danger">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="lastName"
+                  class="form-control"
+                  [class.is-invalid]="hasError('lastName')"
+                  [class.is-valid]="userForm.get('lastName')?.valid && userForm.get('lastName')?.touched"
+                  formControlName="lastName"
+                  placeholder="Enter last name"
+                  autocomplete="family-name"
+                />
+                @if (hasError('lastName')) {
+                  <div class="invalid-feedback">
+                    {{ getErrorMessage('lastName') }}
+                  </div>
+                }
+              </div>
+            </div>
+            <!-- Date of Birth -->
+              <div class="col-md-6 mb-3">
+                <label for="dateOfBirth" class="form-label">
+                  Date of Birth <span class="text-danger">*</span>
+                </label>
+                <input
+                  type="date"
+                  id="dateOfBirth"
+                  class="form-control"
+                  [class.is-invalid]="hasError('dateOfBirth')"
+                  [class.is-valid]="userForm.get('dateOfBirth')?.valid && userForm.get('dateOfBirth')?.touched"
+                  formControlName="dateOfBirth"
+                  placeholder="Select date of birth"
+                  autocomplete="bday"
+                />
+                @if (hasError('dateOfBirth')) {
+                  <div class="invalid-feedback">
+                    {{ getErrorMessage('dateOfBirth') }}
+                  </div>
+                }
+              </div>
+
+
+            <!-- Account Information Section -->
+            <div class="row mb-4">
+              <div class="col-12">
+                <h6 class="text-muted mb-3">
+                  <i class="fas fa-key me-2"></i>Account Information
+                </h6>
+              </div>
+
+              <!-- Username -->
+              <div class="col-md-6 mb-3">
+                <label for="userName" class="form-label">
+                  Username <span class="text-danger">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="userName"
+                  class="form-control"
+                  [class.is-invalid]="hasError('userName')"
+                  [class.is-valid]="userForm.get('userName')?.valid && userForm.get('userName')?.touched"
+                  formControlName="userName"
+                  placeholder="Enter username"
+                  autocomplete="username"
+                />
+                @if (hasError('userName')) {
+                  <div class="invalid-feedback">
+                    {{ getErrorMessage('userName') }}
+                  </div>
+                }
+              </div>
+
+              <!-- Email -->
+              <div class="col-md-6 mb-3">
+                <label for="email" class="form-label">
+                  Email <span class="text-danger">*</span>
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  class="form-control"
+                  [class.is-invalid]="hasError('email')"
+                  [class.is-valid]="userForm.get('email')?.valid && userForm.get('email')?.touched"
+                  formControlName="email"
+                  placeholder="Enter email address"
+                  autocomplete="email"
+                />
+                @if (hasError('email')) {
+                  <div class="invalid-feedback">
+                    {{ getErrorMessage('email') }}
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Contact Information Section -->
+            <div class="row mb-4">
+              <div class="col-12">
+                <h6 class="text-muted mb-3">
+                  <i class="fas fa-address-book me-2"></i>Contact Information
+                </h6>
+              </div>
+
+              <!-- Phone Number -->
+              <div class="col-md-6 mb-3">
+                <label for="phoneNumber" class="form-label">Phone Number</label>
+                <input
+                  type="tel"
+                  id="phoneNumber"
+                  class="form-control"
+                  [class.is-invalid]="hasError('phoneNumber')"
+                  [class.is-valid]="userForm.get('phoneNumber')?.valid && userForm.get('phoneNumber')?.touched"
+                  formControlName="phoneNumber"
+                  placeholder="e.g., +1 (555) 123-4567"
+                  autocomplete="tel"
+                />
+                @if (hasError('phoneNumber')) {
+                  <div class="invalid-feedback">
+                    {{ getErrorMessage('phoneNumber') }}
+                  </div>
+                }
+              </div>
+
+              <!-- Address -->
+              <div class="col-md-6 mb-3">
+                <label for="address" class="form-label">Address</label>
+                <input
+                  type="text"
+                  id="address"
+                  class="form-control"
+                  [class.is-invalid]="hasError('address')"
+                  [class.is-valid]="userForm.get('address')?.valid && userForm.get('address')?.touched"
+                  formControlName="address"
+                  placeholder="Enter full address"
+                  autocomplete="street-address"
+                />
+                @if (hasError('address')) {
+                  <div class="invalid-feedback">
+                    {{ getErrorMessage('address') }}
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Security Section -->
+            <div class="row mb-4">
+              <div class="col-12">
+                <h6 class="text-muted mb-3">
+                  <i class="fas fa-shield-alt me-2"></i>Security
+                </h6>
+              </div>
+
+              <!-- Password -->
+<div class="col-md-6 mb-3">
+  <label for="password" class="form-label">
+    Password <span class="text-danger">*</span>
+  </label>
+  <input
+    type="password"
+    id="password"
+    class="form-control"
+    [class.is-invalid]="hasError('password')"
+    [class.is-valid]="userForm.get('password')?.valid && userForm.get('password')?.touched"
+    formControlName="password"
+    placeholder="Enter password"
+    autocomplete="new-password"
+  />
+  @if (hasError('password')) {
+    <div class="invalid-feedback">
+      {{ getErrorMessage('password') }}
+    </div>
+  }
+  <div class="form-text">
+    <small class="text-muted">
+      <strong>Password must contain:</strong><br>
+      <span [class.text-success]="!userForm.get('password')?.hasError('minlength')" 
+            [class.text-muted]="userForm.get('password')?.hasError('minlength')">
+        ✓ At least 6 characters
+      </span><br>
+      <span [class.text-success]="!userForm.get('password')?.hasError('missingLowercase')" 
+            [class.text-muted]="userForm.get('password')?.hasError('missingLowercase')">
+        ✓ One lowercase letter (a-z)
+      </span><br>
+      <span [class.text-success]="!userForm.get('password')?.hasError('missingUppercase')" 
+            [class.text-muted]="userForm.get('password')?.hasError('missingUppercase')">
+        ✓ One uppercase letter (A-Z)
+      </span><br>
+      <span [class.text-success]="!userForm.get('password')?.hasError('missingNumber')" 
+            [class.text-muted]="userForm.get('password')?.hasError('missingNumber')">
+        ✓ One number (0-9)
+      </span><br>
+      <span [class.text-success]="!userForm.get('password')?.hasError('missingSpecialChar')" 
+            [class.text-muted]="userForm.get('password')?.hasError('missingSpecialChar')">
+        ✓ One special character (!@#$%^&* etc.)
+      </span>
+    </small>
+  </div>
+</div>
+
+              <!-- Confirm Password -->
+              <div class="col-md-6 mb-3">
+                <label for="confirmPassword" class="form-label">
+                  Confirm Password <span class="text-danger">*</span>
+                </label>
+                <input
+                  type="password"
+                  id="confirmPassword"
+                  class="form-control"
+                  [class.is-invalid]="hasError('confirmPassword')"
+                  [class.is-valid]="userForm.get('confirmPassword')?.valid && userForm.get('confirmPassword')?.touched"
+                  formControlName="confirmPassword"
+                  placeholder="Confirm password"
+                  autocomplete="new-password"
+                />
+                @if (hasError('confirmPassword')) {
+                  <div class="invalid-feedback">
+                    {{ getErrorMessage('confirmPassword') }}
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Role and Company Section -->
+            <div class="row mb-4">
+              <div class="col-12">
+                <h6 class="text-muted mb-3">
+                  <i class="fas fa-users-cog me-2"></i>Role Assignment
+                </h6>
+              </div>
+
+              <!-- Role Selection -->
+              <div class="col-md-6 mb-3">
+                <label for="role" class="form-label">
+                  User Role <span class="text-danger">*</span>
+                </label>
+                <select
+                  id="role"
+                  class="form-select"
+                  [class.is-invalid]="hasError('role')"
+                  [class.is-valid]="userForm.get('role')?.valid && userForm.get('role')?.touched"
+                  formControlName="role"
+                >
+                  @for (role of availableRoles; track role.value) {
+                    <option [value]="role.value">
+                      {{ role.icon }} {{ role.label }}
+                    </option>
+                  }
+                </select>
+                @if (hasError('role')) {
+                  <div class="invalid-feedback">
+                    {{ getErrorMessage('role') }}
+                  </div>
+                }
+              </div>
+
+              <!-- Company Selection (conditional) -->
+              @if (userForm.get('role')?.value !== 'User') {
+                <div class="col-md-6 mb-3">
+                  <label for="companyId" class="form-label">
+                    Assign to Company <span class="text-danger">*</span>
+                  </label>
+                  
+                  @if (loadingCompanies()) {
+                    <div class="d-flex align-items-center">
+                      <div class="spinner-border spinner-border-sm me-2" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                      </div>
+                      <span class="text-muted">Loading companies...</span>
+                    </div>
+                  } @else {
+                    <select
+                      id="companyId"
+                      class="form-select"
+                      [class.is-invalid]="hasError('companyId')"
+                      [class.is-valid]="userForm.get('companyId')?.valid && userForm.get('companyId')?.touched"
+                      formControlName="companyId"
+                      [disabled]="companies().length === 0"
+                    >
+                      <option value="" disabled>
+                        {{ companies().length === 0 ? 'No available companies' : 'Select a company...' }}
+                      </option>
+                      @for (company of companies(); track company.id) {
+                        <option [value]="company.id">
+                          {{ company.name }}
+                        </option>
+                      }
+                    </select>
+                  }
+                  
+                  @if (hasError('companyId')) {
+                    <div class="invalid-feedback">
+                      {{ getErrorMessage('companyId') }}
+                    </div>
+                  }
+                  
+                  @if (companies().length === 0 && !loadingCompanies() && userForm.get('role')?.value !== 'User') {
+                    <div class="form-text text-warning">
+                      <i class="fas fa-exclamation-triangle me-1"></i>
+                      No companies available for this role without an admin.
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="row">
+              <div class="col-12">
+                <div class="d-flex gap-3 justify-content-end">
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    (click)="goBack()"
+                    [disabled]="loading()"
+                  >
+                    <i class="fas fa-times me-2"></i>Cancel
+                  </button>
+                  
+                  <button
+                    type="button"
+                    class="btn btn-outline-info"
+                    (click)="userForm.reset(); userForm.get('role')?.setValue('User'); companies.set([]); clearMessages()"
+                    [disabled]="loading()"
+                  >
+                    <i class="fas fa-undo me-2"></i>Reset Form
+                  </button>
+                  
+                  <button
+                    type="submit"
+                    class="btn btn-primary px-4"
+                    [disabled]="userForm.invalid || loading()"
+                  >
+                    @if (loading()) {
+                      <span class="spinner-border spinner-border-sm me-2" role="status">
+                        <span class="visually-hidden">Creating...</span>
+                      </span>
+                      Creating User...
+                    } @else {
+                      <i class="fas fa-save me-2"></i>Create User
+                    }
+                  </button>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Form Validation Summary -->
+      @if (userForm.invalid && userForm.touched) {
+        <div class="card mt-3 border-warning">
+          <div class="card-body">
+            <h6 class="card-title text-warning">
+              <i class="fas fa-exclamation-triangle me-2"></i>Please fix the following issues:
+            </h6>
+            <ul class="list-unstyled mb-0">
+              @for (field of ['firstName', 'lastName', 'userName', 'email', 'password', 'confirmPassword', 'role', 'companyId', 'dateOfBirth']; track field) {
+                @if (hasError(field)) {
+                  <li class="text-danger">
+                    <i class="fas fa-times-circle me-1"></i>
+                    {{ getErrorMessage(field) }}
+                  </li>
+                }
+              }
+            </ul>
+          </div>
+        </div>
+      }
+
+      <!-- Help Card -->
+      <div class="card mt-4 bg-light">
+        <div class="card-body">
+          <h6 class="card-title">
+            <i class="fas fa-info-circle me-2 text-info"></i>User Creation Guidelines
+          </h6>
+          <div class="row">
+            <div class="col-md-6">
+              <ul class="list-unstyled small">
+                <li><i class="fas fa-check text-success me-1"></i> Username must be 3-50 characters</li>
+                <li><i class="fas fa-check text-success me-1"></i> Password must be at least 6 characters</li>
+                <li><i class="fas fa-check text-success me-1"></i> Email will be auto-confirmed</li>
+              </ul>
+            </div>
+            <div class="col-md-6">
+              <ul class="list-unstyled small">
+                <li><i class="fas fa-check text-success me-1"></i> Admin roles require company assignment</li>
+                <li><i class="fas fa-check text-success me-1"></i> Phone and address are optional</li>
+                <li><i class="fas fa-check text-success me-1"></i> Users will receive login credentials</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

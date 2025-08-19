@@ -10,6 +10,7 @@ import { Auth } from '../../../core/services/auth';
   styleUrl: './layout.css'
 })
 export class Layout {
+    company: any;  
     @Input() isSpecialPage = false;
   auth = inject(Auth);
   router = inject(Router);

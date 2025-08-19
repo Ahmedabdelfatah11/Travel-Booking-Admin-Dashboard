@@ -1,1 +1,238 @@
-<p>booking-confirmed works!</p>
+   <div class="container-fluid px-4">
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h1 class="h3 mb-0 text-gray-800">
+                <i class="fas fa-check-circle me-2 text-success"></i>
+                Confirmed Bookings
+              </h1>
+              <p class="mb-0 text-muted">Manage confirmed reservations and bookings</p>
+            </div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-outline-primary" (click)="loadConfirmedBookings()">
+                <i class="fas fa-sync-alt me-1"></i>
+                Refresh
+              </button>
+              <button class="btn btn-success" routerLink="/booking">
+                <i class="fas fa-list me-1"></i>
+                All Bookings
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading Spinner -->
+      <div *ngIf="loading" class="text-center py-5">
+        <div class="spinner-border text-success" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2 text-muted">Loading confirmed bookings...</p>
+      </div>
+
+      <!-- Error Alert -->
+      <div *ngIf="error" class="alert alert-danger" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        {{ error }}
+      </div>
+
+      <!-- Confirmed Bookings Card -->
+      <div class="card shadow mb-4" *ngIf="!loading && !error">
+        <div class="card-header py-3">
+          <h6 class="m-0 font-weight-bold text-success">
+            <i class="fas fa-check-circle me-2"></i>
+            Confirmed Bookings ({{ confirmedBookings.length }} items)
+          </h6>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Booking ID</th>
+                  <th>Customer</th>
+                  <th>Service</th>
+                  <th>Details</th>
+                  <th>Booking Period</th>
+                  <th>Total Amount</th>
+                  <th>Confirmed Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let booking of confirmedBookings">
+                  <td>
+                    <span class="badge bg-success">#{{ booking.id }}</span>
+                  </td>
+                  <td>
+                    <div class="d-flex align-items-center">
+                      <div class="avatar-sm bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-2">
+                        <i class="fas fa-user"></i>
+                      </div>
+                      <div>
+                        <div class="fw-bold">{{ booking.customerEmail }}</div>
+                        <small class="text-muted">Confirmed Customer</small>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="badge bg-info text-white">
+                      <i [class]="getBookingTypeIcon(booking.bookingType)" class="me-1"></i>
+                      {{ getBookingTypeLabel(booking.bookingType.toString()) }}
+                    </span>
+                  </td>
+              <td>
+                <div *ngIf="booking.agencyDetails" class="small">
+                  <!-- Room Details -->
+                 <div *ngIf="booking.bookingType.toString() === 'Room'">
+                    <strong>{{ getRoomDetails(booking.agencyDetails).roomType || 'Room' }}</strong><br>
+                    <span class="text-muted">{{ getRoomDetails(booking.agencyDetails).roomId || 'Hotel' }}</span>
+                </div>
+                <!-- Car -->
+                    <div *ngIf="booking.bookingType.toString() === 'Car'">
+                    <strong>{{ getCarDetails(booking.agencyDetails).carModel || 'Car' }}</strong><br>
+                    <span class="text-muted">{{ getCarDetails(booking.agencyDetails).endDate || 'Vehicle' }}</span>
+                    </div>
+                  <!-- Flight Details -->
+                    <div *ngIf="booking.bookingType.toString() === 'Flight'">
+                    <strong>{{ getFlightDetails(booking.agencyDetails).flightId || 'Flight' }}</strong><br>
+                    <span class="text-muted">
+                        {{ getFlightDetails(booking.agencyDetails).departureAirport }} →
+                        {{ getFlightDetails(booking.agencyDetails).arrivalAirport }}
+                    </span>
+                    </div>
+                        <!-- Tour -->
+                        <div *ngIf="booking.bookingType.toString() === 'Tour' ">
+                        <strong>{{ getTourDetails(booking.agencyDetails).tourName || 'Tour' }}</strong><br>
+                        <span class="text-muted">{{ getTourDetails(booking.agencyDetails).destination || 'Destination' }}</span>
+                        </div>
+                </div>
+                <div *ngIf="!booking.agencyDetails" class="text-muted small">
+                  Details not available
+                </div>
+              </td>
+                  <td>
+                    <div class="small">
+                      <div><i class="fas fa-calendar-alt text-success me-1"></i>{{ formatDate(booking.startDate) }}</div>
+                      <div><i class="fas fa-calendar-alt text-danger me-1"></i>{{ formatDate(booking.endDate) }}</div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="fw-bold text-success" *ngIf="booking.totalPrice">
+                      {{ formatCurrency(booking.totalPrice) }}
+                    </span>
+                  </td>
+                  <td>
+                    <small class="text-muted">{{ formatDate(booking.startDate) }}</small>
+                  </td>
+                  <td>
+                    <div class="btn-group" role="group">
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-warning"
+                        (click)="cancelBooking(booking.id)"
+                        title="Cancel Booking"
+                      >
+                        <i class="fas fa-ban"></i>
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-info"
+                        (click)="viewDetails(booking)"
+                        title="View Details"
+                      >
+                        <i class="fas fa-eye"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+
+            <!-- Empty State -->
+            <div *ngIf="confirmedBookings.length === 0" class="text-center py-5">
+              <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+              <h5 class="text-muted">No confirmed bookings</h5>
+              <p class="text-muted">All confirmed bookings will appear here.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Booking Details Modal -->
+<div class="modal fade" id="bookingDetailsModal" tabindex="-1" aria-labelledby="bookingDetailsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content shadow-lg border-0 rounded-3">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title" id="bookingDetailsModalLabel">
+          <i class="fas fa-info-circle me-2"></i> Booking Details
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" *ngIf="selectedBooking">
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <h6 class="fw-bold">Booking ID:</h6>
+            <p>#{{ selectedBooking.id }}</p>
+          </div>
+          <div class="col-md-6">
+            <h6 class="fw-bold">Customer Email:</h6>
+            <p>{{ selectedBooking.customerEmail }}</p>
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <h6 class="fw-bold">Booking Type:</h6>
+            <p>
+              <i [class]="getBookingTypeIcon(selectedBooking.bookingType)" class="me-1"></i>
+              {{ getBookingTypeLabel(selectedBooking.bookingType.toString()) }}
+            </p>
+          </div>
+          <div class="col-md-6">
+            <h6 class="fw-bold">Total Price:</h6>
+            <p class="text-success fw-bold">{{ formatCurrency(selectedBooking.totalPrice!) }}</p>
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <h6 class="fw-bold">Start Date:</h6>
+            <p>{{ formatDate(selectedBooking.startDate) }}</p>
+          </div>
+          <div class="col-md-6">
+            <h6 class="fw-bold">End Date:</h6>
+            <p>{{ formatDate(selectedBooking.endDate) }}</p>
+          </div>
+        </div>
+
+        <div *ngIf="selectedBooking.agencyDetails" class="border-top pt-3">
+          <h6 class="fw-bold">Service Details:</h6>
+          <div *ngIf="selectedBooking.bookingType.toString() === 'Room'">
+            <p><strong>{{ getRoomDetails(selectedBooking.agencyDetails).roomType }}</strong></p>
+            <p class="text-muted">Room ID: {{ getRoomDetails(selectedBooking.agencyDetails).roomId }}</p>
+          </div>
+          <div *ngIf="selectedBooking.bookingType.toString() === 'Car'">
+            <p><strong>{{ getCarDetails(selectedBooking.agencyDetails).carModel }}</strong></p>
+            <p class="text-muted">End Date: {{ getCarDetails(selectedBooking.agencyDetails).endDate }}</p>
+          </div>
+          <div *ngIf="selectedBooking.bookingType.toString() === 'Flight'">
+            <p><strong>Flight: {{ getFlightDetails(selectedBooking.agencyDetails).flightId }}</strong></p>
+            <p class="text-muted">{{ getFlightDetails(selectedBooking.agencyDetails).departureAirport }} → {{ getFlightDetails(selectedBooking.agencyDetails).arrivalAirport }}</p>
+          </div>
+          <div *ngIf="selectedBooking.bookingType.toString() === 'Tour'">
+            <p><strong>{{ getTourDetails(selectedBooking.agencyDetails).tourName }}</strong></p>
+            <p class="text-muted">Destination: {{ getTourDetails(selectedBooking.agencyDetails).destination }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="fas fa-times me-1"></i> Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+    </div>

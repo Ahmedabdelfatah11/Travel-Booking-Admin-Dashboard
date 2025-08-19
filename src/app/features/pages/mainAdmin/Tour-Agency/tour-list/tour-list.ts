@@ -1,28 +1,143 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { SuperadminServices } from '../../../../../core/services/superadmin-services';
+
+declare var bootstrap: any;
 
 @Component({
   selector: 'app-tour-list',
-  imports: [CommonModule],
+  standalone: true,
+  imports: [CommonModule, FormsModule],
   templateUrl: './tour-list.html',
-  styleUrl: './tour-list.css'
+  styleUrls: ['./tour-list.css']
 })
-export class TourList {
-  tours: any[] = [
-    { id: 110, image: 'assets/imgs/tour1.jpg', title: 'Visit', country: 'USA', duration: '1 Day', cost: '100$', status: 'Active' },
-    { id: 120, image: 'assets/imgs/tour2.jpg', title: 'Business Tour', country: 'UAE', duration: '3 days', cost: '350$', status: 'Expired' },
-    { id: 212, image: 'assets/imgs/tour3.jpg', title: 'Vacational Tour', country: 'Canada', duration: '1 Week', cost: '200$', status: 'Draft' },
-    { id: 214, image: 'assets/imgs/tour4.jpg', title: 'Business Tour', country: 'Paris', duration: '4 Days', cost: '300$', status: 'Featured' },
-    { id: 215, image: 'assets/imgs/tour5.jpg', title: 'Vacational Tour', country: 'USA', duration: '1 Day', cost: '100$', status: 'Featured' },
-  ];
+export class TourList implements OnInit {
+  companies: any[] = []; // Initialize as empty array
+  loading = true;
+  selectedCompany: any = {};
+  selectedFile: File | null = null;
+  error: string = '';
 
-  getStatusClass(status: string): string {
-    switch (status) {
-      case 'Active': return 'badge bg-success';
-      case 'Expired': return 'badge bg-danger';
-      case 'Draft': return 'badge bg-warning';
-      case 'Featured': return 'badge bg-primary';
-      default: return 'badge bg-secondary';
+  constructor(private superadminService: SuperadminServices,private cd: ChangeDetectorRef) {}
+
+  ngOnInit(): void {
+    this.loadCompanies();
+  }
+
+  loadCompanies() {
+    this.loading = true;
+    this.error = '';
+    
+    // Use the correct method to get tour companies
+    this.superadminService.getAllTourCompanies().subscribe({
+      next: (response: any) => {
+        console.log('API Response:', response);
+        
+        // Handle the response structure properly
+        if (response && response.data) {
+          this.companies = response.data;
+        } else if (Array.isArray(response)) {
+          this.companies = response;
+        } else {
+          this.companies = [];
+          this.error = 'Invalid response format';
+        }
+        
+        this.loading = false;
+        this.cd.detectChanges();
+
+      },
+      error: (err) => {
+        console.error('Error fetching companies:', err);
+        this.companies = []; // Ensure companies is always an array
+        this.loading = false;
+        this.error = 'Failed to load companies. Please try again.';
+        this.cd.detectChanges();
+      }
+    });
+  }
+
+  deleteCompany(id: number) {
+    if (!confirm('Are you sure you want to delete this company?')) return;
+
+    this.superadminService.deleteTourCompany(id).subscribe({
+      next: () => {
+        this.companies = this.companies.filter(c => c.id !== id);
+        alert('Company deleted successfully');
+      },
+      error: (err) => {
+        console.error('Error deleting company:', err);
+        alert('Failed to delete company: ' + (err.error?.message || err.message || 'Unknown error'));
+      }
+    });
+  }
+
+  openUpdateModal(company: any) {
+    this.selectedCompany = { ...company };
+    this.selectedFile = null; // Reset file selection
+    
+    const modalEl = document.getElementById('updateModal');
+    if (modalEl) {
+      const modal = new bootstrap.Modal(modalEl);
+      modal.show();
     }
+  }
+
+  onFileChange(event: any) {
+    const file = event.target.files?.[0];
+    this.selectedFile = file || null;
+  }
+
+  updateCompany() {
+    if (!this.selectedCompany.id) {
+      alert('Invalid company selected');
+      return;
+    }
+
+    // Prepare the update data
+    const updatedData: any = {
+      id: this.selectedCompany.id,
+      name: this.selectedCompany.name,
+      description: this.selectedCompany.description,
+      location: this.selectedCompany.location,
+      rating: this.selectedCompany.rating,
+      adminId: this.selectedCompany.adminId
+    };
+
+    // Add image if selected
+    if (this.selectedFile) {
+      updatedData.image = this.selectedFile;
+    }
+
+    this.superadminService.updateTourCompany(this.selectedCompany.id, updatedData).subscribe({
+      next: () => {
+        alert('Company updated successfully');
+        this.loadCompanies(); // Reload the list
+        this.closeModal();
+      },
+      error: (err) => {
+        console.error('Error updating company:', err);
+        alert('Failed to update company: ' + (err.error?.message || err.message || 'Unknown error'));
+      }
+    });
+  }
+
+  private closeModal() {
+    const modalEl = document.getElementById('updateModal');
+    if (modalEl) {
+      const modal = bootstrap.Modal.getInstance(modalEl);
+      if (modal) {
+        modal.hide();
+      }
+    }
+    // Reset form
+    this.selectedCompany = {};
+    this.selectedFile = null;
+  }
+
+  // Track by function for better performance
+  trackByCompanyId(index: number, company: any): number {
+    return company.id;
   }
 }

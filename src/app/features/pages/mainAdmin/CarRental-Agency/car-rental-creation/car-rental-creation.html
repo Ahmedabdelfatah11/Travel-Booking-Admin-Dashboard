@@ -1,1 +1,278 @@
-<p>car-rental-creation works!</p>
+<div class="container-fluid py-4">
+  <!-- Header Section -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card shadow-sm border-0 bg-gradient-primary text-white">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h2 class="fw-bold mb-1">
+                <i class="fas fa-car me-2"></i>
+                Create New Car Rental Company
+              </h2>
+              <p class="mb-0 opacity-75">Add a new car rental company to the system</p>
+            </div>
+            <button 
+              class="btn btn-light"
+              (click)="onCancel()"
+            >
+              <i class="fas fa-arrow-left me-2"></i>
+              Back to List
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success/Error Messages -->
+  <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="fas fa-check-circle me-2"></i>
+    {{ successMessage }}
+    <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+  </div>
+
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="fas fa-exclamation-triangle me-2"></i>
+    {{ errorMessage }}
+    <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+  </div>
+
+  <!-- Form Section -->
+  <div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-6">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-light">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-info-circle me-2"></i>
+            Company Information
+          </h5>
+        </div>
+        <div class="card-body p-4">
+          <form [formGroup]="carRentalForm" (ngSubmit)="onSubmit()">
+            
+            <!-- Company Name -->
+            <div class="mb-3">
+              <label for="name" class="form-label fw-semibold">
+                Company Name <span class="text-danger">*</span>
+              </label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-building text-muted"></i>
+                </span>
+                <input
+                  type="text"
+                  id="name"
+                  class="form-control"
+                  [class.is-invalid]="isFieldInvalid('name')"
+                  formControlName="name"
+                  placeholder="Enter company name"
+                />
+              </div>
+              <div *ngIf="isFieldInvalid('name')" class="invalid-feedback">
+                {{ getFieldError('name') }}
+              </div>
+            </div>
+
+            <!-- Location -->
+            <div class="mb-3">
+              <label for="location" class="form-label fw-semibold">
+                Location <span class="text-danger">*</span>
+              </label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-map-marker-alt text-muted"></i>
+                </span>
+                <input
+                  type="text"
+                  id="location"
+                  class="form-control"
+                  [class.is-invalid]="isFieldInvalid('location')"
+                  formControlName="location"
+                  placeholder="e.g., New York, NY"
+                />
+              </div>
+              <div *ngIf="isFieldInvalid('location')" class="invalid-feedback">
+                {{ getFieldError('location') }}
+              </div>
+            </div>
+
+            <!-- Description -->
+            <div class="mb-3">
+              <label for="description" class="form-label fw-semibold">
+                Description
+              </label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-align-left text-muted"></i>
+                </span>
+                <textarea
+                  id="description"
+                  class="form-control"
+                  [class.is-invalid]="isFieldInvalid('description')"
+                  formControlName="description"
+                  placeholder="Brief description of the company"
+                  rows="3"
+                ></textarea>
+              </div>
+              <div *ngIf="isFieldInvalid('description')" class="invalid-feedback">
+                {{ getFieldError('description') }}
+              </div>
+              <small class="form-text text-muted">Optional - Maximum 500 characters</small>
+            </div>
+
+            <!-- Rating -->
+            <div class="mb-3">
+              <label for="rating" class="form-label fw-semibold">
+                Rating
+              </label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-star text-muted"></i>
+                </span>
+                <select
+                  id="rating"
+                  class="form-select"
+                  [class.is-invalid]="isFieldInvalid('rating')"
+                  formControlName="rating"
+                >
+                  <option value="">Select Rating</option>
+                  <option value="1">1 Star</option>
+                  <option value="2">2 Stars</option>
+                  <option value="3">3 Stars</option>
+                  <option value="4">4 Stars</option>
+                  <option value="5">5 Stars</option>
+                </select>
+              </div>
+              <div *ngIf="isFieldInvalid('rating')" class="invalid-feedback">
+                {{ getFieldError('rating') }}
+              </div>
+              <small class="form-text text-muted">Optional - Company rating out of 5</small>
+            </div>
+
+            <!-- Admin Assignment -->
+            <div class="mb-4">
+              <label for="adminId" class="form-label fw-semibold">
+                Assign Admin <span class="text-danger">*</span>
+              </label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-user-shield text-muted"></i>
+                </span>
+                <select
+                  id="adminId"
+                  class="form-select"
+                  [class.is-invalid]="isFieldInvalid('adminId')"
+                  formControlName="adminId"
+                  [disabled]="isLoadingAdmins"
+                >
+                  <option value="">
+                    {{ isLoadingAdmins ? 'Loading admins...' : 'Select an admin' }}
+                  </option>
+                  <option *ngFor="let admin of admins" [value]="admin.id">
+                    {{ admin.userName }} - {{ admin.email }}
+                  </option>
+                </select>
+              </div>
+              <div *ngIf="isFieldInvalid('adminId')" class="invalid-feedback">
+                {{ getFieldError('adminId') }}
+              </div>
+              <small class="form-text text-muted">Select an admin to manage this car rental company</small>
+            </div>
+
+            <!-- Image Upload -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold">
+                Company Image
+              </label>
+              
+              <!-- Image Upload Area -->
+              <div *ngIf="!imagePreview" 
+                   class="border rounded p-4 text-center bg-light border-dashed"
+                   (click)="triggerFileInput()"
+                   style="cursor: pointer;">
+                <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-2"></i>
+                <p class="mb-2">Click to upload company image</p>
+                <small class="text-muted">PNG, JPG or JPEG (Max 5MB)</small>
+              </div>
+
+              <!-- Image Preview -->
+              <div *ngIf="imagePreview" class="position-relative">
+                <img [src]="imagePreview" alt="Preview" class="image-preview rounded shadow-sm">
+                <button 
+                  type="button" 
+                  class="btn btn-danger btn-sm position-absolute top-0 end-0 m-2"
+                  (click)="removeImage()"
+                  title="Remove image"
+                >
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+
+              <input
+                type="file"
+                id="imageInput"
+                class="d-none"
+                accept="image/*"
+                (change)="onImageSelected($event)"
+              />
+            </div>
+
+            <!-- Form Actions -->
+            <div class="d-flex gap-3 justify-content-end">
+              <button 
+                type="button" 
+                class="btn btn-outline-secondary"
+                (click)="onCancel()"
+                [disabled]="isLoading"
+              >
+                <i class="fas fa-times me-2"></i>
+                Cancel
+              </button>
+              <button 
+                type="submit" 
+                class="btn btn-primary"
+                [disabled]="isLoading || carRentalForm.invalid"
+              >
+                <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+                <i *ngIf="!isLoading" class="fas fa-save me-2"></i>
+                {{ isLoading ? 'Creating...' : 'Create Company' }}
+              </button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+
+      <!-- Form Summary Card -->
+      <div class="card shadow-sm border-0 mt-4">
+        <div class="card-header bg-light">
+          <h6 class="card-title mb-0">
+            <i class="fas fa-info me-2"></i>
+            Required Information
+          </h6>
+        </div>
+        <div class="card-body">
+          <ul class="list-unstyled mb-0">
+            <li class="mb-2">
+              <i class="fas fa-check-circle text-success me-2"></i>
+              Company name and location are required
+            </li>
+            <li class="mb-2">
+              <i class="fas fa-check-circle text-success me-2"></i>
+              You must assign an admin to manage the company
+            </li>
+            <li class="mb-2">
+              <i class="fas fa-info-circle text-info me-2"></i>
+              Description and rating are optional but recommended
+            </li>
+            <li>
+              <i class="fas fa-info-circle text-info me-2"></i>
+              Company image helps with identification (optional)
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

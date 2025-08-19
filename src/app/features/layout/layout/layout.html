@@ -44,7 +44,8 @@
                             <div class="collapse" id="collapseLayouts" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordion">
                                 <nav class="sb-sidenav-menu-nested nav">
                                     <a class="nav-link"  routerLink="/users">List</a>
-                                    <a class="nav-link"  routerLink="/users/create">Create</a>
+                                   <a class="nav-link"  routerLink="/users/create">Create</a>
+
                                 </nav>
                                 </div>
 
@@ -109,6 +110,9 @@
                                 <nav class="sb-sidenav-menu-nested nav">
                                     <a class="nav-link" routerLink="/car/create">Create</a>
                                     <a class="nav-link" routerLink="/car">All</a>
+
+                                     <a class="nav-link" routerLink="car/edit/:id">Edite</a>
+
                                 </nav>
                                 </div>
 
@@ -129,7 +133,7 @@
                             <div class="collapse" id="Flight" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordion">
                                 <nav class="sb-sidenav-menu-nested nav">
                                     <a class="nav-link" routerLink="/flight/create">Create</a>
-                                    <a class="nav-link" routerLink="/car">All</a>
+                                    <a class="nav-link" routerLink="/flight">All</a>
                                 </nav>
                                 </div>
                             }
@@ -159,9 +163,18 @@
                                 <div class="sb-nav-link-icon"><i class="fas fa-sync-alt"></i></div>
                                 Reviews
                             </a>
-                          <a class="nav-link"  routerLink="/wishlist">
+
+                             <a class="nav-link"  routerLink="/favorites">
                                 <div class="sb-nav-link-icon"><i class="fa-solid fa-heart"></i></div>
-                                Wishlist
+                                favorites
+                            </a>
+                          <a class="nav-link"  routerLink="hotel/hotel:id">
+                                <div class="sb-nav-link-icon"><i class="fa-solid fa-heart"></i></div>
+                                favorites -Hotel
+                            </a>
+                             <a class="nav-link"  routerLink="tour/tour:id">
+                                <div class="sb-nav-link-icon"><i class="fa-solid fa-heart"></i></div>
+                                favorites -Tour
                             </a>
                           <a class="nav-link"  routerLink="/settings">
                                 <div class="sb-nav-link-icon"><i class="fa-solid fa-gear"></i></div>

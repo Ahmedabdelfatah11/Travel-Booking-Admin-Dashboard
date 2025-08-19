@@ -1,0 +1,489 @@
+<!-- favorites-list.component.html -->
+<div class="favorites-container">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h2 class="page-title">
+          <i class="fas fa-heart text-danger me-2"></i>
+          Favorites
+        </h2>
+        <p class="page-subtitle text-muted">
+          Manage and monitor your favorite destinations
+        </p>
+      </div>
+      <div class="header-actions">
+        <button 
+          class="btn btn-outline-primary btn-sm"
+          (click)="refresh()"
+          [disabled]="loading">
+          <i class="fas fa-sync-alt me-1" [class.fa-spin]="loading"></i>
+          Update
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="row mb-4">
+    <div class="col-md-3 col-sm-6 mb-3">
+      <div class="stats-card">
+        <div class="stats-icon bg-primary">
+          <i class="fas fa-heart"></i>
+        </div>
+        <div class="stats-content">
+          <h4>{{ filteredFavorites.length }}</h4>
+          <p>Total Favorites</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+      <div class="stats-card">
+        <div class="stats-icon bg-success">
+          <i class="fas fa-hotel"></i>
+        </div>
+        <div class="stats-content">
+          <h4>{{ (filteredFavorites | json | json).split('"companyType":"hotel"').length - 1 }}</h4>
+          <p>Hotel</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+      <div class="stats-card">
+        <div class="stats-icon bg-info">
+          <i class="fas fa-map-marked-alt"></i>
+        </div>
+        <div class="stats-content">
+          <h4>{{ (filteredFavorites | json | json).split('"companyType":"tour"').length - 1 }}</h4>
+          <p>Tour</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+      <div class="stats-card">
+        <div class="stats-icon bg-warning">
+          <i class="fas fa-check-square"></i>
+        </div>
+        <div class="stats-content">
+          <h4>{{ selectedItems.size }}</h4>
+          <p>Selected</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters and Controls -->
+  <div class="filters-section">
+    <div class="row align-items-center">
+      <!-- Search -->
+      <div class="col-lg-4 col-md-6 mb-3">
+        <div class="search-box">
+          <div class="input-group">
+            <span class="input-group-text">
+              <i class="fas fa-search"></i>
+            </span>
+            <input 
+              type="text" 
+              class="form-control" 
+              placeholder="Search..."
+              [(ngModel)]="searchTerm"
+              (input)="onSearch()">
+            <button 
+              class="btn btn-outline-secondary" 
+              type="button"
+              *ngIf="searchTerm"
+              (click)="clearSearch()">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Company Type Filter -->
+      <div class="col-lg-2 col-md-3 mb-3">
+        <select 
+          class="form-select"
+          [(ngModel)]="selectedCompanyType"
+          (change)="onFilterChange()">
+          <option *ngFor="let type of companyTypes" [value]="type.value">
+            {{ type.label }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Sort -->
+      <div class="col-lg-2 col-md-3 mb-3">
+        <select 
+          class="form-select"
+          [(ngModel)]="sortBy"
+          (change)="onFilterChange()">
+          <option *ngFor="let sort of sortOptions" [value]="sort.value">
+            {{ sort.label }}
+          </option>
+        </select>
+      </div>
+
+      <!-- View Mode -->
+      <div class="col-lg-2 col-md-6 mb-3">
+        <div class="btn-group w-100" role="group">
+          <input 
+            type="radio" 
+            class="btn-check" 
+            id="grid-view" 
+            [(ngModel)]="viewMode" 
+            value="grid"
+            (change)="onFilterChange()">
+          <label class="btn btn-outline-secondary" for="grid-view">
+            <i class="fas fa-th"></i>
+          </label>
+          <input 
+            type="radio" 
+            class="btn-check" 
+            id="list-view" 
+            [(ngModel)]="viewMode" 
+            value="list"
+            (change)="onFilterChange()">
+          <label class="btn btn-outline-secondary" for="list-view">
+            <i class="fas fa-list"></i>
+          </label>
+        </div>
+      </div>
+
+      <!-- Bulk Actions -->
+      <div class="col-lg-2 col-md-6 mb-3">
+        <div class="dropdown">
+          <button 
+            class="btn btn-outline-danger dropdown-toggle w-100" 
+            type="button"
+            data-bs-toggle="dropdown"
+            [disabled]="selectedItems.size === 0">
+            <i class="fas fa-trash me-1"></i>
+            Process
+          </button>
+          <ul class="dropdown-menu">
+            <li>
+              <button 
+                class="dropdown-item" 
+                (click)="removeSelectedItems()"
+                [disabled]="selectedItems.size === 0">
+                <i class="fas fa-trash text-danger me-2"></i>
+                Delete ({{ selectedItems.size }})
+              </button>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading favorites...</span>
+    </div>
+    <p class="mt-2 text-muted">Loading your favorites...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="alert alert-danger" role="alert">
+    <i class="fas fa-exclamation-triangle me-2"></i>
+    {{ error }}
+    <button class="btn btn-sm btn-outline-danger ms-2" (click)="loadFavorites()">
+      Reload
+    </button>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && !error && filteredFavorites.length === 0" class="empty-state">
+    <div class="empty-illustration">
+      <i class="fas fa-heart-broken"></i>
+    </div>
+    <h4>No Favorites Found</h4>
+    <p class="text-muted">
+      <span *ngIf="searchTerm || selectedCompanyType !== 'all'">
+        No results found
+      </span>
+      <span *ngIf="!searchTerm && selectedCompanyType === 'all'">
+        No favorites have been added
+      </span>
+    </p>
+    <button 
+      *ngIf="searchTerm || selectedCompanyType !== 'all'" 
+      class="btn btn-outline-primary"
+      (click)="searchTerm = ''; selectedCompanyType = 'all'; onFilterChange()">
+      <i class="fas fa-times me-1"></i>
+      Clear Filters
+    </button>
+  </div>
+
+  <!-- Favorites Content -->
+  <div *ngIf="!loading && !error && filteredFavorites.length > 0">
+    <!-- Bulk Selection Header -->
+    <div class="bulk-selection-header" *ngIf="filteredFavorites.length > 0">
+      <div class="form-check">
+        <input 
+          class="form-check-input" 
+          type="checkbox" 
+          id="selectAll"
+          [checked]="selectAll"
+          (change)="toggleSelectAll()">
+        <label class="form-check-label" for="selectAll">
+          <span *ngIf="!selectAll">Select all</span>
+          <span *ngIf="selectAll">Unselect all</span>
+          <small class="text-muted">({{ filteredFavorites.length }} selected)</small>
+        </label>
+      </div>
+    </div>
+
+    <!-- Grid View -->
+    <div *ngIf="viewMode === 'grid'" class="row">
+      <div 
+        *ngFor="let favorite of displayItems" 
+        class="col-xl-3 col-lg-4 col-md-6 col-sm-12 mb-4">
+        <div class="favorite-card" [class.selected]="isSelected(favorite.id)">
+          <!-- Selection Checkbox -->
+          <div class="card-selection">
+            <div class="form-check">
+              <input 
+                class="form-check-input" 
+                type="checkbox" 
+                [id]="'fav-' + favorite.id"
+                [checked]="isSelected(favorite.id)"
+                (change)="toggleSelection(favorite.id)">
+            </div>
+          </div>
+
+          <!-- Company Image -->
+          <div class="card-image" (click)="viewCompanyDetails(favorite)">
+            <img 
+              [src]="favorite.companyImageUrl || '/assets/images/placeholder-company.jpg'" 
+              [alt]="favorite.companyName"
+              class="img-fluid"
+              onerror="this.src='/assets/images/placeholder-company.jpg'">
+            <div class="company-type-badge">
+              <i [class]="getCompanyTypeIcon(favorite.companyType)"></i>
+              {{ getCompanyTypeLabel(favorite.companyType) }}
+            </div>
+          </div>
+
+          <!-- Card Content -->
+          <div class="card-content">
+            <h5 class="company-name" [title]="favorite.companyName">
+              {{ favorite.companyName }}
+            </h5>
+            
+            <p class="company-location" *ngIf="favorite.companyLocation">
+              <i class="fas fa-map-marker-alt text-muted me-1"></i>
+              {{ favorite.companyLocation }}
+            </p>
+
+            <p class="company-description" *ngIf="favorite.companyDescription">
+              {{ favorite.companyDescription | slice:0:100 }}
+              <span *ngIf="favorite.companyDescription && favorite.companyDescription.length > 100">...</span>
+            </p>
+
+            <div class="card-meta">
+              <small class="text-muted">
+                <i class="fas fa-calendar-alt me-1"></i>
+                Added at {{ formatDate(favorite.createdAt) }}
+              </small>
+            </div>
+          </div>
+
+          <!-- Card Actions -->
+          <div class="card-actions">
+            <button 
+              class="btn btn-sm btn-outline-primary flex-fill me-2"
+              (click)="viewCompanyDetails(favorite)"
+              title="View details">
+              <i class="fas fa-eye me-1"></i>
+              View
+            </button>
+            <button 
+              class="btn btn-sm btn-outline-danger"
+              (click)="removeFavorite(favorite.id, $event)"
+              title="Remove Favorite">
+              <i class="fas fa-heart-broken"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- List View -->
+    <div *ngIf="viewMode === 'list'" class="favorites-list">
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead class="table-light">
+            <tr>
+              <th scope="col" style="width: 40px;">
+                <div class="form-check">
+                  <input 
+                    class="form-check-input" 
+                    type="checkbox" 
+                    id="selectAllTable"
+                    [checked]="selectAll"
+                    (change)="toggleSelectAll()">
+                </div>
+              </th>
+              <th scope="col">Company</th>
+              <th scope="col">Type</th>
+              <th scope="col">Location</th>
+              <th scope="col">Date</th>
+              <th scope="col" style="width: 120px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr 
+              *ngFor="let favorite of displayItems" 
+              [class.table-active]="isSelected(favorite.id)">
+              <!-- Selection -->
+              <td>
+                <div class="form-check">
+                  <input 
+                    class="form-check-input" 
+                    type="checkbox" 
+                    [id]="'list-fav-' + favorite.id"
+                    [checked]="isSelected(favorite.id)"
+                    (change)="toggleSelection(favorite.id)">
+                </div>
+              </td>
+
+              <!-- Company Info -->
+              <td>
+                <div class="d-flex align-items-center">
+                  <img 
+                    [src]="favorite.companyImageUrl || '/assets/images/placeholder-company.jpg'" 
+                    [alt]="favorite.companyName"
+                    class="company-avatar me-3"
+                    onerror="this.src='/assets/images/placeholder-company.jpg'">
+                  <div>
+                    <h6 class="mb-0">{{ favorite.companyName }}</h6>
+                    <small class="text-muted" *ngIf="favorite.companyDescription">
+                      {{ favorite.companyDescription | slice:0:60 }}
+                      <span *ngIf="favorite.companyDescription && favorite.companyDescription.length > 60">...</span>
+                    </small>
+                  </div>
+                </div>
+              </td>
+
+              <!-- Company Type -->
+              <td>
+                <span class="badge company-type-badge">
+                  <i [class]="getCompanyTypeIcon(favorite.companyType)" class="me-1"></i>
+                  {{ getCompanyTypeLabel(favorite.companyType) }}
+                </span>
+              </td>
+
+              <!-- Location -->
+              <td>
+                <span *ngIf="favorite.companyLocation" class="text-muted">
+                  <i class="fas fa-map-marker-alt me-1"></i>
+                  {{ favorite.companyLocation }}
+                </span>
+                <span *ngIf="!favorite.companyLocation" class="text-muted">Not specified</span>
+              </td>
+
+              <!-- Date Added -->
+              <td>
+                <small class="text-muted">
+                  {{ formatDate(favorite.createdAt) }}
+                </small>
+              </td>
+
+              <!-- Actions -->
+              <td>
+                <div class="btn-group btn-group-sm">
+                  <button 
+                    class="btn btn-outline-primary btn-sm"
+                    (click)="viewCompanyDetails(favorite)"
+                    title="Show details">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button 
+                    class="btn btn-outline-danger btn-sm"
+                    (click)="removeFavorite(favorite.id, $event)"
+                    title="Remove from favorites">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <nav aria-label="Favorites pagination" *ngIf="totalPages > 1">
+      <ul class="pagination pagination-sm justify-content-center">
+        <li class="page-item" [class.disabled]="currentPage === 1">
+          <button 
+            class="page-link" 
+            (click)="changePage(currentPage - 1)"
+            [disabled]="currentPage === 1">
+            <i class="fas fa-chevron-right"></i>
+            Previous
+          </button>
+        </li>
+
+        <li 
+          *ngFor="let page of pageNumbers" 
+          class="page-item" 
+          [class.active]="page === currentPage">
+          <button 
+            class="page-link" 
+            (click)="changePage(page)">
+            {{ page }}
+          </button>
+        </li>
+
+        <li class="page-item" [class.disabled]="currentPage === totalPages">
+          <button 
+            class="page-link" 
+            (click)="changePage(currentPage + 1)"
+            [disabled]="currentPage === totalPages">
+            Next
+            <i class="fas fa-chevron-left"></i>
+          </button>
+        </li>
+      </ul>
+
+      <div class="pagination-info text-center mt-2">
+        <small class="text-muted">
+          Page {{ currentPage }} of {{ totalPages }} 
+          ({{ filteredFavorites.length }} items)
+        </small>
+      </div>
+    </nav>
+  </div>
+</div>
+
+<!-- Toast Notification -->
+<div 
+  class="toast-container position-fixed bottom-0 end-0 p-3" 
+  *ngIf="toast.show">
+  <div 
+    class="toast show" 
+    [class.text-bg-success]="toast.type === 'success'"
+    [class.text-bg-danger]="toast.type === 'error'"
+    [class.text-bg-info]="toast.type === 'info'"
+    role="alert">
+    <div class="d-flex">
+      <div class="toast-body">
+        <i 
+          class="me-2"
+          [class.fas]="true"
+          [class.fa-check-circle]="toast.type === 'success'"
+          [class.fa-exclamation-circle]="toast.type === 'error'"
+          [class.fa-info-circle]="toast.type === 'info'"></i>
+        {{ toast.message }}
+      </div>
+      <button 
+        type="button" 
+        class="btn-close btn-close-white me-2 m-auto" 
+        (click)="hideToast()">
+      </button>
+    </div>
+  </div>
+</div>
