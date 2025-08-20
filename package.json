@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
+    "start": "ng serve --o",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
@@ -33,7 +33,8 @@
     "@popperjs/core": "^2.11.8",
     "bootstrap": "^5.3.7",
     "express": "^5.1.0",
-    "rxjs": "~7.8.0",
+    "rxjs": "^7.8.2",
+    "rxjs-compat": "^6.6.7",
     "simple-datatables": "^10.0.0",
     "tslib": "^2.3.0"
   },

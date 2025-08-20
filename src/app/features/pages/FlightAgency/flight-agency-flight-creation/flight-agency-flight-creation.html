@@ -1,1 +1,203 @@
-<p>flight-agency-flight-creation works!</p>
+<!-- flight-agency-flight-creation.html -->
+<div class="container">
+  <div class="header">
+    <h1>✈️ Add New Flight</h1>
+    <p>Create a new flight booking option</p>
+  </div>
+
+  <div class="form-container">
+    <!-- Success Message -->
+    <div class="success-message" *ngIf="successMessage">
+      {{ successMessage }}
+    </div>
+    
+    <!-- Error Message -->
+    <div class="error-alert" *ngIf="errorMessage">
+      {{ errorMessage }}
+    </div>
+    
+    <form [formGroup]="flightForm" (ngSubmit)="onSubmit()">
+      <!-- Flight Route Information -->
+      <div class="section-title">
+        🛫 Flight Route
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="departureAirport">Departure Airport <span class="required">*</span></label>
+          <input 
+            type="text" 
+            id="departureAirport" 
+            formControlName="departureAirport"
+            placeholder="e.g., John F. Kennedy International"
+            [class.error]="hasError('departureAirport', 'required') || hasError('departureAirport', 'minlength') || hasError('departureAirport', 'maxlength')">
+          <div class="error-message" *ngIf="departureAirport?.invalid && (departureAirport?.dirty || departureAirport?.touched)">
+            {{ getErrorMessage('departureAirport') }}
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="arrivalAirport">Arrival Airport <span class="required">*</span></label>
+          <input 
+            type="text" 
+            id="arrivalAirport" 
+            formControlName="arrivalAirport"
+            placeholder="e.g., Los Angeles International"
+            [class.error]="hasError('arrivalAirport', 'required') || hasError('arrivalAirport', 'minlength') || hasError('arrivalAirport', 'maxlength')">
+          <div class="error-message" *ngIf="arrivalAirport?.invalid && (arrivalAirport?.dirty || arrivalAirport?.touched)">
+            {{ getErrorMessage('arrivalAirport') }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Flight Schedule -->
+      <div class="section-title">
+        🕒 Flight Schedule
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="departureTime">Departure Time <span class="required">*</span></label>
+          <input 
+            type="datetime-local" 
+            id="departureTime" 
+            formControlName="departureTime"
+            [min]="minDateTime"
+            [class.error]="hasError('departureTime', 'required') || hasError('departureTime', 'futureDate')">
+          <div class="error-message" *ngIf="departureTime?.invalid && (departureTime?.dirty || departureTime?.touched)">
+            {{ getErrorMessage('departureTime') }}
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="arrivalTime">Arrival Time <span class="required">*</span></label>
+          <input 
+            type="datetime-local" 
+            id="arrivalTime" 
+            formControlName="arrivalTime"
+            [min]="minDateTime"
+            [class.error]="hasError('arrivalTime', 'required') || flightForm.hasError('arrivalAfterDeparture')">
+          <div class="error-message" *ngIf="(arrivalTime?.invalid && (arrivalTime?.dirty || arrivalTime?.touched)) || flightForm.hasError('arrivalAfterDeparture')">
+            {{ getErrorMessage('arrivalTime') }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Seat Configuration -->
+      <div class="section-title">
+        💺 Seat Configuration
+      </div>
+      
+      <div class="form-row-three">
+        <div class="form-group">
+          <label for="economySeats">Economy Seats <span class="required">*</span></label>
+          <input 
+            type="number" 
+            id="economySeats" 
+            formControlName="economySeats"
+            placeholder="150"
+            min="0"
+            [class.error]="hasError('economySeats', 'required') || hasError('economySeats', 'min')">
+          <div class="error-message" *ngIf="economySeats?.invalid && (economySeats?.dirty || economySeats?.touched)">
+            {{ getErrorMessage('economySeats') }}
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="businessSeats">Business Seats</label>
+          <input 
+            type="number" 
+            id="businessSeats" 
+            formControlName="businessSeats"
+            placeholder="20"
+            min="0">
+        </div>
+        
+        <div class="form-group">
+          <label for="firstClassSeats">First Class Seats</label>
+          <input 
+            type="number" 
+            id="firstClassSeats" 
+            formControlName="firstClassSeats"
+            placeholder="8"
+            min="0">
+        </div>
+      </div>
+
+      <!-- Pricing -->
+      <div class="section-title">
+        💰 Pricing
+      </div>
+      
+      <div class="form-row-three">
+        <div class="form-group">
+          <label for="economyPrice">Economy Price ($)</label>
+          <input 
+            type="number" 
+            id="economyPrice" 
+            formControlName="economyPrice"
+            placeholder="299.99"
+            min="0"
+            step="0.01">
+        </div>
+        
+        <div class="form-group">
+          <label for="businessPrice">Business Price ($)</label>
+          <input 
+            type="number" 
+            id="businessPrice" 
+            formControlName="businessPrice"
+            placeholder="899.99"
+            min="0"
+            step="0.01">
+        </div>
+        
+        <div class="form-group">
+          <label for="firstClassPrice">First Class Price ($)</label>
+          <input 
+            type="number" 
+            id="firstClassPrice" 
+            formControlName="firstClassPrice"
+            placeholder="1999.99"
+            min="0"
+            step="0.01">
+        </div>
+      </div>
+
+      <!-- Flight Company -->
+      <div class="section-title">
+        🏢 Flight Company
+      </div>
+      
+      <div class="form-group">
+        <label for="flightCompanyId">Flight Company <span class="required">*</span></label>
+        <select 
+          id="flightCompanyId" 
+          formControlName="flightCompanyId"
+          [class.error]="hasError('flightCompanyId', 'required')">
+          <option value="">Select Flight Company</option>
+          <option *ngFor="let company of flightCompanies" [value]="company.id">
+            {{ company.name }}
+          </option>
+        </select>
+        <div class="error-message" *ngIf="flightCompanyId?.invalid && (flightCompanyId?.dirty || flightCompanyId?.touched)">
+          {{ getErrorMessage('flightCompanyId') }}
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div class="loading" *ngIf="isLoading">
+        <div class="spinner"></div>
+        <p>Creating flight...</p>
+      </div>
+
+      <!-- Submit Button -->
+      <button 
+        type="submit" 
+        class="submit-btn" 
+        [disabled]="isLoading">
+        {{ isLoading ? 'Creating...' : 'Create Flight' }}
+      </button>
+    </form>
+  </div>
+</div>
