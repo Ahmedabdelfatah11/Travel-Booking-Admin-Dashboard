@@ -1,1 +1,132 @@
-<p>flight-agency-booking-pending works!</p>
+<div class="pending-bookings-container">
+  <!-- Header Section -->
+  <div class="header">
+    <h1 class="main-title"><i class="bi bi-clock-fill"></i> Pending Flight Bookings</h1>
+    <p class="subtitle">All flight reservations currently awaiting confirmation</p>
+    
+    <!-- Statistics Bar -->
+    <div class="stats-bar">
+      <div class="stat-card pulse">
+        <span class="stat-number">{{ totalBookings }}</span>
+        <span class="stat-label">Total Pending</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-number">{{ formatPrice(totalRevenue) }}</span>
+        <span class="stat-label">Total Value</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-number">{{ formatPrice(averagePrice) }}</span>
+        <span class="stat-label">Average Price</span>
+      </div>
+    </div>
+    
+    <button class="refresh-btn" (click)="refreshBookings()" [disabled]="loading">
+      <span *ngIf="!loading">🔄 Refresh Bookings</span>
+      <span *ngIf="loading">⏳ Loading...</span>
+    </button>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="error" class="error-message">
+    <i class="error-icon">⚠️</i>
+    {{ error }}
+    <button (click)="refreshBookings()" class="retry-btn">Retry</button>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="loading" class="loading-spinner">
+    <div class="spinner"></div>
+    <span>Loading pending bookings...</span>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && pendingBookings.length === 0" class="empty-state">
+    <div class="plane-icon">🕒</div>
+    <h3>No Pending Bookings</h3>
+    <p>There are no pending flight bookings at the moment.</p>
+  </div>
+
+  <!-- Bookings Grid -->
+  <div *ngIf="!loading && pendingBookings.length > 0" class="bookings-grid">
+    <div *ngFor="let booking of pendingBookings; let i = index" 
+         class="booking-card" 
+         [style.animation-delay]="(i * 0.1) + 's'">
+      
+      <!-- Booking Header -->
+      <div class="booking-header">
+        <div class="booking-id">Booking #{{ booking.id }}</div>
+        <div class="booking-status">
+          <span [ngClass]="getStatusClass(booking.status)">
+            {{ getStatusLabel(booking.status) }}
+          </span>
+        </div>
+      </div>
+      
+      <!-- Booking Body -->
+      <div class="booking-body">
+        <!-- Flight Route -->
+        <div class="flight-route">
+          <div class="airport">
+            <div class="airport-code">{{ booking.departureAirport }}</div>
+            <div class="airport-name">Departure</div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="airport">
+            <div class="airport-code">{{ booking.arrivalAirport }}</div>
+            <div class="airport-name">Arrival</div>
+          </div>
+        </div>
+
+        <!-- Flight Details Grid -->
+        <div class="flight-details">
+          <div class="detail-item">
+            <div class="detail-label">Departure</div>
+            <div class="detail-value">{{ formatDate(booking.departureTime) }}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Arrival</div>
+            <div class="detail-value">{{ formatDate(booking.arrivalTime) }}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Duration</div>
+            <div class="detail-value">{{ getFlightDuration(booking.departureTime, booking.arrivalTime) }}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Airline</div>
+            <div class="detail-value">{{ booking.agencyDetails?.airlineName || 'N/A' }}</div>
+          </div>
+        </div>
+
+        <!-- Passenger Information -->
+        <div class="passenger-info">
+          <div class="passenger-email">👤 {{ booking.customerEmail }}</div>
+          <div class="seat-class" [ngClass]="getSeatClassBadge(booking.seatClass)">
+            🎫 {{ getSeatClassLabel(booking.seatClass) }}
+          </div>
+        </div>
+
+        <!-- Payment and Booking Status -->
+        <div class="status-info">
+          <div class="booking-status-detail">
+            <span class="status-label">Booking Status:</span>
+            <span [ngClass]="getStatusClass(booking.status)">
+              {{ getStatusLabel(booking.status) }}
+            </span>
+          </div>
+          <div *ngIf="booking.paymentStatus" class="payment-info">
+            <span class="payment-label">Payment:</span>
+            <span class="payment-status" [ngClass]="'payment-' + booking.paymentStatus?.toLowerCase()">
+              💳 {{ booking.paymentStatus }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Price Section -->
+      <div class="price-section">
+        <div class="price">{{ formatPrice(booking.totalPrice) }}</div>
+        <div class="price-label">Total Amount</div>
+      </div>
+    </div>
+  </div>
+</div>

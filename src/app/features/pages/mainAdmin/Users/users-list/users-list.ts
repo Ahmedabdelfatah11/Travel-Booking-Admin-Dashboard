@@ -28,8 +28,8 @@ isModalOpen = false;
 currentAction: { userId: string; role: string; companyType: string } | null = null;
 
 
-  apiUrl = 'https://localhost:7277/api/SuperAdmin';
-  companyApiUrl='https://localhost:7277/';
+  apiUrl = 'http://pyramigo.runasp.net/api/SuperAdmin';
+  companyApiUrl='http://pyramigo.runasp.net/';
 users = signal<User[]>([]);
   filteredUsers = signal<User[]>([]);
   loading = signal(true);

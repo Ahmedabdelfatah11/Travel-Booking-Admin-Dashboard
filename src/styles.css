@@ -1,20 +1,25 @@
+
 :root {
     --main-color: #a0d9cb;
     --secondary-color: #0eb39d;
-    --third-color:#31dac3;
+    --third-color: #31dac3;
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    --info-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    --warning-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    --danger-gradient: linear-gradient(135deg, #fc466b 0%, #3f5efb 100%);
 }
-.bg-dark,.navbar-dark
-{
+
+.bg-dark,
+.navbar-dark {
     background-color: var(--secondary-color) !important;
 }
 
-.title
-{
+.title {
     font-size: 25px !important;
 }
 
-.sb-nav-link-icon
-{
+.sb-nav-link-icon {
     color: #808080 !important;
 }
 

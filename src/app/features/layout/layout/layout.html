@@ -1,3 +1,4 @@
+
 <div class="sb-nav-fixed">  <!-- or keep class on root -->
         <nav class="sb-topnav navbar navbar-expand bg-light p-0  border-bottom border-1">
             <!-- Navbar Brand-->
@@ -13,7 +14,6 @@
             </form>
             <!-- Navbar-->
             <ul class="navbar-nav ms-auto ms-md-0 me-3 me-lg-4">
-                
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" id="navbarDropdown"  role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-user fa-fw"></i></a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
@@ -31,7 +31,7 @@
                     <div class="sb-sidenav-menu">
                         <div class="nav">
                             <!-- <div class="sb-sidenav-menu-heading">Core</div> -->
-                            <a class="nav-link mt-3" routerLink="admin/dashboard" routerLinkActive="active">
+                            <a class="nav-link mt-3" routerLink="/dashboard" routerLinkActive="active">
                                 <div class="sb-nav-link-icon"><i class="fa-solid fa-house"></i></div>
                                 Dashboard
                             </a>
@@ -44,8 +44,9 @@
                             </a>
                             <div class="collapse" id="collapseLayouts" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordion">
                                 <nav class="sb-sidenav-menu-nested nav">
-                                    <a class="nav-link"  routerLink="/admin/users">List</a>
-                                    <a class="nav-link"  routerLink="/admin/users/create">Create</a>
+                                    <a class="nav-link"  routerLink="/users">List</a>
+                                   <a class="nav-link"  routerLink="/users/create">Create</a>
+
                                 </nav>
                                 </div>
 
@@ -65,8 +66,8 @@
 <!-- Child links handle routing -->
 <div class="collapse" id="Tour" data-bs-parent="#sidenavAccordion">
   <nav class="sb-sidenav-menu-nested nav">
-    <a class="nav-link" routerLink="/admin//tour/create" routerLinkActive="active">Create</a>
-    <a class="nav-link" routerLink="/admin//tour" routerLinkActive="active">All</a>
+    <a class="nav-link" routerLink="/tour/create" routerLinkActive="active">Create</a>
+    <a class="nav-link" routerLink="/tour" routerLinkActive="active">All</a>
   </nav>
 </div>
  }
@@ -87,8 +88,8 @@
                             </a>
                             <div class="collapse" id="Hotel" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordion">
                                 <nav class="sb-sidenav-menu-nested nav">
-                                    <a class="nav-link" routerLink="/admin/hotel/create">Create</a>
-                                    <a class="nav-link" routerLink="/admin/hotel">All</a>
+                                    <a class="nav-link" routerLink="/hotel/create">Create</a>
+                                    <a class="nav-link" routerLink="/hotel">All</a>
                                 </nav>
                                 </div>
                             }
@@ -108,8 +109,11 @@
                             </a>
                             <div class="collapse" id="Car" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordion">
                                 <nav class="sb-sidenav-menu-nested nav">
-                                    <a class="nav-link" routerLink="/admin/car/create">Create</a>
-                                    <a class="nav-link" routerLink="/admin/car">All</a>
+                                    <a class="nav-link" routerLink="/car/create">Create</a>
+                                    <a class="nav-link" routerLink="/car">All</a>
+
+                                     <a class="nav-link" routerLink="car/edit/:id">Edite</a>
+
                                 </nav>
                                 </div>
 
@@ -129,8 +133,8 @@
                             </a>
                             <div class="collapse" id="Flight" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordion">
                                 <nav class="sb-sidenav-menu-nested nav">
-                                    <a class="nav-link" routerLink="/admin/flight/create">Create</a>
-                                    <a class="nav-link" routerLink="/admin/car">All</a>
+                                    <a class="nav-link" routerLink="/flight/create">Create</a>
+                                    <a class="nav-link" routerLink="/flight">All</a>
                                 </nav>
                                 </div>
                             }
@@ -148,23 +152,32 @@
                             </a>
                             <div class="collapse" id="Booking" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordion">
                                 <nav class="sb-sidenav-menu-nested nav">
-                                    <a class="nav-link" routerLink="/admin/booking">All</a>
-                                    <a class="nav-link"  routerLink="/admin/booking/confirmed">Confirmed</a>
-                                    <a class="nav-link"  routerLink="/admin/booking/pending">Pending</a>
-                                    <a class="nav-link"  routerLink="/admin/booking/cancelled">Cancelled</a>
+                                    <a class="nav-link" routerLink="/booking">All</a>
+                                    <a class="nav-link"  routerLink="/booking/confirmed">Confirmed</a>
+                                    <a class="nav-link"  routerLink="/booking/pending">Pending</a>
+                                    <a class="nav-link"  routerLink="/booking/cancelled">Cancelled</a>
                                 </nav>
                                 </div>
 
                                 <!-- Reviews -->
-                          <a class="nav-link"  routerLink="/admin/reviews">
+                          <a class="nav-link"  routerLink="/reviews">
                                 <div class="sb-nav-link-icon"><i class="fas fa-sync-alt"></i></div>
                                 Reviews
                             </a>
-                          <a class="nav-link"  routerLink="/admin/wishlist">
+
+                             <a class="nav-link"  routerLink="/favorites">
                                 <div class="sb-nav-link-icon"><i class="fa-solid fa-heart"></i></div>
-                                Wishlist
+                                favorites
                             </a>
-                          <a class="nav-link"  routerLink="/admin/settings">
+                          <a class="nav-link"  routerLink="hotel/hotel:id">
+                                <div class="sb-nav-link-icon"><i class="fa-solid fa-heart"></i></div>
+                                favorites -Hotel
+                            </a>
+                             <a class="nav-link"  routerLink="tour/tour:id">
+                                <div class="sb-nav-link-icon"><i class="fa-solid fa-heart"></i></div>
+                                favorites -Tour
+                            </a>
+                          <a class="nav-link"  routerLink="/settings">
                                 <div class="sb-nav-link-icon"><i class="fa-solid fa-gear"></i></div>
                                 Setting
                             </a>

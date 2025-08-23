@@ -11,7 +11,7 @@ import { isPlatformBrowser } from '@angular/common';
 })
 export class Auth {
   
-  private baseUrl = 'https://localhost:7277/api/Auth';   
+  private baseUrl = 'http://pyramigo.runasp.net/api/Auth';   
   
   constructor(
     private http: HttpClient,
@@ -119,4 +119,5 @@ export class Auth {
     const roles = this.getRoles();
     return roles.includes(role);
   }
+  
 }

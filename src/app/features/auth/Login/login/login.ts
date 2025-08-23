@@ -3,6 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Auth } from '../../../../core/services/auth';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-login',
@@ -11,7 +12,7 @@ import { Auth } from '../../../../core/services/auth';
   styleUrls: ['./login.css'],
   standalone: true
 })
-export class Login  {
+export class Login {
   auth = inject(Auth);
   router = inject(Router);
   fb = inject(FormBuilder);
@@ -44,14 +45,19 @@ export class Login  {
     const email = this.loginForm.get('email')?.value ?? '';
     const password = this.loginForm.get('password')?.value ?? '';
 
-    this.auth.Login({ email, password }).subscribe({
+    this.auth.Login({ email, password }).pipe(
+      finalize(() => {
+        // سيتم تنفيذ هذا دائماً، سواء نجحت العملية أم فشلت
+        this.isLoading = false;
+      })
+    ).subscribe({
       next: (response) => {
         this.isLoading = false;
 
         const userRoles = response.roles || [];
 
         // Only allow SuperAdmin or TourAdmin
-        const role = userRoles.find(r => ['SuperAdmin', 'TourAdmin','FlightAdmin'].includes(r));
+        const role = userRoles.find(r => ['SuperAdmin', 'TourAdmin', 'FlightAdmin'].includes(r));
         if (!role) {
           this.auth.Logout();
           this.errMessage = 'Access denied. Admin privileges required.';
@@ -62,20 +68,20 @@ export class Login  {
         setTimeout(() => {
           let redirectUrl: string;
 
-switch (role) {
-  case 'SuperAdmin':
-    redirectUrl = '/admin/dashboard';
-    break;
-  case 'TourAdmin':
-    redirectUrl = '/tour-admin/dashboard';
-    break;
-  case 'FlightAdmin':
-    redirectUrl = '/flight-admin/dashboard';
-    break;
-  default:
-    redirectUrl = '/dashboard'; // fallback
-    break;
-}
+          switch (role) {
+            case 'SuperAdmin':
+              redirectUrl = '/admin/dashboard';
+              break;
+            case 'TourAdmin':
+              redirectUrl = '/tour-admin/dashboard';
+              break;
+            case 'FlightAdmin':
+              redirectUrl = '/flight-admin/dashboard';
+              break;
+            default:
+              redirectUrl = '/dashboard'; // fallback
+              break;
+          }
           this.router.navigate([redirectUrl], { replaceUrl: true });
         }, 1000);
       },

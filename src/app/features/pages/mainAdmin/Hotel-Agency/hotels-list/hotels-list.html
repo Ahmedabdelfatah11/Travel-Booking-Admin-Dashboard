@@ -1,1 +1,133 @@
-<p>hotels-list works!</p>
+<div class="container mt-4">
+  <h2 class="mb-4 text-center">Hotel Companies</h2>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="text-center">
+    <div class="spinner-border text-primary"></div>
+    <p>Loading companies...</p>
+  </div>
+
+  <!-- Error message -->
+  <div *ngIf="error && !loading" class="alert alert-danger text-center">
+    {{ error }}
+    <button class="btn btn-sm btn-outline-danger ms-2" (click)="loadCompanies()">Retry</button>
+  </div>
+
+  <!-- No companies -->
+  <div *ngIf="!loading && !error && companies && companies.length === 0" class="alert alert-warning text-center">
+    No companies found.
+  </div>
+
+  <!-- Grid -->
+  <div class="row" *ngIf="!loading && !error && companies && companies.length > 0">
+    <div class="col-md-4 mb-4" *ngFor="let company of companies; trackBy: trackByCompanyId">
+      <div class="card shadow-sm h-100">
+        <img [src]="company.imageUrl || 'https://via.placeholder.com/400x200'"
+             class="card-img-top"
+             [alt]="company.name"
+             style="height: 200px; object-fit: cover;">
+
+        <div class="card-body">
+          <h5 class="card-title">{{ company.name }}</h5>
+          <p class="card-text">{{ company.description || 'No description available.' }}</p>
+          <p><strong>Location:</strong> {{ company.location || 'Unknown' }}</p>
+          <p><strong>Rating:</strong> ⭐ {{ company.rating || 0 }}</p>
+        </div>
+
+        <!-- Hotel section (if available) -->
+<div *ngIf="company.hotels?.length > 0" class="px-3">
+              <h6 class="fw-bold text-primary">Available Hotels:</h6>
+          <ul class="list-unstyled">
+            <li *ngFor="let hotel of company.hotels" class="mb-1">
+              <small>• {{ hotel.name }} - {{ hotel.price | currency }}</small>
+            </li>
+          </ul>
+        </div>
+
+        <div class="card-footer d-flex justify-content-between">
+          <button class="btn btn-warning btn-sm" (click)="openUpdateModal(company)">
+            <i class="fas fa-edit"></i> Update
+          </button>
+          <button class="btn btn-danger btn-sm" (click)="deleteCompany(company.id)">
+            <i class="fas fa-trash"></i> Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal for Update -->
+<div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="updateModalLabel">Update Company</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form #updateForm="ngForm">
+          <div class="mb-3">
+            <label class="form-label">Name *</label>
+            <input 
+              type="text" 
+              [(ngModel)]="selectedCompany.name" 
+              name="name" 
+              class="form-control"
+              required>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Description</label>
+            <textarea 
+              [(ngModel)]="selectedCompany.description" 
+              name="description" 
+              class="form-control"
+              rows="3">
+            </textarea>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Location</label>
+            <input 
+              type="text" 
+              [(ngModel)]="selectedCompany.location" 
+              name="location" 
+              class="form-control">
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Rating</label>
+            <input 
+              type="number" 
+              [(ngModel)]="selectedCompany.rating" 
+              name="rating" 
+              class="form-control"
+              min="0" 
+              max="5">
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Image</label>
+            <input 
+              type="file" 
+              (change)="onFileChange($event)" 
+              class="form-control"
+              accept="image/*">
+            <small class="form-text text-muted">Leave empty to keep current image</small>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button 
+          type="button" 
+          class="btn btn-success" 
+          (click)="updateCompany()"
+          [disabled]="!selectedCompany.name">
+          Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

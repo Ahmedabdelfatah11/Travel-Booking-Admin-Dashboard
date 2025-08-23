@@ -12,5 +12,6 @@ export default defineConfig({
   resolve: {
     conditions: ['angular'],
   },
+
   appType: 'spa', // 👈 Enables deep link fallback
 });

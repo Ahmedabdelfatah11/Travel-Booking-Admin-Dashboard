@@ -16,7 +16,7 @@ interface ImagePreview {
 @Component({
   selector: 'app-tour-edit',
   templateUrl: './tour-edit.html',
-  styleUrls: ['./tour-edit.ts'],
+  styleUrls: ['./tour-edit.css'],
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule]
 })

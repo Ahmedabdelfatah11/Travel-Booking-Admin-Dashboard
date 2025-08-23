@@ -1,24 +1,32 @@
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { catchError, Observable, retry, throwError } from 'rxjs';
-import { Flight, FlightCompanyDto, FlightCreated, FlightDetailsDTO } from '../../shared/Interfaces/iflight';
+import { Flight, FlightCompanyDto, FlightCreated, FlightDashboardStats, FlightDetailsDTO } from '../../shared/Interfaces/iflight';
 
 @Injectable({
   providedIn: 'root'
 })
 export class FlightService {
-  private apiUrl = 'https://localhost:7277/flight';
-  public flightCompanyApiUrl = 'https://localhost:7277/flightcompany';
+  private apiUrl = 'http://pyramigo.runasp.net/flight';
+  public flightCompanyApiUrl = 'http://pyramigo.runasp.net/flightcompany';
 
   constructor(private http: HttpClient) { }
 
   private getAuthHeaders(): HttpHeaders {
     const token = localStorage.getItem('authToken');
     return new HttpHeaders({
-      // 'Content-Type': 'application/json',
       'Authorization': token ? `Bearer ${token}` : ''
     });
   }
+
+  private getJsonAuthHeaders(): HttpHeaders {
+    const token = localStorage.getItem('authToken');
+    return new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': token ? `Bearer ${token}` : ''
+    });
+  }
+
   // GET: All tours
   getFlights(): Observable<FlightDetailsDTO> {
     return this.http.get<FlightDetailsDTO>(this.apiUrl, { headers: this.getAuthHeaders() })
@@ -37,9 +45,9 @@ export class FlightService {
   }
 
   // PUT: Update tour
-  updateFlight(id: number, tourData: FormData): Observable<void> {
-    return this.http.put<void>(`${this.apiUrl}/${id}`, tourData, {
-      headers: this.getAuthHeaders()
+  updateFlight(id: number, flightData: Flight): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/${id}`, flightData, {
+      headers: this.getJsonAuthHeaders()
     }).pipe(catchError(this.handleError));
   }
 
@@ -79,6 +87,7 @@ export class FlightService {
 
     return throwError(() => new Error(`${errorMsg} | Details: ${errorDetails}`));
   }
+  
   // GET: Flights for current TourAdmin
   getMyFlights(): Observable<FlightCompanyDto[]> {
     const url = `${this.flightCompanyApiUrl}/my-companies`;
@@ -86,5 +95,9 @@ export class FlightService {
     return this.http.get<FlightCompanyDto[]>(url, { headers: this.getAuthHeaders() })
       .pipe(catchError(this.handleError));
   }
-
+  getDashboardStats(): Observable<FlightDashboardStats> {
+  const url = `${this.flightCompanyApiUrl}/dashboard`;
+  return this.http.get<FlightDashboardStats>(url, { headers: this.getAuthHeaders() })
+    .pipe(catchError(this.handleError));
+}
 }

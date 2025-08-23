@@ -1,0 +1,315 @@
+/* Booking List Component Styles */
+
+.container-fluid {
+  background-color: #f8f9fc;
+  min-height: 100vh;
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+}
+
+/* Header Styles */
+.h3 {
+  color: #5a5c69;
+  font-weight: 700;
+}
+
+.text-muted {
+  color: #858796 !important;
+}
+
+/* Card Styles */
+.card {
+  border: 0;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15) !important;
+}
+
+.card-header {
+  background-color: #f8f9fc;
+  border-bottom: 1px solid #e3e6f0;
+  border-radius: 0.5rem 0.5rem 0 0 !important;
+}
+
+/* Stats Cards */
+.border-left-primary {
+  border-left: 0.25rem solid #4e73df !important;
+}
+
+.border-left-success {
+  border-left: 0.25rem solid #1cc88a !important;
+}
+
+.border-left-warning {
+  border-left: 0.25rem solid #f6c23e !important;
+}
+
+.border-left-danger {
+  border-left: 0.25rem solid #e74a3b !important;
+}
+
+.text-primary {
+  color: #4e73df !important;
+}
+
+.text-success {
+  color: #1cc88a !important;
+}
+
+.text-warning {
+  color: #f6c23e !important;
+}
+
+.text-danger {
+  color: #e74a3b !important;
+}
+
+/* Form Controls */
+.form-control, .form-select {
+  border: 1px solid #d1d3e2;
+  border-radius: 0.35rem;
+  color: #6e707e;
+  font-size: 0.875rem;
+  transition: all 0.15s ease-in-out;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: #bac8f3;
+  box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+  outline: 0;
+}
+
+/* Button Styles */
+.btn {
+  border-radius: 0.35rem;
+  font-weight: 400;
+  transition: all 0.15s ease-in-out;
+}
+
+.btn-primary {
+  background-color: #4e73df;
+  border-color: #4e73df;
+}
+
+.btn-primary:hover {
+  background-color: #2e59d9;
+  border-color: #2653d4;
+}
+
+.btn-outline-primary {
+  color: #4e73df;
+  border-color: #4e73df;
+}
+
+.btn-outline-primary:hover {
+  background-color: #4e73df;
+  border-color: #4e73df;
+}
+
+.btn-success {
+  background-color: #1cc88a;
+  border-color: #1cc88a;
+}
+
+.btn-success:hover {
+  background-color: #17a673;
+  border-color: #169b6b;
+}
+
+.btn-warning {
+  background-color: #f6c23e;
+  border-color: #f6c23e;
+  color: #fff;
+}
+
+.btn-warning:hover {
+  background-color: #f4b619;
+  border-color: #f4b619;
+}
+
+.btn-danger {
+  background-color: #e74a3b;
+  border-color: #e74a3b;
+}
+
+.btn-danger:hover {
+  background-color: #e02d1b;
+  border-color: #dc281a;
+}
+
+/* Table Styles */
+.table {
+  color: #858796;
+  font-size: 0.875rem;
+}
+
+.table th {
+  background-color: #f8f9fc;
+  border-color: #e3e6f0;
+  color: #5a5c69;
+  font-weight: 600;
+  padding: 0.75rem;
+}
+
+.table td {
+  border-color: #e3e6f0;
+  padding: 0.75rem;
+  vertical-align: middle;
+}
+
+.table tbody tr:hover {
+  background-color: rgba(0, 123, 255, 0.05);
+}
+
+/* Badge Styles */
+.badge {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.375rem 0.75rem;
+}
+
+.bg-info {
+  background-color: #36b9cc !important;
+}
+
+.bg-secondary {
+  background-color: #858796 !important;
+}
+
+/* Avatar Styles */
+.avatar-sm {
+  width: 2rem;
+  height: 2rem;
+  font-size: 0.875rem;
+}
+
+/* Loading Spinner */
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+/* Alert Styles */
+.alert {
+  border: 0;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.alert-danger {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+/* Pagination Styles */
+.pagination .page-link {
+  color: #4e73df;
+  border-color: #dddfeb;
+  padding: 0.5rem 0.75rem;
+}
+
+.pagination .page-item.active .page-link {
+  background-color: #4e73df;
+  border-color: #4e73df;
+}
+
+.pagination .page-link:hover {
+  color: #224abe;
+  background-color: #eaecf4;
+  border-color: #dddfeb;
+}
+
+.pagination .page-item.disabled .page-link {
+  color: #858796;
+  background-color: #fff;
+  border-color: #dddfeb;
+}
+
+/* Empty State */
+.fa-3x {
+  font-size: 3em;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container-fluid {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .card-body {
+    padding: 1rem;
+  }
+  
+  .btn-group .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+  
+  .table-responsive {
+    font-size: 0.75rem;
+  }
+  
+  .h3 {
+    font-size: 1.5rem;
+  }
+  
+  .row.g-3 > div {
+    margin-bottom: 1rem;
+  }
+}
+
+/* Custom Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+/* Status Badge Colors */
+.badge.bg-warning.text-dark {
+  color: #212529 !important;
+}
+
+/* Button Group Spacing */
+.btn-group .btn {
+  margin-right: 0;
+}
+
+.btn-group .btn:not(:last-child) {
+  border-right: 0;
+}
+
+/* Stats Card Text Styling */
+.text-xs {
+  font-size: 0.7rem;
+}
+
+.font-weight-bold {
+  font-weight: 700 !important;
+}
+
+.text-uppercase {
+  text-transform: uppercase !important;
+}
+
+/* Icon Colors */
+.text-gray-300 {
+  color: #dddfeb !important;
+}
+
+.text-gray-800 {
+  color: #5a5c69 !important;
+}

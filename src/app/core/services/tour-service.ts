@@ -10,8 +10,8 @@ import { ITourCompany } from '../../shared/Interfaces/ItourCompany';
   providedIn: 'root'
 })
 export class TourService {
-  private apiUrl = 'https://localhost:7277/api/Tour';
-  public tourCompanyApiUrl = 'https://localhost:7277/api/TourCompany'; 
+  private apiUrl = 'http://pyramigo.runasp.net/api/Tour';
+  public tourCompanyApiUrl = 'http://pyramigo.runasp.net/api/TourCompany'; 
 
   constructor(private http: HttpClient) {}
 
