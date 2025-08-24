@@ -3,7 +3,7 @@
   <div class="header">
     <h1 class="main-title">✈️ Confirmed Flight Bookings</h1>
     <p class="subtitle">All successfully confirmed flight reservations</p>
-    
+
     <!-- Statistics Bar -->
     <div class="stats-bar">
       <div class="stat-card pulse">
@@ -19,7 +19,7 @@
         <span class="stat-label">Average Price</span>
       </div>
     </div>
-    
+
     <button class="refresh-btn" (click)="refreshBookings()" [disabled]="loading">
       <span *ngIf="!loading">🔄 Refresh Bookings</span>
       <span *ngIf="loading">⏳ Loading...</span>
@@ -48,10 +48,9 @@
 
   <!-- Bookings Grid -->
   <div *ngIf="!loading && confirmedBookings.length > 0" class="bookings-grid">
-    <div *ngFor="let booking of confirmedBookings; let i = index" 
-         class="booking-card" 
-         [style.animation-delay]="(i * 0.1) + 's'">
-      
+    <div *ngFor="let booking of confirmedBookings; let i = index" class="booking-card"
+      [style.animation-delay]="(i * 0.1) + 's'">
+
       <!-- Booking Header -->
       <div class="booking-header">
         <div class="booking-id">Booking #{{ booking.id }}</div>
@@ -61,7 +60,7 @@
           </span>
         </div>
       </div>
-      
+
       <!-- Booking Body -->
       <div class="booking-body">
         <!-- Flight Route -->
@@ -115,7 +114,7 @@
           </div>
           <div *ngIf="booking.paymentStatus" class="payment-info">
             <span class="payment-label">Payment:</span>
-            <span class="payment-status" [ngClass]="'payment-' + booking.paymentStatus?.toLowerCase()">
+            <span class="payment-status" [ngClass]="'payment-' + booking.paymentStatus.toLowerCase()">
               💳 {{ booking.paymentStatus }}
             </span>
           </div>

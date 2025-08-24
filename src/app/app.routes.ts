@@ -48,13 +48,38 @@ import { flightAdminGuardGuard } from './core/guard/flight-admin-guard-guard';
 import { CarRentalEditComponent } from './features/pages/mainAdmin/CarRental-Agency/car-rental-edit/car-rental-edit';
 import { HotelComponent } from './features/pages/mainAdmin/favorites/hotel/hotel';
 import { TourComponent } from './features/pages/mainAdmin/favorites/tour/tour';
+import { HotelAgencyLayout } from './features/layout/hotel-agency-layout/hotel-agency-layout';
+import { hotelAdminGuard } from './core/guard/hotel-admin-guard';
+import { HotelAgencyDashboard } from './features/pages/HotelAgency/hotel-agency-dashboard/hotel-agency-dashboard';
+import { HotelAgencyRoomList } from './features/pages/HotelAgency/hotel-agency-room-list/hotel-agency-room-list';
+import { HotelAgencyRoomCreation } from './features/pages/HotelAgency/hotel-agency-room-creation/hotel-agency-room-creation';
+import { HotelAgencyRoomEdit } from './features/pages/HotelAgency/hotel-agency-room-edit/hotel-agency-room-edit';
+import { HotelAgencyBookingCancell } from './features/pages/HotelAgency/hotel-agency-booking-cancell/hotel-agency-booking-cancell';
+import { HotelAgencyBookingConfirm } from './features/pages/HotelAgency/hotel-agency-booking-confirm/hotel-agency-booking-confirm';
+import { HotelAgencyBookingList } from './features/pages/HotelAgency/hotel-agency-booking-list/hotel-agency-booking-list';
+import { HotelAgencyBookingPending } from './features/pages/HotelAgency/hotel-agency-booking-pending/hotel-agency-booking-pending';
+import { HotelAgencyReviews } from './features/pages/HotelAgency/hotel-agency-reviews/hotel-agency-reviews';
+import { HotelAgencySettings } from './features/pages/HotelAgency/hotel-agency-settings/hotel-agency-settings';
+import { CarRentalAgencyBookingConfirmed } from './features/pages/CarRentalAgency/car-rental-agency-booking-confirmed/car-rental-agency-booking-confirmed';
+import { CarRentalAgencyBookingCancelled } from './features/pages/CarRentalAgency/car-rental-agency-booking-cancelled/car-rental-agency-booking-cancelled';
+import { TourAgencyWishlist } from './features/pages/TourAgency/tour-agency-wishlist/tour-agency-wishlist';
+import { CarRentalAgencyBookingList } from './features/pages/CarRentalAgency/car-rental-agency-booking-list/car-rental-agency-booking-list';
+import { CarRentalAgencyBookingPending } from './features/pages/CarRentalAgency/car-rental-agency-booking-pending/car-rental-agency-booking-pending';
+import { CarRentalAgencyCarCreation } from './features/pages/CarRentalAgency/car-rental-agency-car-creation/car-rental-agency-car-creation';
+import { CarRentalAgencyCarList } from './features/pages/CarRentalAgency/car-rental-agency-car-list/car-rental-agency-car-list';
+import { CarRentalAgencyDashboard } from './features/pages/CarRentalAgency/car-rental-agency-dashboard/car-rental-agency-dashboard';
+import { CarRentalAgencyReviews } from './features/pages/CarRentalAgency/car-rental-agency-reviews/car-rental-agency-reviews';
+import { CarRentalAgencySettings } from './features/pages/CarRentalAgency/car-rental-agency-settings/car-rental-agency-settings';
+import { CarRentalAgencyCarEdit } from './features/pages/CarRentalAgency/car-rental-agency-car-edit/car-rental-agency-car-edit';
+import { CarRentalAgencyLayout } from './features/layout/car-rental-agency-layout/car-rental-agency-layout';
+import { carRentalAdminGuard } from './core/guard/car-rental-admin-guard';
 
 export const routes: Routes = [
   // Login route
   { path: 'login', component: Login, canActivate: [loginRedirectGuard] },
 
   // Super Admin: /admin/...
- {
+  {
     path: '',
     component: Layout,
     canActivateChild: [superAdminGuard],
@@ -66,21 +91,21 @@ export const routes: Routes = [
       { path: 'hotel/create', component: HotelCreation },
       { path: 'car', component: CarRentalListComponent },
       { path: 'car/create', component: CarRentalCreation },
-    { path: 'car/edit/:id', component: CarRentalEditComponent }, 
+      { path: 'car/edit/:id', component: CarRentalEditComponent },
       { path: 'flight', component: FlightsList },
       { path: 'flight/create', component: FlightCreation },
       { path: 'reviews', component: ReviewsListComponent },
       { path: 'favorites', component: FavoritesListComponent },
-     { path: 'hotel/:id', component: HotelComponent }, 
-     { path: 'tour/:id', component: TourComponent }, 
+      { path: 'hotel/:id', component: HotelComponent },
+      { path: 'tour/:id', component: TourComponent },
 
-      { path: 'settings', component: Settings }, 
-      { path: 'users', component: UsersList }, 
-      { path: 'users/create', component: UserCreation }, 
-      { path: 'booking', component: BookingListComponent }, 
-      { path: 'booking/confirmed', component: BookingConfirmedComponent }, 
-      { path: 'booking/cancelled', component: BookingCancelledComponent }, 
-      { path: 'booking/pending', component: BookingPendingComponent }, 
+      { path: 'settings', component: Settings },
+      { path: 'users', component: UsersList },
+      { path: 'users/create', component: UserCreation },
+      { path: 'booking', component: BookingListComponent },
+      { path: 'booking/confirmed', component: BookingConfirmedComponent },
+      { path: 'booking/cancelled', component: BookingCancelledComponent },
+      { path: 'booking/pending', component: BookingPendingComponent },
     ]
   },
 
@@ -95,7 +120,7 @@ export const routes: Routes = [
       { path: 'tours/create', component: TourAgencyTourCreation },
       { path: 'edit-tour/:id', component: TourEdit },
       { path: 'reviews', component: TourAgencyReviews },
-      { path: 'wishlist', component: TourAgencyReviews },
+      { path: 'wishlist', component: TourAgencyWishlist },
       { path: 'settings', component: TourAgencySettings },
       { path: 'booking', component: TourAgencyBookingList },
       { path: 'booking/confirmed', component: TourAgencyBookingConfirmed },
@@ -121,6 +146,42 @@ export const routes: Routes = [
       { path: 'booking/confirmed', component: FlightAgencyBookingConfirmed },
       { path: 'booking/cancelled', component: FlightAgencyBookingCancelled },
       { path: 'booking/pending', component: FlightAgencyBookingPending },
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+    ],
+  },
+  {
+    path: 'hotel-admin',
+    component: HotelAgencyLayout,
+    canActivateChild: [hotelAdminGuard],
+    children: [
+      { path: 'dashboard', component: HotelAgencyDashboard },
+      { path: 'Rooms', component: HotelAgencyRoomList },
+      { path: 'Room/create', component: HotelAgencyRoomCreation },
+      { path: 'edit-Room/:id', component: HotelAgencyRoomEdit },
+      { path: 'reviews', component: HotelAgencyReviews },
+      { path: 'settings', component: HotelAgencySettings },
+      { path: 'booking', component: HotelAgencyBookingList },
+      { path: 'booking/confirmed', component: HotelAgencyBookingConfirm },
+      { path: 'booking/cancelled', component: HotelAgencyBookingCancell },
+      { path: 'booking/pending', component: HotelAgencyBookingPending },
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+    ],
+  },
+  {
+    path: 'car-admin',
+    component: CarRentalAgencyLayout,
+    canActivateChild: [carRentalAdminGuard],
+    children: [
+      { path: 'dashboard', component: CarRentalAgencyDashboard },
+      { path: 'Cars', component: CarRentalAgencyCarList },
+      { path: 'Car/create', component: CarRentalAgencyCarCreation },
+      { path: 'edit-Car/:id', component: CarRentalAgencyCarEdit },
+      { path: 'reviews', component: CarRentalAgencyReviews },
+      { path: 'settings', component: CarRentalAgencySettings },
+      { path: 'booking', component: CarRentalAgencyBookingList },
+      { path: 'booking/confirmed', component: CarRentalAgencyBookingConfirmed },
+      { path: 'booking/cancelled', component: CarRentalAgencyBookingCancelled },
+      { path: 'booking/pending', component: CarRentalAgencyBookingPending },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ],
   },

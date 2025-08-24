@@ -155,7 +155,7 @@
           <td class="customer-info">
             <div class="customer-email">{{ booking.customerEmail }}</div>
             <div class="payment-status" *ngIf="booking.paymentStatus">
-              <small [ngClass]="'payment-' + booking.paymentStatus?.toLowerCase()">
+              <small [ngClass]="'payment-' + booking.paymentStatus.toLowerCase()">
                 💳 {{ booking.paymentStatus }}
               </small>
             </div>

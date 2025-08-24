@@ -115,7 +115,7 @@
           </div>
           <div *ngIf="booking.paymentStatus" class="payment-info">
             <span class="payment-label">Payment:</span>
-            <span class="payment-status" [ngClass]="'payment-' + booking.paymentStatus?.toLowerCase()">
+            <span class="payment-status" [ngClass]="'payment-' + booking.paymentStatus.toLowerCase()">
               💳 {{ booking.paymentStatus }}
             </span>
           </div>

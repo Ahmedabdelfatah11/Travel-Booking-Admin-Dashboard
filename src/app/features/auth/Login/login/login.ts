@@ -47,8 +47,8 @@ export class Login {
 
     this.auth.Login({ email, password }).pipe(
       finalize(() => {
-        // سيتم تنفيذ هذا دائماً، سواء نجحت العملية أم فشلت
         this.isLoading = false;
+        console.timeEnd('LoginRequest');
       })
     ).subscribe({
       next: (response) => {
@@ -57,7 +57,7 @@ export class Login {
         const userRoles = response.roles || [];
 
         // Only allow SuperAdmin or TourAdmin
-        const role = userRoles.find(r => ['SuperAdmin', 'TourAdmin', 'FlightAdmin'].includes(r));
+        const role = userRoles.find(r => ['SuperAdmin', 'TourAdmin', 'FlightAdmin', 'HotelAdmin', 'CarRentalAdmin'].includes(r));
         if (!role) {
           this.auth.Logout();
           this.errMessage = 'Access denied. Admin privileges required.';
@@ -65,25 +65,31 @@ export class Login {
         }
 
         this.successMessage = 'Logged in successfully!';
-        setTimeout(() => {
-          let redirectUrl: string;
+        // setTimeout(() => {
+        let redirectUrl: string;
 
-          switch (role) {
-            case 'SuperAdmin':
-              redirectUrl = '/admin/dashboard';
-              break;
-            case 'TourAdmin':
-              redirectUrl = '/tour-admin/dashboard';
-              break;
-            case 'FlightAdmin':
-              redirectUrl = '/flight-admin/dashboard';
-              break;
-            default:
-              redirectUrl = '/dashboard'; // fallback
-              break;
-          }
-          this.router.navigate([redirectUrl], { replaceUrl: true });
-        }, 1000);
+        switch (role) {
+          case 'SuperAdmin':
+            redirectUrl = '/admin/dashboard';
+            break;
+          case 'TourAdmin':
+            redirectUrl = '/tour-admin/dashboard';
+            break;
+          case 'FlightAdmin':
+            redirectUrl = '/flight-admin/dashboard';
+            break;
+          case 'HotelAdmin':
+            redirectUrl = '/hotel-admin/dashboard';
+            break;
+          case 'CarRentalAdmin':
+            redirectUrl = '/car-admin/dashboard';
+            break;
+          default:
+            redirectUrl = '/dashboard'; // fallback
+            break;
+        }
+        this.router.navigate([redirectUrl], { replaceUrl: true });
+        // }, 1000);
       },
       error: (error) => {
         this.isLoading = false;

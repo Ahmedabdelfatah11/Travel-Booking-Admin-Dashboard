@@ -1,9 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams, HttpHeaders, HttpResponse, HttpErrorResponse } from '@angular/common/http';
 
-import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
-import { catchError, map, tap } from 'rxjs/operators';
-
+import { BehaviorSubject, Observable, of, throwError,catchError, map, tap } from 'rxjs';
 // Interfaces
 export interface ReviewDto {
   id: number;

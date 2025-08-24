@@ -1,0 +1,167 @@
+<div class="page-header">
+  <div class="container">
+    <h1 class="page-title">
+      <i class="bi bi-house-door me-3"></i>
+      Hotel Room Management
+    </h1>
+  </div>
+</div>
+
+<div class="container">
+  <!-- Loading State -->
+  @if(loading()) {
+    <div class="loading-spinner">
+      <div class="spinner"></div>
+      <h4>Loading Rooms...</h4>
+      <p class="text-muted">Please wait while we fetch your room data</p>
+    </div>
+  }
+
+  <!-- Error State -->
+  @if(error()) {
+    <div class="alert-modern alert-danger-modern">
+      <div class="d-flex align-items-center">
+        <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
+        <div>
+          <strong>Oops! Something went wrong</strong>
+          <p class="mb-0 mt-1">{{ error() }}</p>
+        </div>
+        <button type="button" class="btn-close ms-auto" (click)="dismissError()"></button>
+      </div>
+    </div>
+  }
+
+  <!-- Success Message -->
+  @if(successMessage()) {
+    <div class="alert-modern alert-info-modern">
+      <div class="d-flex align-items-center">
+        <i class="bi bi-check-circle-fill me-3 fs-4"></i>
+        <div>
+          <strong>Success!</strong>
+          <p class="mb-0 mt-1">{{ successMessage() }}</p>
+        </div>
+        <button type="button" class="btn-close ms-auto" (click)="dismissSuccess()"></button>
+      </div>
+    </div>
+  }
+
+  <!-- No Rooms State -->
+  @if(noRooms()) {
+    <div class="no-rooms-container">
+      <i class="bi bi-house no-rooms-icon"></i>
+      <h3>No Rooms Available</h3>
+      <p class="text-muted">You haven't created any rooms yet. Start by adding your first room to get started.</p>
+      <a [routerLink]="['/hotel-admin/Room/create']" class="create-room-btn">
+        <i class="bi bi-plus-circle"></i>
+        Create New Room
+      </a>
+    </div>
+  }
+
+  <!-- Rooms Grid -->
+  @if(!loading() && !noRooms()) {
+    <div class="row g-4">
+      @for (room of Rooms(); track room.id) {
+        <div class="col-lg-6 col-xl-4 mb-3">
+          <div class="room-card">
+            <div class="room-image-container">
+              <img [src]="room.roomImages && room.roomImages.length > 0 ? room.roomImages[0].imageUrl : 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=400&h=250&fit=crop'" 
+                   [alt]="room.roomType + ' Room'" 
+                   class="room-image"
+                   (error)="$event.target.src='https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=400&h=250&fit=crop'">
+              
+              <div class="availability-badge" [class]="room.isAvailable ? 'available' : 'unavailable'">
+                <i [class]="room.isAvailable ? 'bi bi-check-circle me-1' : 'bi bi-x-circle me-1'"></i>
+                {{ room.isAvailable ? 'Available' : 'Occupied' }}
+              </div>
+              
+              <div class="room-id-badge">
+                #{{ room.id.toString().padStart(3, '0') }}
+              </div>
+            </div>
+            
+            <div class="room-content">
+              <div class="room-header">
+                <h3 class="room-type">{{ room.roomType || 'Standard Room' }}</h3>
+                <div class="hotel-name">
+                  <i class="bi bi-building"></i>
+                  {{ room.hotelCompanyName || 'Hotel' }}
+                </div>
+              </div>
+
+              <div class="room-details">
+                @if(room.from) {
+                  <div class="detail-row">
+                    <span class="detail-label">
+                      <i class="bi bi-calendar-range"></i>
+                      Check-in
+                    </span>
+                    <span class="detail-value">{{ room.from | date:'MMM dd, y' }}</span>
+                  </div>
+                }
+                
+                @if(room.to) {
+                  <div class="detail-row">
+                    <span class="detail-label">
+                      <i class="bi bi-calendar-x"></i>
+                      Check-out
+                    </span>
+                    <span class="detail-value">{{ room.to | date:'MMM dd, y' }}</span>
+                  </div>
+                }
+                
+                <div class="detail-row">
+                  <span class="detail-label">
+                    <i class="bi bi-door-open"></i>
+                    Status
+                  </span>
+                  <span class="detail-value">{{ room.isAvailable ? 'Available' : 'Occupied' }}</span>
+                </div>
+                
+                @if(room.description) {
+                  <div class="detail-row">
+                    <span class="detail-label">
+                      <i class="bi bi-info-circle"></i>
+                      Description
+                    </span>
+                    <span class="detail-value">{{ room.description }}</span>
+                  </div>
+                }
+              </div>
+
+              <div class="price-section">
+                <div class="price">${{ room.price | number:'1.0-0' }}</div>
+                <div class="price-label">per night</div>
+              </div>
+
+              <div class="action-buttons">
+                <button class="btn-modern btn-view">
+                  <i class="bi bi-eye"></i>
+                  View
+                </button>
+                
+                <a [routerLink]="['/hotel-admin/edit-Room', room.id]" class="btn-modern btn-edit">
+                  <i class="bi bi-pencil"></i>
+                  Edit
+                </a>
+                
+                <button 
+                  class="btn-modern btn-delete"
+                  (click)="deleteRoom(room.id)"
+                  [disabled]="isDeleting(room.id)">
+                  @if(isDeleting(room.id)) {
+                    <span class="spinner-border spinner-border-sm me-1"></span>
+                    Deleting...
+                  } @else {
+                    <i class="bi bi-trash"></i>
+                    Delete
+                  }
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

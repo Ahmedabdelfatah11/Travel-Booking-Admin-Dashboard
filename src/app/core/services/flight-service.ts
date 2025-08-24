@@ -27,31 +27,31 @@ export class FlightService {
     });
   }
 
-  // GET: All tours
+  // GET: All Flights
   getFlights(): Observable<FlightDetailsDTO> {
     return this.http.get<FlightDetailsDTO>(this.apiUrl, { headers: this.getAuthHeaders() })
       .pipe(catchError(this.handleError));
   }
 
-  // GET: Single tour by ID
+  // GET: Single Flight by ID
   getFlightById(id: number): Observable<Flight> {
     return this.http.get<Flight>(`${this.apiUrl}/${id}`, { headers: this.getAuthHeaders() })
       .pipe(catchError(this.handleError));
   }
 
-  // POST: Create tour
+  // POST: Create Flight
   createFlight(formData: FormData): Observable<FlightCreated> {
     return this.http.post<FlightCreated>(this.apiUrl, formData, { headers: this.getAuthHeaders() });
   }
 
-  // PUT: Update tour
+  // PUT: Update Flight
   updateFlight(id: number, flightData: Flight): Observable<void> {
     return this.http.put<void>(`${this.apiUrl}/${id}`, flightData, {
       headers: this.getJsonAuthHeaders()
     }).pipe(catchError(this.handleError));
   }
 
-  // DELETE: Delete tour
+  // DELETE: Delete Flight
   deleteFlight(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`, {
       headers: this.getAuthHeaders()

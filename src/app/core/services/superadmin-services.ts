@@ -1,8 +1,7 @@
 // superadmin-services.ts - Enhanced version with better error handling
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, of, throwError } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
+import { Observable, of, throwError,catchError,tap } from 'rxjs';
 import { ITour, updatedITour } from '../../shared/Interfaces/i-tour';
 import { Ihotelcompany } from '../../shared/Interfaces/ihotelcompany';
 import { AssignRoleDto, DashboardStats, RegisterModel, RemoveRoleDto, UsersResponse } from '../../shared/Interfaces/admin-interfaces';

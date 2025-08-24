@@ -1,8 +1,7 @@
 import { Component, OnInit, OnDestroy, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Subject } from 'rxjs';
-import { takeUntil, finalize } from 'rxjs/operators';
+import { Subject, takeUntil, finalize } from 'rxjs';
 import { CreateReviewDto, ReviewDto, ReviewService, ReviewsResponse, ReviewStatsDto } from '../../../../core/services/review-service';
 import { Auth } from '../../../../core/services/auth';
 

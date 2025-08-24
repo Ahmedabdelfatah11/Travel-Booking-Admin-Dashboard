@@ -1,8 +1,7 @@
 // favorites.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
-import { Observable, BehaviorSubject, throwError } from 'rxjs';
-import { catchError, tap, map, switchMap } from 'rxjs/operators';
+import { Observable, BehaviorSubject, throwError,catchError, tap, map, switchMap } from 'rxjs';
 
 // Interfaces
 export interface FavoriteItem {

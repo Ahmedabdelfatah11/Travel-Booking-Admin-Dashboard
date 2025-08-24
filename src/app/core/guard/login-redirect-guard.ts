@@ -28,6 +28,24 @@ export const loginRedirectGuard: CanActivateFn = () => {
       }
       return router.createUrlTree(['/tour-admin/dashboard']);
     }
+    if (roles.includes('FlightAdmin')) {
+      if (currentUrl === '/login') {
+        return router.createUrlTree(['/flight-admin/dashboard']);
+      }
+      if (currentUrl.startsWith('/flight-admin')) {
+        return true;
+      }
+      return router.createUrlTree(['/flight-admin/dashboard']);
+    }
+    if (roles.includes('HotelAdmin')) {
+      if (currentUrl === '/login') {
+        return router.createUrlTree(['/hotel-admin/dashboard']);
+      }
+      if (currentUrl.startsWith('/hotel-admin')) {
+        return true;
+      }
+      return router.createUrlTree(['/hotel-admin/dashboard']);
+    }
   }
 
   return true;

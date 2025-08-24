@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError, retry } from 'rxjs/operators';
+import { Observable, throwError,catchError, retry } from 'rxjs';
 import { TourCreateDto, TourReadDto, TourUpdateDto } from '../../shared/Interfaces/itour-create';
 import { ITourCompany } from '../../shared/Interfaces/ItourCompany';
 
