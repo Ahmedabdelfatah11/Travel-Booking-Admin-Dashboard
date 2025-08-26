@@ -24,6 +24,13 @@ export const serverRoutes: ServerRoute[] = [
   {
     path: 'tour/:id',
     renderMode: RenderMode.Server
-  }
-
+  },
+  {
+    path: 'hotel-admin/edit-Room/:id',
+    renderMode: RenderMode.Server
+  },
+  {
+    path: 'car-admin/edit-Car/:id',
+    renderMode: RenderMode.Server
+  },
 ];

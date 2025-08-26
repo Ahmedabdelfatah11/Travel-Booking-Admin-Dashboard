@@ -1,50 +1,38 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { Auth } from '../services/auth';
+
 export const loginRedirectGuard: CanActivateFn = () => {
   const auth = inject(Auth);
   const router = inject(Router);
   const currentUrl = router.url;
 
-  if (auth.isLoggedIn()) {
-    const roles = auth.getRoles(); // ✅ Define 'roles' here!
+  if (!auth.isLoggedIn()) return true;
 
-    if (roles.includes('SuperAdmin')) {
-      if (currentUrl === '/login') {
-        return router.createUrlTree(['/admin/dashboard']);
-      }
-      if (currentUrl.startsWith('/admin')) {
-        return true;
-      }
-      return router.createUrlTree(['/admin/dashboard']);
-    }
+  const roles = auth.getRoles();
 
-    if (roles.includes('TourAdmin')) {
+  const roleRedirectMap: Record<string, string> = {
+    SuperAdmin: '/admin/dashboard',
+    TourAdmin: '/tour-admin/dashboard',
+    FlightAdmin: '/flight-admin/dashboard',
+    HotelAdmin: '/hotel-admin/dashboard',
+    CarRentalAdmin: '/car-admin/dashboard',
+  };
+
+  for (const role of roles) {
+    const dashboardPath = roleRedirectMap[role];
+    if (dashboardPath) {
+      const basePath = dashboardPath.split('/dashboard')[0];
+
       if (currentUrl === '/login') {
-        return router.createUrlTree(['/tour-admin/dashboard']);
+        return router.createUrlTree([dashboardPath]);
       }
-      if (currentUrl.startsWith('/tour-admin')) {
+
+      if (currentUrl.startsWith(basePath)) {
         return true;
       }
-      return router.createUrlTree(['/tour-admin/dashboard']);
-    }
-    if (roles.includes('FlightAdmin')) {
-      if (currentUrl === '/login') {
-        return router.createUrlTree(['/flight-admin/dashboard']);
-      }
-      if (currentUrl.startsWith('/flight-admin')) {
-        return true;
-      }
-      return router.createUrlTree(['/flight-admin/dashboard']);
-    }
-    if (roles.includes('HotelAdmin')) {
-      if (currentUrl === '/login') {
-        return router.createUrlTree(['/hotel-admin/dashboard']);
-      }
-      if (currentUrl.startsWith('/hotel-admin')) {
-        return true;
-      }
-      return router.createUrlTree(['/hotel-admin/dashboard']);
+
+      return router.createUrlTree([dashboardPath]);
     }
   }
 

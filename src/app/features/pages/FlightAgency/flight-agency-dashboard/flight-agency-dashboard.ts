@@ -31,36 +31,7 @@ export class FlightAgencyDashboard implements OnInit {
   chartData = signal<number[]>([]);
   
   // Mock recent activities (replace with real data when available)
-  recentActivities = signal<RecentActivity[]>([
-    // {
-    //   id: 1,
-    //   type: 'booking',
-    //   description: 'New booking for Flight AA101 to New York',
-    //   timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-    //   status: 'success'
-    // },
-    // {
-    //   id: 2,
-    //   type: 'flight_created',
-    //   description: 'Flight BA205 to London created',
-    //   timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-    //   status: 'success'
-    // },
-    // {
-    //   id: 3,
-    //   type: 'booking',
-    //   description: 'Booking cancelled for Flight DL303',
-    //   timestamp: new Date(Date.now() - 1000 * 60 * 60 * 5), // 5 hours ago
-    //   status: 'cancelled'
-    // },
-    // {
-    //   id: 4,
-    //   type: 'flight_updated',
-    //   description: 'Flight UA456 schedule updated',
-    //   timestamp: new Date(Date.now() - 1000 * 60 * 60 * 8), // 8 hours ago
-    //   status: 'success'
-    // }
-  ]);
+  recentActivities = signal<RecentActivity[]>([]);
 
   private flightService = inject(FlightService);
 

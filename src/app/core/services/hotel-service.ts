@@ -2,15 +2,15 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { catchError, Observable, throwError } from 'rxjs';
-import { HotelDashboardStats, HotelDTO, Rooms } from '../../shared/Interfaces/ihotel';
+import { HotelDashboardStats, HotelDTO, Room, Rooms } from '../../shared/Interfaces/ihotel';
 
-export interface Room {
-  id: number;
-  roomNumber: string;
-  type: string;
-  price: number;
-  isAvailable: boolean;
-}
+// export interface Room {
+//   id: number;
+//   roomNumber: string;
+//   type: string;
+//   price: number;
+//   isAvailable: boolean;
+// }
 
 export interface Hotel {
   id: number;
@@ -52,6 +52,10 @@ export class HotelService {
     return this.http.get<Rooms>(this.ApiUrl, { headers: this.getAuthHeaders() })
       .pipe(catchError(this.handleError));
   }
+  getRoomById(id: number): Observable<Room> {
+    return this.http.get<Room>(`${this.ApiUrl}/${id}`, { headers: this.getAuthHeaders() })
+      .pipe(catchError(this.handleError));
+  }
   getMyHotels(): Observable<HotelDTO[]> {
     const url = `${this.baseUrl}/my-hotels`;
     console.log('🚀 Calling my-Hotel And Rooms:', url); // 🔍 DEBUG
@@ -64,9 +68,16 @@ export class HotelService {
       .pipe(catchError(this.handleError));
   }
 
-// POST: Create Flight
-  createFlight(formData: FormData): Observable<Room> {
+  // POST: Create Room
+  createRoom(formData: FormData): Observable<Room> {
     return this.http.post<Room>(this.ApiUrl, formData, { headers: this.getAuthHeaders() });
+  }
+
+  // PUT: Update Room
+  updateRoom(id: number, formData: FormData): Observable<void> {
+    return this.http.put<void>(`${this.ApiUrl}/${id}`, formData, {
+      headers: this.getAuthHeaders()
+    }).pipe(catchError(this.handleError));
   }
 
   // DELETE: Delete Room

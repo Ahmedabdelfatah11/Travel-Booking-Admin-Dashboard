@@ -150,9 +150,6 @@
                     </div>
 
                     <div class="review-actions" *ngIf="canEditReview(review)">
-                        <button class="action-btn edit" (click)="editReview(review)" title="Edit Review">
-                            <i class="fas fa-edit"></i>
-                        </button>
                         <button class="action-btn delete" (click)="deleteReview(review.id)" title="Delete Review">
                             <i class="fas fa-trash"></i>
                         </button>

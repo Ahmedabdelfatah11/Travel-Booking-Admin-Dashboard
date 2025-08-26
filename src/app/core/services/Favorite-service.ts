@@ -1,7 +1,8 @@
-// favorites.service.ts
+// favorites.service.ts - Enhanced for SuperAdmin
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Observable, BehaviorSubject, throwError,catchError, tap, map, switchMap } from 'rxjs';
+
 
 // Interfaces
 export interface FavoriteItem {
@@ -34,11 +35,25 @@ export interface FavoriteCheckDto {
   tourId?: number;
 }
 
-export interface FavoritesResponse {
+export interface AdminFavoritesResponse {
   data: FavoriteItem[];
   totalCount: number;
   page: number;
   pageSize: number;
+}
+
+export interface FavoritesStats {
+  totalFavorites: number;
+  userStats: Array<{ userId: string; count: number }>;
+  companyTypeStats: Array<{ companyType: string; count: number }>;
+  recentActivity: Array<{
+    id: number;
+    userId: string;
+    userName: string;
+    email: string;
+    companyType: string;
+    createdAt: string;
+  }>;
 }
 
 @Injectable({
@@ -69,19 +84,19 @@ export class FavoritesService {
   private handleError(error: HttpErrorResponse): Observable<never> {
     console.error('Favorites API Error:', error);
     
-    let errorMessage = 'حدث خطأ غير متوقع';
+    let errorMessage = 'An unexpected error occurred';
     
     if (error.error instanceof ErrorEvent) {
-      errorMessage = `خطأ: ${error.error.message}`;
+      errorMessage = `Error: ${error.error.message}`;
     } else {
       if (error.status === 401) {
-        errorMessage = 'غير مخول للوصول';
+        errorMessage = 'Unauthorized access';
       } else if (error.status === 403) {
-        errorMessage = 'ممنوع الوصول';
+        errorMessage = 'Access forbidden';
       } else if (error.status === 404) {
-        errorMessage = 'المورد غير موجود';
+        errorMessage = 'Resource not found';
       } else if (error.status === 409) {
-        errorMessage = 'العنصر موجود بالفعل في المفضلة';
+        errorMessage = 'Item already exists in favorites';
       } else if (error.error) {
         if (error.error.message) {
           errorMessage = error.error.message;
@@ -96,6 +111,8 @@ export class FavoritesService {
       userMessage: errorMessage
     }));
   }
+
+  // ==================== USER METHODS (Existing) ====================
 
   /**
    * Get all user favorites with pagination
@@ -199,6 +216,111 @@ export class FavoritesService {
     );
   }
 
+  // ==================== SUPERADMIN METHODS (New) ====================
+
+  /**
+   * SuperAdmin: Get all favorites from all users
+   */
+  getAllUsersFavorites(
+    page: number = 1, 
+    pageSize: number = 10,
+    userId?: string,
+    companyType?: string,
+    searchTerm?: string
+  ): Observable<{ favorites: FavoriteItem[], totalCount: number, page: number, pageSize: number }> {
+    this.loadingSubject.next(true);
+    
+    let params = `?page=${page}&pageSize=${pageSize}`;
+    if (userId) params += `&userId=${encodeURIComponent(userId)}`;
+    if (companyType) params += `&companyType=${encodeURIComponent(companyType)}`;
+    if (searchTerm) params += `&searchTerm=${encodeURIComponent(searchTerm)}`;
+
+    return this.http.get<FavoriteItem[]>(`${this.apiUrl}/admin/all${params}`, {
+      headers: this.getAuthHeaders(),
+      observe: 'response'
+    }).pipe(
+      map(response => ({
+        favorites: response.body || [],
+        totalCount: parseInt(response.headers.get('X-Total-Count') || '0'),
+        page: parseInt(response.headers.get('X-Page') || '1'),
+        pageSize: parseInt(response.headers.get('X-Page-Size') || '10')
+      })),
+      tap(result => {
+        this.favoritesSubject.next(result.favorites);
+        this.loadingSubject.next(false);
+        console.log('SuperAdmin favorites loaded:', result);
+      }),
+      catchError(error => {
+        this.loadingSubject.next(false);
+        return this.handleError(error);
+      })
+    );
+  }
+
+  /**
+   * SuperAdmin: Get favorites for a specific user
+   */
+  getUserFavoritesByAdmin(
+    userId: string,
+    page: number = 1,
+    pageSize: number = 10,
+    companyType?: string
+  ): Observable<{ favorites: FavoriteItem[], totalCount: number }> {
+    this.loadingSubject.next(true);
+    
+    let params = `?page=${page}&pageSize=${pageSize}`;
+    if (companyType) params += `&companyType=${encodeURIComponent(companyType)}`;
+
+    return this.http.get<FavoriteItem[]>(`${this.apiUrl}/admin/user/${userId}${params}`, {
+      headers: this.getAuthHeaders(),
+      observe: 'response'
+    }).pipe(
+      map(response => ({
+        favorites: response.body || [],
+        totalCount: parseInt(response.headers.get('X-Total-Count') || '0')
+      })),
+      tap(result => {
+        this.loadingSubject.next(false);
+      }),
+      catchError(error => {
+        this.loadingSubject.next(false);
+        return this.handleError(error);
+      })
+    );
+  }
+
+  /**
+   * SuperAdmin: Get favorites statistics
+   */
+  getFavoritesStats(): Observable<FavoritesStats> {
+    return this.http.get<FavoritesStats>(`${this.apiUrl}/admin/stats`, {
+      headers: this.getAuthHeaders()
+    }).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * SuperAdmin: Bulk delete favorites
+   */
+  bulkRemoveFavorites(favoriteIds: number[]): Observable<{ deletedCount: number, message: string }> {
+    return this.http.delete<{ deletedCount: number, message: string }>(`${this.apiUrl}/admin/bulk`, {
+      headers: this.getAuthHeaders(),
+      body: favoriteIds
+    }).pipe(
+      tap(result => {
+        // Update local state by removing deleted items
+        const currentFavorites = this.favoritesSubject.value;
+        const updatedFavorites = currentFavorites.filter(fav => !favoriteIds.includes(fav.id));
+        this.favoritesSubject.next(updatedFavorites);
+        console.log('Bulk delete result:', result);
+      }),
+      catchError(this.handleError)
+    );
+  }
+
+  // ==================== UTILITY METHODS ====================
+
   /**
    * Clear all favorites from local state
    */
@@ -218,5 +340,20 @@ export class FavoritesService {
    */
   refreshFavorites(): Observable<FavoriteItem[]> {
     return this.getUserFavorites(1, 50);
+  }
+
+  /**
+   * Check if current user is SuperAdmin
+   */
+  isSuperAdmin(): boolean {
+    const token = localStorage.getItem('authToken');
+    if (!token) return false;
+    
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.role === 'SuperAdmin' || payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] === 'SuperAdmin';
+    } catch {
+      return false;
+    }
   }
 }

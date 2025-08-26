@@ -1,1 +1,313 @@
-<p>hotel-agency-room-edit works!</p>
+<div class="page-header">
+  <div class="container">
+    <h1 class="page-title">
+      <i class="bi bi-pencil-square me-3"></i>
+      Edit Room
+    </h1>
+    <p class="page-subtitle">Update room information and settings</p>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-10">
+
+      <!-- Loading State -->
+      @if(isLoading()) {
+      <div class="loading-container text-center py-5">
+        <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="text-muted">Loading room data...</p>
+      </div>
+      }
+
+      <!-- Success Message -->
+      @if(successMessage()) {
+      <div class="alert-modern alert-success-modern mb-4">
+        <div class="d-flex align-items-center">
+          <i class="bi bi-check-circle-fill me-3 fs-4"></i>
+          <div>
+            <strong>Success!</strong>
+            <p class="mb-0 mt-1">{{ successMessage() }}</p>
+          </div>
+          <button type="button" class="btn-close ms-auto" (click)="dismissSuccess()"></button>
+        </div>
+      </div>
+      }
+
+      <!-- Error Message -->
+      @if(errorMessage()) {
+      <div class="alert-modern alert-danger-modern mb-4">
+        <div class="d-flex align-items-center">
+          <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
+          <div>
+            <strong>Error!</strong>
+            <p class="mb-0 mt-1">{{ errorMessage() }}</p>
+          </div>
+          <button type="button" class="btn-close ms-auto" (click)="dismissError()"></button>
+        </div>
+      </div>
+      }
+
+      <!-- Form Content -->
+      @if(!isLoading()) {
+      <div class="form-card">
+        <form [formGroup]="roomForm" (ngSubmit)="onSubmit()" enctype="multipart/form-data">
+
+          <!-- Room Basic Information -->
+          <div class="form-section">
+            <div class="section-header">
+              <i class="bi bi-info-circle section-icon"></i>
+              <h3 class="section-title">Basic Information</h3>
+            </div>
+
+            <div class="row g-4">
+              <!-- Room Type -->
+              <div class="col-md-6">
+                <div class="form-floating">
+                  <select class="form-select" id="roomType" formControlName="roomType"
+                    [class.is-invalid]="isFieldInvalid('roomType')">
+                    Select Room Type
+                    <option value="Single">Single Room</option>
+                    <option value="Double">Double Room</option>
+                    <option value="Suite">Suite</option>
+
+                  </select>
+                  <label for="roomType">
+                    <i class="bi bi-house-door me-2 mb-3"></i>Room Type
+                  </label>
+                  @if(isFieldInvalid('roomType')) {
+                  <div class="invalid-feedback">
+                    {{ getFieldError('roomType') }}
+                  </div>
+                  }
+                </div>
+              </div>
+
+              <!-- Price -->
+              <div class="col-md-6">
+                <div class="form-floating">
+                  <input type="number" class="form-control" id="price" formControlName="price" placeholder="0.00"
+                    min="0" step="0.01" [class.is-invalid]="isFieldInvalid('price')">
+                  <label for="price">
+                    <i class="bi bi-currency-dollar me-2"></i>Price per Night (USD)
+                  </label>
+                  @if(isFieldInvalid('price')) {
+                  <div class="invalid-feedback">
+                    {{ getFieldError('price') }}
+                  </div>
+                  }
+                </div>
+              </div>
+
+              <!-- Hotel Selection -->
+              <div class="col-md-12">
+                <div class="form-floating">
+                  <select class="form-select" id="hotelCompanyId" formControlName="hotelCompanyId"
+                    [class.is-invalid]="isFieldInvalid('hotelCompanyId')">
+                    <option value="">Select Hotel</option>
+                    @for(hotel of hotels(); track hotel.id) {
+                    <option [value]="hotel.id">{{ hotel.name }} - {{ hotel.location }}</option>
+                    }
+                  </select>
+                  <label for="hotelCompanyId">
+                    <i class="bi bi-building me-2"></i>Select Hotel
+                  </label>
+                  @if(isFieldInvalid('hotelCompanyId')) {
+                  <div class="invalid-feedback">
+                    {{ getFieldError('hotelCompanyId') }}
+                  </div>
+                  }
+                </div>
+              </div>
+
+              <!-- Description -->
+              <div class="col-12">
+                <div class="form-floating">
+                  <textarea class="form-control" id="description" formControlName="description"
+                    placeholder="Room description..." style="height: 120px"
+                    [class.is-invalid]="isFieldInvalid('description')"></textarea>
+                  <label for="description">
+                    <i class="bi bi-card-text me-2"></i>Room Description
+                  </label>
+                  @if(isFieldInvalid('description')) {
+                  <div class="invalid-feedback">
+                    {{ getFieldError('description') }}
+                  </div>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Availability Period (Optional for Edit)
+            <div class="form-section">
+              <div class="section-header">
+                <i class="bi bi-calendar-range section-icon"></i>
+                <h3 class="section-title">Availability Period</h3>
+                <span class="text-muted small">(Optional)</span>
+              </div>
+
+              <div class="row g-4">
+                <div class="col-md-6">
+                  <div class="form-floating">
+                    <input type="datetime-local" 
+                           class="form-control" 
+                           id="from" 
+                           formControlName="from"
+                           [min]="minDate"
+                           [class.is-invalid]="isFieldInvalid('from')">
+                    <label for="from">
+                      <i class="bi bi-calendar-check me-2"></i>Available From
+                    </label>
+                    @if(isFieldInvalid('from')) {
+                      <div class="invalid-feedback">
+                        {{ getFieldError('from') }}
+                      </div>
+                    }
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="form-floating">
+                    <input type="datetime-local" 
+                           class="form-control" 
+                           id="to" 
+                           formControlName="to"
+                           [min]="roomForm.get('from')?.value || minDate"
+                           [class.is-invalid]="isFieldInvalid('to')">
+                    <label for="to">
+                      <i class="bi bi-calendar-x me-2"></i>Available Until
+                    </label>
+                    @if(isFieldInvalid('to')) {
+                      <div class="invalid-feedback">
+                        {{ getFieldError('to') }}
+                      </div>
+                    }
+                  </div>
+                </div>
+              </div>
+            </div> -->
+
+          <!-- Room Status -->
+          <div class="form-section">
+            <div class="section-header">
+              <i class="bi bi-toggle-on section-icon"></i>
+              <h3 class="section-title">Room Status</h3>
+            </div>
+
+            <div class="availability-toggle">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="isAvailable" formControlName="isAvailable">
+                <label class="form-check-label" for="isAvailable">
+                  <span class="availability-text">
+                    @if(roomForm.get('isAvailable')?.value) {
+                    <i class="bi bi-check-circle text-success me-2"></i>
+                    Room is Available for Booking
+                    } @else {
+                    <i class="bi bi-x-circle text-danger me-2"></i>
+                    Room is Not Available
+                    }
+                  </span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Current Images Display -->
+          @if(existingImages().length > 0) {
+          <div class="form-section">
+            <div class="section-header">
+              <i class="bi bi-image section-icon"></i>
+              <h3 class="section-title">Current Images</h3>
+            </div>
+
+            <div class="existing-images-grid">
+              @for(imageUrl of existingImages(); track $index) {
+              <div class="existing-image-card">
+                <img [src]="imageUrl" [alt]="'Current room image'" class="existing-image">
+                <div class="image-badge">
+                  <i class="bi bi-image"></i>
+                </div>
+              </div>
+              }
+            </div>
+          </div>
+          }
+
+          <!-- Image Upload Section -->
+          <div class="form-section">
+            <div class="section-header">
+              <i class="bi bi-images section-icon"></i>
+              <h3 class="section-title">Update Room Images</h3>
+              <span class="image-limit">Maximum 3 images</span>
+            </div>
+
+            <div class="image-upload-area">
+              <div class="upload-zone" [class.dragover]="isDragOver()" (dragover)="onDragOver($event)"
+                (dragleave)="onDragLeave($event)" (drop)="onDrop($event)" (click)="fileInput.click()">
+                <i class="bi bi-cloud-arrow-up upload-icon"></i>
+                <h4>Drag & Drop New Images Here</h4>
+                <p>or click to browse files</p>
+                <small>Supported formats: JPG, JPEG, PNG, WEBP (Max 5MB each)</small>
+                <small class="text-info d-block mt-2">
+                  <i class="bi bi-info-circle me-1"></i>
+                  Leave empty to keep current images
+                </small>
+
+                <input #fileInput type="file" multiple accept="image/*" (change)="onFilesSelected($event)"
+                  class="d-none">
+              </div>
+
+              <!-- New Image Preview -->
+              @if(selectedImages().length > 0) {
+              <div class="image-previews">
+                <h5>New Images ({{ selectedImages().length }}/3)</h5>
+                <div class="preview-grid">
+                  @for(image of selectedImages(); track $index; let i = $index) {
+                  <div class="image-preview-card">
+                    <img [src]="image.preview" [alt]="'Preview ' + (i + 1)">
+                    <div class="image-overlay">
+                      <button type="button" class="btn-remove" (click)="removeImage(i)">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
+                    <div class="image-info">
+                      <small>{{ image.file.name }}</small>
+                      <small>{{ formatFileSize(image.file.size) }}</small>
+                    </div>
+                  </div>
+                  }
+                </div>
+              </div>
+              }
+            </div>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="form-actions">
+            <div class="d-flex gap-3 justify-content-end">
+              <button type="button" class="btn btn-cancel" (click)="onCancel()">
+                <i class="bi bi-x-circle me-2"></i>
+                Cancel
+              </button>
+
+              <button type="submit" class="btn btn-create" [disabled]="roomForm.invalid || isSubmitting()">
+                @if(isSubmitting()) {
+                <span class="spinner-border spinner-border-sm me-2"></span>
+                Updating Room...
+                } @else {
+                <i class="bi bi-check-circle me-2"></i>
+                Update Room
+                }
+              </button>
+            </div>
+          </div>
+
+        </form>
+      </div>
+      }
+    </div>
+  </div>
+</div>

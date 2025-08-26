@@ -1,7 +1,6 @@
 import { Component, inject, Input } from '@angular/core';
-import { Router } from 'express';
 import { Auth } from '../../../core/services/auth';
-import { RouterModule } from "@angular/router";
+import { Router, RouterModule } from "@angular/router";
 
 @Component({
   selector: 'app-car-rental-agency-layout',

@@ -35,11 +35,11 @@
     "boostrap": "^2.0.0",
     "bootstrap": "^5.3.7",
     "bootstrap-icons": "^1.13.1",
-    "express": "^5.1.0",
     "ngx-toastr": "^19.0.0",
     "rxjs": "^7.8.2",
     "simple-datatables": "^10.0.0",
-    "tslib": "^2.3.0"
+    "tslib": "^2.3.0",
+    "url-parse": "^1.5.10"
   },
   "devDependencies": {
     "@angular/build": "^20.0.4",
@@ -49,13 +49,16 @@
     "@types/express": "^5.0.1",
     "@types/jasmine": "~5.1.0",
     "@types/node": "^20.19.10",
+    "events": "^3.3.0",
     "jasmine-core": "~5.7.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
+    "path-browserify": "^1.0.1",
     "typescript": "~5.8.2",
+    "url": "^0.11.4",
     "vite": "^7.1.3"
   }
 }

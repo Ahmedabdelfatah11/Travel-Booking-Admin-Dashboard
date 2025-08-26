@@ -282,7 +282,7 @@ export class HotelAgencyRoomCreation implements OnInit {
     });
 
     // Submit to API
-    this.hotelService.createFlight(formData).pipe(
+    this.hotelService.createRoom(formData).pipe(
       finalize(() => this.isSubmitting.set(false))
     ).subscribe({
       next: (response) => {
