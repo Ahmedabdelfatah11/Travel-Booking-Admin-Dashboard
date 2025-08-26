@@ -414,7 +414,7 @@ export class FavoritesListComponent implements OnInit, OnDestroy {
     switch (favorite.companyType.toLowerCase()) {
       case 'hotel':
         if (favorite.hotelCompanyId) {
-          this.router.navigate(['/hotel', favorite.hotelCompanyId]);
+          this.router.navigate(['/admin/hotel', favorite.hotelCompanyId]);
         } else {
           console.warn('Hotel company ID is missing');
           this.showToast('Unable to navigate: Hotel ID is missing', 'error');
@@ -423,7 +423,7 @@ export class FavoritesListComponent implements OnInit, OnDestroy {
         
       case 'tour':
         if (favorite.tourId) {
-          this.router.navigate(['/tour', favorite.tourId]);
+          this.router.navigate(['/admin/tour', favorite.tourId]);
         } else {
           console.warn('Tour ID is missing');
           this.showToast('Unable to navigate: Tour ID is missing', 'error');
