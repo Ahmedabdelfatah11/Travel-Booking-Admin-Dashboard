@@ -1,8 +1,8 @@
 import { Component, computed, signal } from '@angular/core';
 import { TourService } from '../../../../core/services/tour-service';
-import { TourReadDto } from '../../../../shared/Interfaces/itour-create';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterModule } from '@angular/router';
+import { TourReadDto } from '../../../../shared/Interfaces/i-tour';
 
 @Component({
   selector: 'app-tour-list-for-tour-agency',

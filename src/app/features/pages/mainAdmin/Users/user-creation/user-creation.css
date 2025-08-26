@@ -1,0 +1,238 @@
+/* User Creation Component Styles */
+
+.container-fluid {
+  background-color: #f8f9fc;
+  min-height: 100vh;
+  padding-bottom: 2rem;
+}
+
+/* Card Styling */
+.card {
+  border: none;
+  border-radius: 12px;
+  transition: box-shadow 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+  border-radius: 12px 12px 0 0 !important;
+  border: none;
+  padding: 1.25rem 1.5rem;
+}
+
+.card-body {
+  padding: 2rem 1.5rem;
+}
+
+/* Form Styling */
+.form-label {
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 0.5rem;
+}
+
+.form-control,
+.form-select {
+  border: 2px solid #e3e6f0;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: #4e73df;
+  box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.15);
+  transform: translateY(-1px);
+}
+
+.form-control.is-valid,
+.form-select.is-valid {
+  border-color: #1cc88a;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%231cc88a' d='m2.3 6.73.5-.53 2.14-2.14 2.72-2.72L8 1l-.53-.53L6.44 1.5 3.79 4.15 2.26 2.62l-.53.53z'/%3e%3c/svg%3e");
+}
+
+.form-control.is-invalid,
+.form-select.is-invalid {
+  border-color: #e74a3b;
+}
+
+/* Button Styling */
+.btn {
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+  border: none;
+  box-shadow: 0 4px 15px rgba(78, 115, 223, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(78, 115, 223, 0.4);
+}
+
+.btn-outline-secondary {
+  border: 2px solid #6c757d;
+  color: #6c757d;
+}
+
+.btn-outline-secondary:hover {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  transform: translateY(-1px);
+}
+
+.btn-outline-info {
+  border: 2px solid #36b9cc;
+  color: #36b9cc;
+}
+
+.btn-outline-info:hover {
+  background-color: #36b9cc;
+  border-color: #36b9cc;
+  transform: translateY(-1px);
+}
+
+/* Section Headers */
+h6.text-muted {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.85rem;
+  border-bottom: 2px solid #e3e6f0;
+  padding-bottom: 0.5rem;
+}
+
+/* Alert Styling */
+.alert {
+  border: none;
+  border-radius: 10px;
+  font-weight: 500;
+  border-left: 4px solid transparent;
+}
+
+.alert-success {
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+  border-left-color: #1cc88a;
+  color: #155724;
+}
+
+.alert-danger {
+  background: linear-gradient(135deg, #f8d7da 0%, #f1b0b7 100%);
+  border-left-color: #e74a3b;
+  color: #721c24;
+}
+
+.alert-warning {
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+  border-left-color: #f6c23e;
+  color: #856404;
+}
+
+/* Breadcrumb Styling */
+.breadcrumb {
+  background: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.breadcrumb-item a {
+  color: #4e73df;
+  text-decoration: none;
+}
+
+.breadcrumb-item a:hover {
+  color: #224abe;
+  text-decoration: underline;
+}
+
+/* Loading States */
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Form Text */
+.form-text {
+  font-size: 0.85rem;
+  color: #6c757d;
+}
+
+/* Invalid Feedback */
+.invalid-feedback {
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+/* Help Card */
+.bg-light {
+  background: linear-gradient(135deg, #f8f9fc 0%, #eaecf4 100%) !important;
+}
+
+.list-unstyled li {
+  margin-bottom: 0.25rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container-fluid {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .card-body {
+    padding: 1.5rem 1rem;
+  }
+  
+  .d-flex.gap-3 {
+    flex-direction: column;
+    gap: 0.75rem !important;
+  }
+  
+  .btn {
+    width: 100%;
+  }
+}
+
+/* Animation for form sections */
+.row.mb-4 {
+  animation: slideInUp 0.3s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Focus styles */
+.form-control:focus,
+.form-select:focus {
+  outline: none;
+}
+
+/* Required field indicator */
+.text-danger {
+  font-weight: 700;
+}
+
+/* Icon styling */
+.fas {
+  width: 1.2em;
+  text-align: center;
+}

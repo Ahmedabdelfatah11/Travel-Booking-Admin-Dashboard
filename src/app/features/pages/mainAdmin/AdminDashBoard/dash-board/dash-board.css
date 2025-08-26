@@ -1,0 +1,259 @@
+    .dashboard-container {
+      padding: 20px;
+      background-color: #f8f9fa;
+      min-height: 100vh;
+    }
+
+    /* Stat Cards */
+    .stat-card {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+      border-left: 4px solid transparent;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    .stat-card .card-body {
+      padding: 1.5rem;
+    }
+
+    .stat-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-icon.bg-primary {
+      background: linear-gradient(135deg, #007bff, #0056b3);
+    }
+
+    .stat-icon.bg-success {
+      background: linear-gradient(135deg, #28a745, #1e7e34);
+    }
+
+    .stat-icon.bg-info {
+      background: linear-gradient(135deg, #17a2b8, #117a8b);
+    }
+
+    .stat-icon.bg-warning {
+      background: linear-gradient(135deg, #ffc107, #e0a800);
+    }
+
+    .card-title {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #2c3e50;
+      margin-bottom: 0.25rem;
+    }
+
+    .text-muted {
+      color: #6c757d !important;
+      font-size: 0.9rem;
+    }
+
+    /* Detailed Statistics Cards */
+    .card {
+      border-radius: 12px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .card:hover {
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid #e9ecef;
+    }
+
+    .card-header .card-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #495057;
+      margin: 0;
+    }
+
+    /* Progress bars */
+    .progress {
+      border-radius: 4px;
+      background-color: #e9ecef;
+    }
+
+    .progress-bar {
+      border-radius: 4px;
+      transition: width 0.6s ease;
+    }
+
+    /* Stat Items */
+    .stat-item {
+      padding: 0.75rem 0;
+    }
+
+    .stat-item:not(:last-child) {
+      border-bottom: 1px solid #f1f3f4;
+    }
+
+    /* Company Statistics */
+    .company-stat {
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+    }
+
+    .company-stat:hover {
+      background-color: #ffffff !important;
+      border-color: #dee2e6;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      transform: translateY(-2px);
+    }
+
+    .company-stat h4 {
+      font-weight: 700;
+      color: #2c3e50;
+    }
+
+    /* Service Statistics */
+    .service-stats .bg-light {
+      transition: all 0.3s ease;
+      border: 1px solid #e9ecef;
+    }
+
+    .service-stats .bg-light:hover {
+      background-color: #ffffff !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      transform: translateX(5px);
+    }
+
+    /* Status Indicators */
+    .status-indicator {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .status-indicator.pending {
+      background: linear-gradient(135deg, #ffc107, #e0a800);
+      box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+    }
+
+    .status-indicator.confirmed {
+      background: linear-gradient(135deg, #28a745, #1e7e34);
+      box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    }
+
+    .status-indicator.cancelled {
+      background: linear-gradient(135deg, #dc3545, #c82333);
+      box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+    }
+
+    .status-indicator::before {
+      content: '';
+      width: 12px;
+      height: 12px;
+      background: white;
+      border-radius: 50%;
+      position: absolute;
+    }
+
+    /* Booking Type Items */
+    .booking-type-item {
+      padding: 0.5rem 0;
+    }
+
+    .booking-types h6 {
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Loading and Error States */
+    .spinner-border {
+      width: 3rem;
+      height: 3rem;
+    }
+
+    .alert {
+      border-radius: 8px;
+      border: none;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .dashboard-container {
+        padding: 15px;
+      }
+      
+      .card-body {
+        padding: 1rem;
+      }
+      
+      .stat-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.2rem;
+      }
+      
+      .card-title {
+        font-size: 1.5rem;
+      }
+      
+      .company-stat {
+        margin-bottom: 1rem;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .dashboard-container {
+        padding: 10px;
+      }
+      
+      .col-6 {
+        margin-bottom: 1rem;
+      }
+      
+      h1 {
+        font-size: 1.75rem;
+      }
+    }
+
+    /* Animation for initial load */
+    .card {
+      animation: fadeInUp 0.6s ease-out;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Stagger animation for cards */
+    .card:nth-child(1) { animation-delay: 0.1s; }
+    .card:nth-child(2) { animation-delay: 0.2s; }
+    .card:nth-child(3) { animation-delay: 0.3s; }
+    .card:nth-child(4) { animation-delay: 0.4s; }
+
+    /* Header styling */
+    h1.h3 {
+      color: #2c3e50;
+      font-weight: 700;
+    }

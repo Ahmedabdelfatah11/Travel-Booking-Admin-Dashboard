@@ -1,1 +1,348 @@
-<p>booking-list works!</p>
+<!-- Booking Management Header -->
+<div class="container-fluid px-4">
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-calendar-check me-2"></i>
+            Booking Management
+          </h1>
+          <p class="mb-0 text-muted">Manage all travel bookings and reservations</p>
+        </div>
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-primary" (click)="loadBookings()">
+            <i class="fas fa-sync-alt me-1"></i>
+            Refresh
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters Card -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-white py-3">
+      <h6 class="m-0 font-weight-bold text-primary">
+        <i class="fas fa-filter me-2"></i>
+        Filters
+      </h6>
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-3">
+          <label for="searchTerm" class="form-label">Search</label>
+          <input
+            type="text"
+            id="searchTerm"
+            class="form-control"
+            placeholder="Search by email or ID..."
+            [(ngModel)]="searchTerm"
+            (keyup)="applyFilters()"
+          >
+        </div>
+        <div class="col-md-2">
+          <label for="bookingType" class="form-label">Service Type</label>
+          <select
+            id="bookingType"
+            class="form-select"
+            [(ngModel)]="selectedBookingType"
+            (change)="applyFilters()"
+          >
+                <option value="">All Types</option>
+                <option value="Room">Room</option>
+                <option value="Car">Car</option>
+                <option value="Flight">Flight</option>
+                <option value="Tour">Tour</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label for="status" class="form-label">Status</label>
+          <select
+            id="status"
+            class="form-select"
+            [(ngModel)]="selectedStatus"
+            (change)="applyFilters()"
+          >
+            <option value="">All Statuses</option>
+            <option value="Pending">Pending</option>
+            <option value="Confirmed">Confirmed</option>
+            <option value="Cancelled">Cancelled</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label for="startDate" class="form-label">From Date</label>
+          <input
+            type="date"
+            id="startDate"
+            class="form-control"
+            [(ngModel)]="startDate"
+            (change)="applyFilters()"
+          >
+        </div>
+        <div class="col-md-2">
+          <label for="endDate" class="form-label">To Date</label>
+          <input
+            type="date"
+            id="endDate"
+            class="form-control"
+            [(ngModel)]="endDate"
+            (change)="applyFilters()"
+          >
+        </div>
+        <div class="col-md-1 d-flex align-items-end">
+          <button class="btn btn-outline-secondary w-100" (click)="clearFilters()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card border-left-primary shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                Total Bookings
+              </div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800">{{ totalItems }}</div>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-calendar-check fa-2x text-gray-300"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card border-left-success shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                Confirmed Bookings
+              </div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800">
+                {{ confirmedCount || 0 }}
+              </div>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card border-left-warning shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                Pending Bookings
+              </div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800">
+                {{ pendingCount || 0 }}
+              </div>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-clock fa-2x text-gray-300"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card border-left-danger shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                Cancelled Bookings
+              </div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800">
+                {{ cancelledCount || 0 }}
+              </div>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-times-circle fa-2x text-gray-300"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-2 text-muted">Loading bookings...</p>
+  </div>
+
+  <!-- Error Alert -->
+  <div *ngIf="error" class="alert alert-danger" role="alert">
+    <i class="fas fa-exclamation-triangle me-2"></i>
+    {{ error }}
+  </div>
+
+  <!-- Bookings Table -->
+  <div class="card shadow mb-4" *ngIf="!loading && !error">
+    <div class="card-header py-3">
+      <h6 class="m-0 font-weight-bold text-primary">
+        <i class="fas fa-list me-2"></i>
+        Bookings List ({{ filteredBookings.length }} items)
+      </h6>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Customer</th>
+              <th>Service Type</th>
+              <th>Details</th>
+              <th>Dates</th>
+              <th>Total Price</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let booking of paginatedBookings" class="align-middle">
+              <td>
+                <span class="badge bg-secondary">#{{ booking.id }}</span>
+              </td>
+              <td>
+                <div class="d-flex align-items-center">
+                  <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2">
+                    <i class="fas fa-user"></i>
+                  </div>
+                  <div>
+                    <div class="fw-bold">{{ booking.customerEmail }}</div>
+                    <small class="text-muted">Customer</small>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="badge bg-info text-white">
+                  <i [class]="getBookingTypeIcon(booking.bookingType)" class="me-1"></i>
+                  {{ getBookingTypeLabel( booking.bookingType.toString()) }}
+                </span>
+              </td>
+              <td>
+                <div *ngIf="booking.agencyDetails" class="small">
+                  <!-- Room Details -->
+                 <div *ngIf="booking.bookingType.toString() === 'Room'">
+                    <strong>{{ getRoomDetails(booking.agencyDetails).roomType || 'Room' }}</strong><br>
+                    <span class="text-muted">{{ getRoomDetails(booking.agencyDetails).roomId || 'Hotel' }}</span>
+                </div>
+                <!-- Car -->
+                    <div *ngIf="booking.bookingType.toString() === 'Car'">
+                    <strong>{{ getCarDetails(booking.agencyDetails).carModel || 'Car' }}</strong><br>
+                    <span class="text-muted">{{ getCarDetails(booking.agencyDetails).endDate || 'Vehicle' }}</span>
+                    </div>
+                  <!-- Flight Details -->
+                    <div *ngIf="booking.bookingType.toString() === 'Flight'">
+                    <strong>{{ getFlightDetails(booking.agencyDetails).flightId || 'Flight' }}</strong><br>
+                    <span class="text-muted">
+                        {{ getFlightDetails(booking.agencyDetails).departureAirport }} →
+                        {{ getFlightDetails(booking.agencyDetails).arrivalAirport }}
+                    </span>
+                    </div>
+                        <!-- Tour -->
+                        <div *ngIf="booking.bookingType.toString() === 'Tour' ">
+                        <strong>{{ getTourDetails(booking.agencyDetails).tourName || 'Tour' }}</strong><br>
+                        <span class="text-muted">{{ getTourDetails(booking.agencyDetails).destination || 'Destination' }}</span>
+                        </div>
+                </div>
+                <div *ngIf="!booking.agencyDetails" class="text-muted small">
+                  Details not available
+                </div>
+              </td>
+              <td>
+                <div class="small">
+                  <div><strong>From:</strong> {{ formatDate(booking.startDate) }}</div>
+                  <div><strong>To:</strong> {{ formatDate(booking.endDate) }}</div>
+                </div>
+              </td>
+              <td>
+                <span class="fw-bold text-success" *ngIf="booking.totalPrice">
+                  {{ formatCurrency(booking.totalPrice) }}
+                </span>
+                <span class="text-muted" *ngIf="!booking.totalPrice">
+                  N/A
+                </span>
+              </td>
+              <td>
+                <span [class]="getStatusClass(getBookingStatus(booking))">
+                  {{ getBookingStatus(booking) }}
+                </span>
+              </td>
+              <td>
+                <div class="btn-group" role="group">
+
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-warning"
+                    [disabled]="getBookingStatus(booking) === 'Cancelled'"
+                    (click)="cancelBooking(booking.id)"
+                    title="Cancel Booking"
+                  >
+                    <i class="fas fa-times"></i>
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-danger"
+                    (click)="deleteBooking(booking.id)"
+                    title="Delete Booking"
+                  >
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Empty State -->
+        <div *ngIf="filteredBookings.length === 0" class="text-center py-5">
+          <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+          <h5 class="text-muted">No bookings found</h5>
+          <p class="text-muted">Try adjusting your filters or check back later.</p>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <nav *ngIf="totalPages > 1" aria-label="Bookings pagination">
+        <ul class="pagination justify-content-center mt-3">
+          <li class="page-item" [class.disabled]="currentPage === 1">
+            <a class="page-link" (click)="changePage(currentPage - 1)" href="#" (click)="$event.preventDefault()">
+              <i class="fas fa-chevron-left"></i>
+            </a>
+          </li>
+          <li
+            class="page-item"
+            *ngFor="let page of [].constructor(totalPages); let i = index"
+            [class.active]="currentPage === i + 1"
+          >
+            <a class="page-link" (click)="changePage(i + 1)" href="#" (click)="$event.preventDefault()">
+              {{ i + 1 }}
+            </a>
+          </li>
+          <li class="page-item" [class.disabled]="currentPage === totalPages">
+            <a class="page-link" (click)="changePage(currentPage + 1)" href="#" (click)="$event.preventDefault()">
+              <i class="fas fa-chevron-right"></i>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>

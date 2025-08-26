@@ -1,57 +1,79 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import {
+  FormBuilder,
+  FormGroup,
+  Validators,
+  FormArray,
+  AbstractControl,
+  ValidatorFn,
+} from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
+
+// Services
 import { TourService } from '../../../../core/services/tour-service';
-import { TourReadDto } from '../../../../shared/Interfaces/itour-create';
+import { ToastService } from '../../../../core/services/toast-service';
+
+// Interfaces
 import { ITourCompany } from '../../../../shared/Interfaces/ItourCompany';
+
+// Helpers
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
+import { TourReadDto } from '../../../../shared/Interfaces/i-tour';
 
 interface ImagePreview {
   file: File;
   url: string;
 }
 
+export enum TourCategory {
+  Adventure = 'Adventure',
+  Historical = 'Historical',
+  Cultural = 'Cultural',
+  Luxury = 'Luxury',
+}
+
 @Component({
   selector: 'app-tour-edit',
   templateUrl: './tour-edit.html',
-  styleUrls: ['./tour-edit.ts'],
+  styleUrls: ['./tour-edit.css'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule]
+  imports: [CommonModule, ReactiveFormsModule],
 })
 export class TourEdit implements OnInit, OnDestroy {
   addTourForm!: FormGroup;
   categories = Object.values(TourCategory);
   readonly TourCategory = TourCategory;
 
-  isEditMode = true; // ✅ Always true
   tourId: number | null = null;
-
-  // Companies
   tourCompanies: ITourCompany[] = [];
   loadingCompanies = true;
+  loadingTour = true;
+  submitting = false;
 
-  // File storage
+  // File handling
   mainImage: File | null = null;
   galleryFiles: ImagePreview[] = [];
-
-  // Previews
   mainImagePreview: string | null = null;
+  currentGalleryUrls: string[] = [];
 
+  currentTour: TourReadDto | null = null;
   private routeSub: Subscription = new Subscription();
 
   constructor(
     private fb: FormBuilder,
     private tourService: TourService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private cd: ChangeDetectorRef,
+    public toastService: ToastService
   ) {
     this.addTourForm = this.fb.group({
       id: [null],
       name: ['', [Validators.required, Validators.minLength(3)]],
       destination: ['', Validators.required],
-      startDate: ['', Validators.required],
+      startDate: ['', [Validators.required, this.futureDateValidator()]],
       endDate: ['', Validators.required],
       description: ['', [Validators.required, Validators.minLength(10)]],
       maxGuests: [1, [Validators.required, Validators.min(1)]],
@@ -60,31 +82,42 @@ export class TourEdit implements OnInit, OnDestroy {
       price: [0, [Validators.required, Validators.min(0.01)]],
       category: [TourCategory.Adventure, Validators.required],
       languages: ['English', Validators.required],
-      tourCompanyId: [null, Validators.required],
+      tourCompanyId: [{ value: null, disabled: true }, Validators.required],
       tickets: this.fb.array([]),
       questions: this.fb.array([]),
       includedItems: this.fb.array([], [Validators.minLength(4), Validators.maxLength(10)]),
-      excludedItems: this.fb.array([], [Validators.minLength(4), Validators.maxLength(10)])
-    }, { validators: () => this.imagesRequiredValidator() });
+      excludedItems: this.fb.array([], [Validators.minLength(4), Validators.maxLength(10)]),
+    }, {
+      validators: [this.endDateAfterStartDateValidator()],
+    });
   }
 
   ngOnInit(): void {
-    this.loadingCompanies = true;
+    this.loadTourCompanies();
+    this.loadTourFromRoute();
+  }
 
-    // Load companies
+  ngOnDestroy(): void {
+    this.routeSub.unsubscribe();
+    this.revokePreviews();
+  }
+
+  // === LOAD DATA ===
+  loadTourCompanies(): void {
     this.tourService.getMyTourCompanies().subscribe({
       next: (companies) => {
         this.tourCompanies = companies;
         this.loadingCompanies = false;
       },
-      error: (err) => {
-        console.error('Failed to load companies:', err);
+      error: () => {
+        this.toastService.show('Could not load tour companies.', 'error');
         this.loadingCompanies = false;
-      }
+      },
     });
+  }
 
-    // Load tour by ID
-    this.routeSub = this.route.paramMap.subscribe(params => {
+  loadTourFromRoute(): void {
+    this.routeSub = this.route.paramMap.subscribe((params) => {
       const id = params.get('id');
       if (id) {
         this.tourId = +id;
@@ -93,75 +126,79 @@ export class TourEdit implements OnInit, OnDestroy {
     });
   }
 
-  ngOnDestroy(): void {
-    this.routeSub.unsubscribe();
-    [this.mainImagePreview, ...this.galleryFiles.map(g => g.url)].forEach(url => {
-      if (url) URL.revokeObjectURL(url);
-    });
-  }
-
-  // === VALIDATORS ===
-  private imagesRequiredValidator() {
-    const hasMainImage = !!this.mainImage;
-    const hasSixGalleryImages = this.galleryFiles.length === 6;
-    return hasMainImage && hasSixGalleryImages ? null : { imagesRequired: true };
-  }
-
-  // === LOAD EXISTING TOUR ===
   loadTour(id: number): void {
+    this.loadingTour = true;
     this.tourService.getTour(id).subscribe({
-      next: (tour) => this.patchFormWithTour(tour),
-      error: (err) => {
-        console.error('Failed to load tour:', err);
-        alert('Could not load tour details.');
-        this.router.navigate(['/tour-admin/tours']);
-      }
+      next: (tour) => {
+        this.patchFormWithTour(tour);
+        this.loadingTour = false;
+      },
+      error: () => {
+        this.toastService.show('Could not load tour. Please try again.', 'error');
+        this.loadingTour = false;
+      },
     });
   }
-currentTour: TourReadDto | null = null;
-currentGalleryUrls: string[] = [];
 
- private patchFormWithTour(tour: TourReadDto): void {
-   this.currentTour = tour;
+  private patchFormWithTour(tour: TourReadDto): void {
+    this.currentTour = tour;
+
+    this.mainImagePreview = tour.imageUrl ? this.getImageUrl(tour.imageUrl) : null;
     this.currentGalleryUrls = tour.imageUrls?.map(url => this.getImageUrl(url)) || [];
-  this.addTourForm.patchValue({
-    id: tour.id,
-    name: tour.name,
-    startDate: new Date(tour.startDate).toISOString().split('T')[0],
-    endDate: new Date(tour.endDate).toISOString().split('T')[0],
-    description: tour.description,
-    destination: tour.destination,
-    maxGuests: tour.maxGuests,
-    minGroupSize: tour.minGroupSize,
-    maxGroupSize: tour.maxGroupSize,
-    price: tour.price,
-    category: tour.category,
-    languages: tour.languages,
-    tourCompanyId: tour.tourCompanyId
-  });
 
-  // Clear and repopulate form arrays
-  this.includedItemsArray.clear();
-  this.excludedItemsArray.clear();
+    const startDate = this.formatDateForInput(tour.startDate);
+    const endDate = this.formatDateForInput(tour.endDate);
 
-  tour.includedItems?.forEach(item => this.addIncludedItem(item));
-  tour.excludedItems?.forEach(item => this.addExcludedItem(item));
+    this.addTourForm.patchValue({
+      id: tour.id,
+      name: tour.name,
+      startDate,
+      endDate,
+      description: tour.description,
+      destination: tour.destination,
+      maxGuests: tour.maxGuests,
+      minGroupSize: tour.minGroupSize,
+      maxGroupSize: tour.maxGroupSize,
+      price: tour.price,
+      category: tour.category,
+      languages: tour.languages,
+      tourCompanyId: tour.tourCompanyId,
+    });
 
-  this.tickets.clear();
-  tour.tickets.forEach(t => this.addTicket(t));
-
-  this.questions.clear();
-  tour.questions.forEach(q => this.addQuestion(q));
-
-  // ✅ Set the original image URL for preview
-  if (tour.imageUrl) {
-    this.mainImagePreview = this.getImageUrl(tour.imageUrl); // ✅ Use your method
+    this.clearFormArrays();
+    this.populateFormArrays(tour);
   }
 
-  this.updateFormValidity();
-}
+  private formatDateForInput(date: string | Date | null | undefined): string {
+    if (!date) return '';
+    const d = new Date(date);
+    d.setHours(12, 0, 0, 0);
+    return d.toISOString().split('T')[0];
+  }
 
-  // === FORM ARRAY HELPERS ===
+  private clearFormArrays(): void {
+    this.includedItemsArray.clear();
+    this.excludedItemsArray.clear();
+    this.tickets.clear();
+    this.questions.clear();
+  }
+
+  private populateFormArrays(tour: TourReadDto): void {
+    tour.includedItems?.forEach(item => this.addIncludedItem(item));
+    tour.excludedItems?.forEach(item => this.addExcludedItem(item));
+    tour.tickets?.forEach(t => this.addTicket(t));
+    this.populateQuestions(tour.questions);
+  }
+
+  private populateQuestions(questions: any[] | null | undefined): void {
+    if (Array.isArray(questions) && questions.length > 0) {
+      questions.forEach(q => this.addQuestion(q));
+    } else {
+      this.addQuestion();
+    }
+  }
+
+  // === GETTERS ===
   get tickets(): FormArray { return this.addTourForm.get('tickets') as FormArray; }
   get questions(): FormArray { return this.addTourForm.get('questions') as FormArray; }
   get includedItemsArray(): FormArray { return this.addTourForm.get('includedItems') as FormArray; }
@@ -171,135 +208,189 @@ currentGalleryUrls: string[] = [];
   onMainImageSelected(event: any): void {
     const file = event.target.files?.[0];
     if (!file || !file.type.startsWith('image/')) {
-      alert('Please select a valid image file.');
+      this.toastService.show('Please select a valid image file.', 'warning');
       return;
     }
 
-    if (this.mainImagePreview) URL.revokeObjectURL(this.mainImagePreview);
-
+    this.revokeMainImagePreview();
     this.mainImage = file;
     this.mainImagePreview = URL.createObjectURL(file);
-    this.updateFormValidity();
   }
 
   onGalleryImagesSelected(event: any): void {
-    const files = Array.from(event.target.files).slice(0, 6 - this.galleryFiles.length) as File[];
+    const files = Array.from(event.target.files) as File[];
+    const maxAllowed = 6 - this.getTotalGalleryCount();
+
+    if (files.length > maxAllowed) {
+      this.toastService.show(`You can only add ${maxAllowed} more image(s).`, 'warning');
+      event.target.value = '';
+      return;
+    }
 
     files.forEach(file => {
       if (file.type.startsWith('image/')) {
-        this.galleryFiles.push({
-          file,
-          url: URL.createObjectURL(file)
-        });
+        const url = URL.createObjectURL(file);
+        this.galleryFiles.push({ file, url });
+        this.currentGalleryUrls.push(url);
       }
     });
 
-    this.updateFormValidity();
+    this.updateGalleryCount();
+    event.target.value = '';
   }
 
   removeGalleryImage(index: number): void {
-    const item = this.galleryFiles[index];
-    URL.revokeObjectURL(item.url);
+    URL.revokeObjectURL(this.galleryFiles[index].url);
+    const urlToRemove = this.galleryFiles[index].url;
     this.galleryFiles.splice(index, 1);
-    this.updateFormValidity();
+
+    const urlIndex = this.currentGalleryUrls.indexOf(urlToRemove);
+    if (urlIndex !== -1) {
+      this.currentGalleryUrls.splice(urlIndex, 1);
+    }
   }
 
-  // === HELPERS ===
-  public updateFormValidity(): void {
-    this.addTourForm.updateValueAndValidity();
+  deletedImageUrls: string[] = [];
+  galleryCount = 0;
+
+  removeCurrentGalleryImage(index: number): void {
+    const urlToRemove = this.currentGalleryUrls[index];
+
+    if (urlToRemove.startsWith('blob:')) {
+      const fileIndex = this.galleryFiles.findIndex(f => f.url === urlToRemove);
+      if (fileIndex !== -1) {
+        URL.revokeObjectURL(this.galleryFiles[fileIndex].url);
+        this.galleryFiles.splice(fileIndex, 1);
+      }
+    } else {
+      if (this.currentTour?.imageUrls) {
+        const serverUrl = this.currentTour.imageUrls[index];
+        this.deletedImageUrls.push(serverUrl);
+      }
+    }
+
+    this.currentGalleryUrls.splice(index, 1);
+    this.updateGalleryCount();
   }
 
-  // === INCLUDED/EXCLUDED ITEMS ===
+  revokePreviews(): void {
+    this.revokeMainImagePreview();
+    this.galleryFiles.forEach(f => URL.revokeObjectURL(f.url));
+  }
+
+  revokeMainImagePreview(): void {
+    if (this.mainImagePreview) {
+      URL.revokeObjectURL(this.mainImagePreview);
+      this.mainImagePreview = null;
+    }
+  }
+
+  // === ITEMS ===
   addIncludedItem(value: string = '') {
     if (this.includedItemsArray.length >= 10) return;
-    const control = this.fb.control(value, [Validators.required, Validators.maxLength(25)]);
+    const control = this.fb.control(value, [Validators.required, Validators.maxLength(45)]);
     this.includedItemsArray.push(control);
-    this.updateFormValidity();
   }
 
   addExcludedItem(value: string = '') {
     if (this.excludedItemsArray.length >= 10) return;
-    const control = this.fb.control(value, [Validators.required, Validators.maxLength(25)]);
+    const control = this.fb.control(value, [Validators.required, Validators.maxLength(45)]);
     this.excludedItemsArray.push(control);
-    this.updateFormValidity();
   }
 
   removeIncludedItem(index: number) {
     if (this.includedItemsArray.length > 4) {
       this.includedItemsArray.removeAt(index);
-      this.updateFormValidity();
     }
   }
 
   removeExcludedItem(index: number) {
     if (this.excludedItemsArray.length > 4) {
       this.excludedItemsArray.removeAt(index);
-      this.updateFormValidity();
     }
   }
 
   // === TICKETS & QUESTIONS ===
   addTicket(ticket?: any) {
     const group = this.fb.group({
+      id: [ticket?.id || null],
       type: [ticket?.type || '', Validators.required],
-      price: [ticket?.price || 0, [Validators.required, Validators.min(0.01)]],
+      price: [ticket?.price && ticket.price > 0.01 ? ticket.price : 1, [Validators.required, Validators.min(0.01)]],
       availableQuantity: [ticket?.availableQuantity || 1, [Validators.required, Validators.min(1)]],
       isActive: [ticket?.isActive ?? true]
     });
     this.tickets.push(group);
-    this.updateFormValidity();
   }
 
   removeTicket(index: number) {
     if (this.tickets.length > 1) {
       this.tickets.removeAt(index);
-      this.updateFormValidity();
     }
   }
 
   addQuestion(question?: any) {
     const group = this.fb.group({
-      questionText: [question?.questionText || '', Validators.required],
-      answerText: [question?.answerText || '', Validators.required]
+      id: [question?.id || null],
+      questionText: [question?.questionText || '', [Validators.required, Validators.minLength(3)]],
+      answerText: [question?.answerText || '', [Validators.required, Validators.minLength(3)]]
     });
     this.questions.push(group);
-    this.updateFormValidity();
   }
 
   removeQuestion(index: number) {
     this.questions.removeAt(index);
-    this.updateFormValidity();
+  }
+
+  // === VALIDATORS ===
+  private futureDateValidator(): ValidatorFn {
+    return (control: AbstractControl) => {
+      const value = control.value;
+      if (!value) return null;
+      const date = new Date(value);
+      return date > new Date() ? null : { pastDate: true };
+    };
+  }
+
+  private endDateAfterStartDateValidator(): ValidatorFn {
+    return (group: AbstractControl) => {
+      const start = group.get('startDate')?.value;
+      const end = group.get('endDate')?.value;
+      if (!start || !end) return null;
+      return new Date(end) > new Date(start) ? null : { endDateBeforeStart: true };
+    };
   }
 
   // === SUBMIT ===
-  onSubmit() {
-    const formValue = this.addTourForm.value;
-
-    // ✅ Validate dates
-    const startDate = new Date(formValue.startDate);
-    const endDate = new Date(formValue.endDate);
-
-    if (startDate <= new Date()) {
-      alert('Start date must be in the future.');
+  onSubmit(): void {
+    if (this.addTourForm.invalid || this.submitting) {
+      this.toastService.show('Please fix form errors before submitting.', 'warning');
       return;
     }
 
-    if (endDate <= startDate) {
-      alert('End date must be after start date.');
-      return;
-    }
+    if (!this.tourId) return;
 
-    if (!formValue.tourCompanyId) {
-      alert('Tour Company is required.');
-      return;
-    }
+    this.submitting = true;
 
+    const formValue = this.addTourForm.getRawValue(); // ✅ Use getRawValue() to include disabled controls
     const formData = new FormData();
 
-    // Append fields
+    const finalTourCompanyId = formValue.tourCompanyId || this.currentTour?.tourCompanyId;
+    if (!finalTourCompanyId) {
+      this.toastService.show('Tour Company is required.', 'error');
+      this.submitting = false;
+      return;
+    }
+
+    const totalGalleryCount = this.currentGalleryUrls.length;
+    if (totalGalleryCount < 6) {
+      this.toastService.show(`You need at least 6 gallery images. Currently: ${totalGalleryCount}`, 'warning');
+      this.submitting = false;
+      return;
+    }
+
     formData.append('Name', formValue.name.trim());
-    formData.append('StartDate', startDate.toISOString());
-    formData.append('EndDate', endDate.toISOString());
+    formData.append('StartDate', this.localDateToISOString(formValue.startDate));
+    formData.append('EndDate', this.localDateToISOString(formValue.endDate));
     formData.append('Description', formValue.description.trim());
     formData.append('Destination', formValue.destination.trim());
     formData.append('MaxGuests', formValue.maxGuests.toString());
@@ -308,77 +399,129 @@ currentGalleryUrls: string[] = [];
     formData.append('Price', formValue.price.toString());
     formData.append('Category', formValue.category);
     formData.append('Languages', formValue.languages.trim());
-    formData.append('TourCompanyId', formValue.tourCompanyId.toString());
+    formData.append('TourCompanyId', finalTourCompanyId.toString());
 
-    // Files (optional in edit mode)
+    if (this.deletedImageUrls.length > 0) {
+      this.deletedImageUrls.forEach(url => {
+        formData.append('DeletedImageUrls', url);
+      });
+    }
+
     if (this.mainImage) {
       formData.append('Image', this.mainImage, this.mainImage.name);
     }
 
-    if (this.galleryFiles.length > 0) {
-      this.galleryFiles.forEach(item => {
-        formData.append('GalleryImages', item.file, item.file.name);
+    this.galleryFiles.forEach(item => {
+      formData.append('GalleryImages', item.file, item.file.name);
+    });
+
+    this.currentGalleryUrls
+      .filter(url => !url.startsWith('blob:'))
+      .forEach(url => {
+        formData.append('ExistingImageUrls', url);
       });
-    }
 
-    // Sanitize and append included/excluded
     const sanitize = (items: string[]) => items.map(i => i.trim()).filter(i => i);
-    const includedItems = sanitize(formValue.includedItems);
-    const excludedItems = sanitize(formValue.excludedItems);
+    const included = sanitize(formValue.includedItems);
+    const excluded = sanitize(formValue.excludedItems);
 
-    if (includedItems.length < 4 || excludedItems.length < 4) {
-      alert('At least 4 items are required for both Included and Excluded.');
+    if (included.length < 4 || excluded.length < 4) {
+      this.toastService.show('You need at least 4 items in "What’s Included" and "Excluded".', 'warning');
+      this.submitting = false;
       return;
     }
 
-    includedItems.forEach(item => formData.append('IncludedItems', item));
-    excludedItems.forEach(item => formData.append('ExcludedItems', item));
+    included.forEach(i => formData.append('IncludedItems', i));
+    excluded.forEach(i => formData.append('ExcludedItems', i));
 
-    // Tickets
+    if (!formValue.tickets || formValue.tickets.length === 0) {
+      this.toastService.show('At least one ticket type is required.', 'warning');
+      this.submitting = false;
+      return;
+    }
+
+    for (let i = 0; i < formValue.tickets.length; i++) {
+      const t = formValue.tickets[i];
+      if (!t.type?.trim()) {
+        this.toastService.show(`Ticket #${i + 1} type is required.`, 'warning');
+        this.submitting = false;
+        return;
+      }
+      if (t.price < 0.01) {
+        this.toastService.show(`Ticket #${i + 1} price must be ≥ 0.01`, 'warning');
+        this.submitting = false;
+        return;
+      }
+    }
+
     formValue.tickets.forEach((t: any, i: number) => {
+      formData.append(`Tickets[${i}].Id`, t.id?.toString() || '0');
       formData.append(`Tickets[${i}].Type`, t.type.trim());
       formData.append(`Tickets[${i}].Price`, t.price.toString());
       formData.append(`Tickets[${i}].AvailableQuantity`, t.availableQuantity.toString());
       formData.append(`Tickets[${i}].IsActive`, t.isActive.toString());
     });
 
-    // ✅ Submit using updateTour
-    if (this.tourId) {
-      this.tourService.updateTour(this.tourId, formData).subscribe({
-        next: () => {
-          alert('Tour updated successfully!');
-          this.router.navigate(['/tour-admin/tours']);
-        },
-        error: (err) => {
-          console.error('Update failed:', err);
-          alert(`Error: ${err.message}`);
+    formValue.questions.forEach((q: any, i: number) => {
+      formData.append(`Questions[${i}].QuestionText`, q.questionText.trim());
+      formData.append(`Questions[${i}].AnswerText`, q.answerText.trim());
+      if (q.id) formData.append(`Questions[${i}].Id`, q.id.toString());
+    });
+
+    this.tourService.updateTour(this.tourId, formData).subscribe({
+      next: () => {
+        this.toastService.show('🎉 Tour updated successfully!', 'success');
+        this.router.navigate(['/tour-admin/tours']);
+      },
+      error: (err) => {
+        if (err.error?.errors) {
+          Object.keys(err.error.errors).forEach(field => {
+            this.toastService.show(`${field}: ${err.error.errors[field].join(', ')}`, 'error');
+          });
+        } else {
+          this.toastService.show('Update failed. Please try again.', 'error');
         }
-      });
-    }
+      },
+      complete: () => {
+        this.submitting = false;
+      }
+    });
   }
 
-  // Helper to get company name
+  // === UTILS ===
   getCompanyName(id: number | null): string {
     return this.tourCompanies.find(c => c.id === id)?.name || 'Unknown';
   }
 
   getImageUrl(imageUrl: string | null | undefined): string {
-  if (!imageUrl) {
-    return 'https://via.placeholder.com/400x250?text=No+Image';
+    if (!imageUrl) return 'https://placehold.co/400x250?text=No+Image';
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) return imageUrl;
+    return `https://localhost:7277${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
   }
 
-  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-    return imageUrl;
+  getToday(): string {
+    const today = new Date();
+    today.setHours(12, 0, 0, 0);
+    return today.toISOString().split('T')[0];
   }
 
-  return `https://localhost:7277${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
-}
-}
+  private localDateToISOString(dateStr: string): string {
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    date.setHours(12, 0, 0, 0);
+    return date.toISOString();
+  }
 
-// Add this to avoid TS error
-export enum TourCategory {
-  Adventure = 'Adventure',
-  Historical = 'Historical',
-  Cultural = 'Cultural',
-  Luxury = 'Luxury'
+  getTotalGalleryCount(): number {
+    return this.currentGalleryUrls.length;
+  }
+
+  onImageError(event: any) {
+    event.target.src = 'https://placehold.co/400x250?text=Image+Not+Found';
+  }
+
+  updateGalleryCount(): void {
+    this.galleryCount = this.getTotalGalleryCount();
+    this.cd.detectChanges();
+  }
 }

@@ -1,0 +1,98 @@
+<div class="container-fluid py-4" *ngIf="!loading && hotel">
+  <div class="row">
+    <div class="col-12">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h1 class="h3 mb-1">
+            <i class="fas fa-hotel text-success me-2"></i>
+            {{ hotel.name }}
+          </h1>
+          <p class="text-muted mb-0">Hotel ID: {{ hotel.id }}</p>
+          <p class="text-muted mb-0">Location: {{ hotel.location }}</p>
+          <p class="text-warning mb-0">Rating: {{ hotel.rating }}</p>
+        </div>
+        <button class="btn btn-outline-secondary" (click)="goBack()">
+          <i class="fas fa-arrow-left me-2"></i>
+          Back
+        </button>
+      </div>
+
+      <!-- Hotel Content -->
+      <div class="card shadow-sm">
+        <div class="card-body row">
+          <!-- Image -->
+          <div class="col-md-6">
+            <img
+              *ngIf="hotel.imageUrl"
+              [src]="hotel.imageUrl"
+              alt="{{ hotel.name }}"
+              class="img-fluid rounded"
+              style="max-height: 300px; object-fit: cover;"
+            />
+            <div
+              *ngIf="!hotel.imageUrl"
+              class="hotel-image-placeholder bg-light rounded d-flex align-items-center justify-content-center"
+              style="height: 300px;"
+            >
+              <div class="text-center text-muted">
+                <i class="fas fa-hotel fa-3x mb-3"></i>
+                <p>No Image Available</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Info -->
+          <div class="col-md-6">
+            <h4 class="card-title">Hotel Information</h4>
+            <p class="text-muted">
+              {{ hotel.description }}
+            </p>
+
+            <!-- Rooms -->
+            <div class="hotel-features mt-4" *ngIf="hotel.rooms.length > 0">
+              <h6>Available Rooms:</h6>
+              <ul class="list-unstyled">
+                <li *ngFor="let room of hotel.rooms">
+                  <i class="fas fa-door-closed text-primary me-2"></i>
+                  Room {{ room.roomNumber }} - {{ room.type }} - 
+                  {{ room.price | currency }}
+                  <span
+                    [ngClass]="room.isAvailable ? 'badge bg-success ms-2' : 'badge bg-danger ms-2'">
+                    {{ room.isAvailable ? 'Available' : 'Not Available' }}
+                  </span>
+                </li>
+              </ul>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Additional Information -->
+      <div class="row mt-4">
+        <div class="col-md-12">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="mb-0">Hotel Description</h5>
+            </div>
+            <div class="card-body">
+              <p>{{ hotel.description }}</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Loading & Error States -->
+<div *ngIf="loading" class="text-center py-5">
+  <div class="spinner-border text-success"></div>
+  <p>Loading hotel details...</p>
+</div>
+
+<div *ngIf="error" class="alert alert-danger">
+  {{ error }}
+</div>

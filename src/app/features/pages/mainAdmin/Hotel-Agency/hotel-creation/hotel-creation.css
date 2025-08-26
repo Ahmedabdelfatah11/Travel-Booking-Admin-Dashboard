@@ -1,0 +1,281 @@
+
+:root {
+  --bs-primary: #0d6efd;
+  --bs-success: #198754;
+  --bs-danger: #dc3545;
+  --bs-warning: #ffc107;
+  --bs-dark: #212529;
+  --shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  color: var(--bs-dark);
+}
+
+.form-container {
+  max-width: 600px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.form-card {
+  background: white;
+  border-radius: 20px;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  border: none;
+}
+
+.form-header {
+  background: linear-gradient(135deg, var(--bs-primary) 0%, #4c63d2 100%);
+  color: white;
+  padding: 2rem;
+  text-align: center;
+  position: relative;
+}
+
+.form-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+  opacity: 0.3;
+}
+
+.form-header h1 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  position: relative;
+  z-index: 1;
+}
+
+.form-header .subtitle {
+  margin: 0.5rem 0 0 0;
+  opacity: 0.9;
+  font-size: 1.1rem;
+  position: relative;
+  z-index: 1;
+}
+
+.form-body {
+  padding: 2.5rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.form-label {
+  font-weight: 600;
+  color: var(--bs-dark);
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-control {
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background-color: #f8f9fa;
+}
+
+.form-control:focus {
+  border-color: var(--bs-primary);
+  background-color: white;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1);
+  transform: translateY(-2px);
+}
+
+.form-control:hover:not(:focus) {
+  border-color: #ced4da;
+  background-color: white;
+}
+
+.form-control.is-invalid {
+  border-color: var(--bs-danger);
+  background-color: #fef2f2;
+}
+
+.form-control.is-valid {
+  border-color: var(--bs-success);
+  background-color: #f0fdf4;
+}
+
+.invalid-feedback {
+  display: block;
+  color: var(--bs-danger);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  font-weight: 500;
+}
+
+.valid-feedback {
+  display: block;
+  color: var(--bs-success);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  font-weight: 500;
+}
+
+.file-upload-wrapper {
+  position: relative;
+  overflow: hidden;
+  border: 2px dashed #ced4da;
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  background-color: #f8f9fa;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.file-upload-wrapper:hover {
+  border-color: var(--bs-primary);
+  background-color: rgba(13, 110, 253, 0.05);
+}
+
+.file-upload-wrapper input[type="file"] {
+  position: absolute;
+  left: -9999px;
+}
+
+.file-upload-content {
+  pointer-events: none;
+}
+
+.file-upload-icon {
+  font-size: 3rem;
+  color: var(--bs-primary);
+  margin-bottom: 1rem;
+}
+
+.file-preview {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.file-preview img {
+  max-width: 200px;
+  max-height: 200px;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--bs-primary) 0%, #4c63d2 100%);
+  border: none;
+  border-radius: 12px;
+  padding: 0.75rem 2rem;
+  font-weight: 600;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.75rem 2rem rgba(13, 110, 253, 0.3);
+  background: linear-gradient(135deg, #0b5ed7 0%, #4c63d2 100%);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-primary:disabled {
+  background: #6c757d;
+  transform: none;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.loading-spinner {
+  width: 1.2rem;
+  height: 1.2rem;
+  border: 2px solid transparent;
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+  margin-right: 0.5rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.rating-stars {
+  display: flex;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+.rating-star {
+  font-size: 1.5rem;
+  color: #ffc107;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.rating-star:hover {
+  transform: scale(1.2);
+}
+
+.rating-star.filled {
+  color: #ffc107;
+}
+
+.rating-star.empty {
+  color: #e9ecef;
+}
+
+@media (max-width: 768px) {
+  .form-container {
+    margin: 1rem auto;
+    padding: 0 0.5rem;
+  }
+  
+  .form-body {
+    padding: 1.5rem;
+  }
+  
+  .form-header {
+    padding: 1.5rem;
+  }
+  
+  .form-header h1 {
+    font-size: 1.5rem;
+  }
+}
+
+.success-message {
+  background: linear-gradient(135deg, var(--bs-success) 0%, #28a745 100%);
+  color: white;
+  padding: 1rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  font-weight: 600;
+}

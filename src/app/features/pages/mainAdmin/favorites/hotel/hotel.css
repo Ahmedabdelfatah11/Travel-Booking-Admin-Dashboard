@@ -1,0 +1,21 @@
+ .hotel-image-placeholder {
+      min-height: 300px;
+    }
+    
+    .card {
+      border: none;
+      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    
+    .card-header {
+      background-color: #f8f9fa;
+      border-bottom: 1px solid #dee2e6;
+    }
+    
+    .btn {
+      border-radius: 0.375rem;
+    }
+    
+    .list-unstyled li {
+      padding: 0.25rem 0;
+    }

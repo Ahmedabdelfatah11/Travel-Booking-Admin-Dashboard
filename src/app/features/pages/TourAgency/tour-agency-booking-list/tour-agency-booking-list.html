@@ -1,1 +1,166 @@
-<p>tour-agency-booking-list works!</p>
+<div class="tour-booking-list-container">
+  <!-- Header -->
+  <header class="header">
+    <h2>Tour Bookings Management</h2>
+
+    <!-- Stats Cards -->
+    <div class="stats">
+      <div class="stat-card total">
+        <span class="stat-number">{{ bookings.length }}</span>
+        <span class="stat-label">Total Bookings</span>
+      </div>
+      <div class="stat-card filtered">
+        <span class="stat-number">{{ filteredBookings.length }}</span>
+        <span class="stat-label">Filtered</span>
+      </div>
+
+      <!-- Dynamic Status Stats -->
+      <ng-container *ngFor="let stat of getStatList()">
+        <div class="stat-card" [class]="stat.class">
+          <span class="stat-number">{{ stat.value }}</span>
+          <span class="stat-label">{{ stat.label }}</span>
+        </div>
+      </ng-container>
+    </div>
+  </header>
+
+  <!-- Error Message -->
+  <div *ngIf="error" class="error-message">
+    <i class="error-icon">⚠️</i>
+    {{ error }}
+    <button (click)="loadBookings()" class="retry-btn">Retry</button>
+  </div>
+
+  <!-- Filters -->
+  <section class="filters-section">
+    <h3>Filters</h3>
+    <div class="filters-grid">
+      <div class="filter-group">
+        <label for="status">Status</label>
+        <select id="status" [(ngModel)]="filters.status" (ngModelChange)="onFilterChange()" class="filter-select">
+          <option *ngFor="let option of statusOptions" [value]="option.value">{{ option.label }}</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="tourName">Tour Name</label>
+        <input type="text" id="tourName" [(ngModel)]="filters.tourName" (ngModelChange)="onFilterChange()"
+               placeholder="Enter tour name" class="filter-input">
+      </div>
+
+      <div class="filter-group">
+        <label for="destination">Destination</label>
+        <input type="text" id="destination" [(ngModel)]="filters.destination" (ngModelChange)="onFilterChange()"
+               placeholder="Enter destination" class="filter-input">
+      </div>
+
+      <div class="filter-group">
+        <label for="dateFrom">From Date</label>
+        <input type="date" id="dateFrom" [(ngModel)]="filters.dateFrom" (ngModelChange)="onFilterChange()" class="filter-input">
+      </div>
+
+      <div class="filter-group">
+        <label for="dateTo">To Date</label>
+        <input type="date" id="dateTo" [(ngModel)]="filters.dateTo" (ngModelChange)="onFilterChange()" class="filter-input">
+      </div>
+
+      <div class="filter-group">
+        <label for="priceMin">Min Price (EGP)</label>
+        <input type="number" id="priceMin" [(ngModel)]="filters.priceMin" (ngModelChange)="onFilterChange()"
+               placeholder="0" min="0" class="filter-input">
+      </div>
+
+      <div class="filter-group">
+        <label for="priceMax">Max Price (EGP)</label>
+        <input type="number" id="priceMax" [(ngModel)]="filters.priceMax" (ngModelChange)="onFilterChange()"
+               placeholder="10000" min="0" class="filter-input">
+      </div>
+
+      <div class="filter-group">
+        <label for="customerEmail">Customer Email</label>
+        <input type="text" id="customerEmail" [(ngModel)]="filters.customerEmail" (ngModelChange)="onFilterChange()"
+               placeholder="Enter email" class="filter-input">
+      </div>
+    </div>
+
+    <div class="filter-actions">
+      <button (click)="clearFilters()" class="clear-filters-btn">Clear All</button>
+    </div>
+  </section>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-spinner">
+    <div class="spinner"></div>
+    <p>Loading tour bookings...</p>
+  </div>
+
+  <!-- Table -->
+  <div *ngIf="!loading" class="table-container">
+    <table class="bookings-table">
+      <thead>
+        <tr>
+          <th (click)="sort('id')" class="sortable">ID {{ getSortIcon('id') }}</th>
+          <th>Customer</th>
+          <th (click)="sort('paymentStatus')" class="sortable">Payment Status</th>
+          <th>Tour</th>
+          <th (click)="sort('startDate')" class="sortable">Start</th>
+          <th (click)="sort('endDate')" class="sortable">End</th>
+          <th (click)="sort('totalPrice')" class="sortable">Total</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let booking of paginatedBookings">
+          <td>#{{ booking.id }}</td>
+          <td>
+            <div class="customer-email">{{ booking.customerEmail }}</div>
+            <small *ngIf="booking.paymentStatus" [ngClass]="getPaymentStatusClass(booking.paymentStatus)">
+              💳 {{ getStatusText(booking.paymentStatus) }}
+            </small>
+          </td>
+          <td>
+            <span class="status-badge" [ngClass]="getStatusBadgeClass(getDisplayStatus(booking))">
+              {{ getStatusIcon(getDisplayStatus(booking)) }} {{ getDisplayStatus(booking) }}
+            </span>
+          </td>
+          <td>
+            <strong>{{ getTourName(booking) }}</strong>
+            <div *ngIf="getTourDestination(booking) !== 'N/A'">
+              <small>{{ getTourDestination(booking) }}</small>
+            </div>
+          </td>
+          <td>{{ formatDate(booking.startDate) }}</td>
+          <td>{{ formatDate(booking.endDate) }}</td>
+          <td>{{ formatPrice(booking.totalPrice) }}</td>
+          <td>
+            <button (click)="openTourDetails(booking)" class="action-btn view-btn" title="View Tour">
+              <i class="fas fa-eye"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Empty State -->
+    <div *ngIf="filteredBookings.length === 0" class="empty-state">
+      <div class="empty-icon">🧳</div>
+      <h3>No Bookings Found</h3>
+      <p>Try adjusting your filters.</p>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <footer *ngIf="!loading && filteredBookings.length > 0" class="pagination">
+    <div class="pagination-info">
+      Showing {{ (currentPage - 1) * itemsPerPage + 1 }} - 
+      {{ getMin(currentPage * itemsPerPage, filteredBookings.length) }} of {{ filteredBookings.length }}
+    </div>
+    <div class="pagination-controls">
+      <button (click)="changePage(currentPage - 1)" [disabled]="currentPage === 1" class="pagination-btn">Previous</button>
+      <button *ngFor="let page of pageNumbers" (click)="changePage(page)" [class.active]="page === currentPage" class="pagination-btn">
+        {{ page }}
+      </button>
+      <button (click)="changePage(currentPage + 1)" [disabled]="currentPage === totalPages" class="pagination-btn">Next</button>
+    </div>
+  </footer>
+</div>

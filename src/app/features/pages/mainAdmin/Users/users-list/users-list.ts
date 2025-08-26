@@ -120,22 +120,23 @@ loadUsers() {
   }
 
 
-  deleteUser(id: string, email: string) {
-    if (!isPlatformBrowser(this.platformId)) return;
+deleteUser(id: string, email: string) {
+  console.log('Attempting to delete:', id, email);
 
-    if (confirm(`Are you sure you want to delete user: ${email}?`)) {
-      this.http.delete(`${this.apiUrl}/delete-user/${id}`, { headers: this.getAuthHeaders() })
-        .subscribe({
-          next: () => {
-            this.toastService.show('User deleted successfully', 'success');
-            this.loadUsers(); // Refresh list
-          },
-          error: (err) => {
-            this.toastService.show('Failed to delete user. Try again.', 'error');
-          }
-        });
-    }
+  if (confirm(`Are you sure you want to delete user: ${email}?`)) {
+    this.http.delete(`${this.apiUrl}/delete-user/${id}`, { headers: this.getAuthHeaders() })
+      .subscribe({
+        next: () => {
+          this.toastService.show('User deleted successfully', 'success');
+          this.loadUsers();
+        },
+        error: (err) => {
+          console.error('Delete failed:', err);
+          this.toastService.show(err.error?.message || 'Failed to delete user', 'error');
+        }
+      });
   }
+}
 //Roles
 assignRole() {
   if (!this.currentAction || !this.selectedCompanyId) {

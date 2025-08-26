@@ -1,21 +1,36 @@
 <div class="sb-nav-fixed">  <!-- or keep class on root -->
-        <nav class="sb-topnav navbar navbar-expand bg-light p-0  border-bottom border-1">
+        <nav class="sb-topnav navbar navbar-expand p-0  ">
             <!-- Navbar Brand-->
-            <a class="navbar-brand ps-3  border-end border-1 h-100 title" >Travel</a>
+                <!-- <img src="assets/imgs/palms.png"alt=""> -->
+                 <div class="d-flex h-100">
+                     <a class="navbar-brand ps-3 h-100 title" [class.toggled]="isSidebarToggled">
+        <img 
+          src="assets/imgs/palms.png" 
+          alt="Dates" 
+          class="text-light pe-2" 
+          style="width: 40px;"
+          id="navbar-logo">
+        Pyramigo
+      </a>
+                 </div>
             <!-- Sidebar Toggle-->
-            <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0 ms-2" id="sidebarToggle"><i class="fas fa-bars"></i></button>
-            <!-- Navbar Search-->
+<button 
+  class="btn btn-link text-light btn-sm order-1 order-lg-0 me-4 me-lg-0 ms-2" 
+  (click)="toggleSidebar($event)"
+  type="button">
+  <i class="fas fa-bars"></i>
+</button>            <!-- Navbar Search-->
             <form class="d-none d-md-inline-block form-inline ms-auto me-0 me-md-3 my-2 my-md-0 ">
                 <div class="input-group ">
                     <input class="form-control" type="text" placeholder="Search for..." aria-label="Search for..." aria-describedby="btnNavbarSearch" />
-                    <button class="btn btn-primary" id="btnNavbarSearch" type="button"><i class="fas fa-search"></i></button>
+                    <button class="btn btn-light" id="btnNavbarSearch" type="button"><i class="fas fa-search"></i></button>
                 </div>
             </form>
             <!-- Navbar-->
             <ul class="navbar-nav ms-auto ms-md-0 me-3 me-lg-4">
                 
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" id="navbarDropdown"  role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-user fa-fw"></i></a>
+                    <a class="nav-link dropdown-toggle text-light" id="navbarDropdown"  role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-user fa-fw"></i></a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                         <li><a class="dropdown-item" >Settings</a></li>
                         <li><a class="dropdown-item" >Activity Log</a></li>
@@ -40,12 +55,37 @@
                         <!-- Parent link just toggles collapse -->
 <!-- Parent link just toggles collapse -->
  @if (isTourAdmin()){
-<a class="nav-link collapsed mb-1" data-bs-toggle="collapse" data-bs-target="#Tour" aria-expanded="false" aria-controls="Tour">
-  <div class="sb-nav-link-icon">
-       <img src="assets/imgs/dates.png" alt="Dates" style="width: 20px; height: 20px;">
+<a class="nav-link collapsed mb-1" 
+   data-bs-toggle="collapse" 
+   data-bs-target="#Tour" 
+   aria-expanded="false" 
+   aria-controls="Tour"
+   (mouseover)="hoverIcon(true)" 
+   (mouseout)="hoverIcon(false)"
+   #tourLink>
+  <div class="sb-nav-link-icon"
+       style="display: inline-block; width: 20px; height: 20px; position: relative;">
+    
+    <img src="assets/imgs/palms.png" alt="Dates" 
+         style="width: 100%; height: 100%; opacity: 0;">
+
+    <div #iconMask
+         style="
+           position: absolute;
+           top: 0; left: 0;
+           width: 100%; height: 100%;
+           background-color: #808080;
+           mask-image: url('assets/imgs/palms.png');
+           mask-size: cover;
+           mask-repeat: no-repeat;
+           mask-position: center;
+           transition: background-color 0.3s ease;
+         "></div>
   </div>
   <span>Tours</span>
-  <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+  <div class="sb-sidenav-collapse-arrow">
+    <i class="fas fa-angle-down"></i>
+  </div>
 </a>
 
 <!-- Child links handle routing -->
@@ -69,8 +109,8 @@
                                 <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
                             </a>
                             <div class="collapse" id="Booking" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordion">
-                                <nav class="sb-sidenav-menu-nested nav">
-                                    <a class="nav-link" routerLink="booking">All</a>
+                                <nav class="sb-sidenav-menu-nested nav ">
+                                    <a class="nav-link w-100" routerLink="booking">All</a>
                                     <a class="nav-link"  routerLink="booking/confirmed">Confirmed</a>
                                     <a class="nav-link"  routerLink="booking/pending">Pending</a>
                                     <a class="nav-link"  routerLink="booking/cancelled">Cancelled</a>

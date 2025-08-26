@@ -1,1 +1,90 @@
-<p>tour-agency-booking-confirmed works!</p>
+<div class="tour-booking-list-container">
+  <!-- Header -->
+  <header class="header">
+    <h2>Confirmed Tour Bookings</h2>
+    <div class="stats">
+      <div class="stat-card confirmed">
+        <span class="stat-number">{{ confirmedBookings.length }}</span>
+        <span class="stat-label">Confirmed Bookings</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Error Message -->
+  <div *ngIf="error" class="error-message">
+    <i class="error-icon">⚠️</i>
+    {{ error }}
+    <button (click)="loadConfirmedBookings()" class="retry-btn">Retry</button>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-spinner">
+    <div class="spinner"></div>
+    <p>Loading confirmed bookings...</p>
+  </div>
+
+  <!-- Table -->
+  <div *ngIf="!loading" class="table-container">
+    <table class="bookings-table">
+      <thead>
+        <tr>
+          <th (click)="sort('id')" class="sortable">ID {{ getSortIcon('id') }}</th>
+          <th>Customer</th>
+          <th>Status</th>
+          <th>Tour</th>
+          <th (click)="sort('startDate')" class="sortable">Start</th>
+          <th (click)="sort('endDate')" class="sortable">End</th>
+          <th (click)="sort('totalPrice')" class="sortable">Total</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let booking of paginatedBookings">
+          <td>#{{ booking.id }}</td>
+          <td>{{ booking.customerEmail }}</td>
+          <td>
+            <span class="status-badge bg-success text-white">
+              ✅ Confirmed
+            </span>
+          </td>
+          <td>
+            <strong>{{ getTourName(booking) }}</strong>
+            <div *ngIf="getTourDestination(booking) !== 'N/A'">
+              <small>{{ getTourDestination(booking) }}</small>
+            </div>
+          </td>
+          <td>{{ formatDate(booking.startDate) }}</td>
+          <td>{{ formatDate(booking.endDate) }}</td>
+          <td>{{ formatPrice(booking.totalPrice) }}</td>
+          <td>
+            <button (click)="openTourDetails(booking)" class="action-btn view-btn" title="View Tour">
+              <i class="fas fa-eye"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Empty State -->
+    <div *ngIf="confirmedBookings.length === 0 && !loading" class="empty-state">
+      <div class="empty-icon">✅</div>
+      <h3>No Confirmed Bookings</h3>
+      <p>All confirmed bookings will appear here.</p>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <footer *ngIf="!loading && confirmedBookings.length > 0" class="pagination">
+    <div class="pagination-info">
+      Showing {{ (currentPage - 1) * itemsPerPage + 1 }} - 
+      {{ getMin(currentPage * itemsPerPage, confirmedBookings.length) }} of {{ confirmedBookings.length }}
+    </div>
+    <div class="pagination-controls">
+      <button (click)="changePage(currentPage - 1)" [disabled]="currentPage === 1" class="pagination-btn">Previous</button>
+      <button *ngFor="let page of pageNumbers" (click)="changePage(page)" [class.active]="page === currentPage" class="pagination-btn">
+        {{ page }}
+      </button>
+      <button (click)="changePage(currentPage + 1)" [disabled]="currentPage === totalPages" class="pagination-btn">Next</button>
+    </div>
+  </footer>
+</div>
