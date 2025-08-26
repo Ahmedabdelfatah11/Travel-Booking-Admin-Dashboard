@@ -5,6 +5,7 @@ import { Auth } from '../../../../../core/services/auth';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ToastService } from '../../../../../core/services/toast-service';
+import { SuperadminServices } from '../../../../../core/services/superadmin-services';
 
 @Component({
   selector: 'app-users-list',
@@ -19,7 +20,7 @@ export class UsersList {
   router = inject(Router);
   @Inject(PLATFORM_ID) private platformId!: Object;
  toastService = inject(ToastService); 
-
+   superAdminService = inject(SuperadminServices);
   //Some Properties
   // users-list.ts
 selectedCompanyId = signal<number | null>(null);
@@ -120,20 +121,17 @@ loadUsers() {
   }
 
 
-  deleteUser(id: string, email: string) {
-    if (!isPlatformBrowser(this.platformId)) return;
-
+deleteUser(id: string, email: string) {
     if (confirm(`Are you sure you want to delete user: ${email}?`)) {
-      this.http.delete(`${this.apiUrl}/delete-user/${id}`, { headers: this.getAuthHeaders() })
-        .subscribe({
-          next: () => {
-            this.toastService.show('User deleted successfully', 'success');
-            this.loadUsers(); // Refresh list
-          },
-          error: (err) => {
-            this.toastService.show('Failed to delete user. Try again.', 'error');
-          }
-        });
+      this.superAdminService.deleteUser(id).subscribe({
+        next: () => {
+          this.toastService.show('User deleted successfully', 'success');
+          this.loadUsers();
+        },
+        error: () => {
+          this.toastService.show('Failed to delete user', 'error');
+        }
+      });
     }
   }
 //Roles

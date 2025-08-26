@@ -258,55 +258,7 @@
   </div>
 </div>
 
-<!-- Add Review Modal -->
-<div class="modal fade" [class.show]="showAddReviewModal" [style.display]="showAddReviewModal ? 'block' : 'none'" 
-     tabindex="-1" *ngIf="showAddReviewModal">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">
-          <i class="fas fa-star me-2"></i>Add Review for {{ selectedCompany?.name }}
-        </h5>
-        <button type="button" class="btn-close" (click)="closeAddReviewModal()"></button>
-      </div>
-      <div class="modal-body">
-        <form (ngSubmit)="submitReview()">
-          <div class="mb-3">
-            <label class="form-label">Rating <span class="text-danger">*</span></label>
-            <div class="rating-input">
-              <div class="btn-group d-flex" role="group">
-                <button type="button" 
-                        *ngFor="let star of stars" 
-                        class="btn btn-outline-warning"
-                        [class.active]="newReview.rating >= star"
-                        (click)="newReview.rating = star">
-                  <i class="fas fa-star"></i> {{ star }}
-                </button>
-              </div>
-            </div>
-          </div>
-          <div class="mb-3">
-            <label for="reviewComment" class="form-label">Comment</label>
-            <textarea id="reviewComment" 
-                      class="form-control" 
-                      rows="4" 
-                      placeholder="Share your experience with this car rental company..."
-                      [(ngModel)]="newReview.comment"
-                      name="comment"
-                      maxlength="500"></textarea>
-            <div class="form-text">{{ newReview.comment?.length || 0 }}/500 characters</div>
-          </div>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="closeAddReviewModal()">Cancel</button>
-        <button type="button" class="btn btn-primary" (click)="submitReview()">
-          <i class="fas fa-paper-plane me-2"></i>Submit Review
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
+
 
 <!-- Edit Review Modal -->
 <div class="modal fade" [class.show]="showEditReviewModal" [style.display]="showEditReviewModal ? 'block' : 'none'" 

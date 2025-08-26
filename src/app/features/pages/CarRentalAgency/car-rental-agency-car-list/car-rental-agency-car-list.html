@@ -46,6 +46,19 @@
             padding: 3rem 0;
             color: #6c757d;
         }
+        .company-info {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .company-selector {
+            max-width: 300px;
+        }
+        .warning-card {
+            border-left: 4px solid #ffc107;
+            background-color: #fff3cd;
+        }
     </style>
 </head>
 <body>
@@ -56,24 +69,50 @@
                 <div class="row align-items-center">
                     <div class="col-md-6">
                         <h1 class="mb-0">
-                            <i class="fas fa-car me-3"></i>Car Management
+                            <i class="fas fa-car me-3"></i>My Car Fleet
                         </h1>
-                        <p class="mb-0 mt-2">Manage your rental fleet</p>
+                        <p class="mb-0 mt-2">Manage your rental cars</p>
                     </div>
                     <div class="col-md-6 text-end">
                         <button 
-                                    class="btn btn-light btn-lg"
-                                    (click)="CreateCar()"
-                                    title="Add New Car"
-                                >
-                                    <i class="fas fa-plus me-2"></i>
-                                </button>
+                            class="btn btn-light btn-lg"
+                            (click)="CreateCar()"
+                            title="Add New Car"
+                        >
+                            <i class="fas fa-plus me-2"></i>Add Car
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="container">
+            <!-- Company Information -->
+            <div class="company-info" *ngIf="userCompanyId">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h5 class="mb-1">
+                            <i class="fas fa-building me-2 text-primary"></i>
+                            {{ getCurrentCompanyName() }}
+                        </h5>
+                        <small class="text-muted">Company ID: {{ userCompanyId }}</small>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <!-- Company Selector (if user has multiple companies) -->
+                        <select 
+                            *ngIf="myCompanies.length > 1" 
+                            class="form-select company-selector"
+                            [ngModel]="userCompanyId"
+                            (ngModelChange)="onCompanyChange($event)"
+                        >
+                            <option *ngFor="let company of myCompanies" [value]="company.id">
+                                {{ company.name }}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
             <!-- Search and Filter Section -->
             <div class="row mb-4">
                 <div class="col-md-6">
@@ -107,6 +146,9 @@
                             <option value="20">20 per page</option>
                             <option value="50">50 per page</option>
                         </select>
+                        <button class="btn btn-outline-secondary" (click)="refreshData()" title="Refresh">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -128,6 +170,11 @@
             <div *ngIf="!loading && cars.length > 0" class="row">
                 <div class="col-xl-3 col-lg-4 col-md-6 mb-4" *ngFor="let car of cars">
                     <div class="card car-card h-100">
+                        <!-- Warning if car doesn't belong to current company -->
+                        <div *ngIf="!isCarFromMyCompany(car)" class="alert alert-warning warning-card mb-2">
+                            <small><i class="fas fa-exclamation-triangle me-1"></i>Not your company's car</small>
+                        </div>
+                        
                         <div class="position-relative">
                             <img 
                                 [src]="car.imageUrl || '/assets/images/car-placeholder.jpg'" 
@@ -156,6 +203,13 @@
                                     <i class="fas fa-users me-1"></i>{{ car.capacity }} passengers
                                 </small>
                             </div>
+
+                            <!-- Company Info -->
+                            <div class="mb-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-building me-1"></i>Company ID: {{ car.rentalCompanyId }}
+                                </small>
+                            </div>
                             
                             <p class="card-text flex-grow-1">{{ car.description }}</p>
                             
@@ -163,7 +217,8 @@
                                 <span class="h5 text-primary mb-0">${{ car.price }}/day</span>
                             </div>
                             
-                            <div class="btn-group" role="group">
+                            <!-- Action Buttons - Only show if car belongs to current company -->
+                            <div class="btn-group" role="group" *ngIf="isCarFromMyCompany(car)">
                                 <button 
                                     class="btn btn-outline-primary btn-sm"
                                     (click)="editCar(car.id)"
@@ -186,6 +241,11 @@
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
+
+                            <!-- Read-only message for cars not belonging to current company -->
+                            <div *ngIf="!isCarFromMyCompany(car)" class="alert alert-info py-2">
+                                <small><i class="fas fa-info-circle me-1"></i>View only - Different company</small>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -197,11 +257,11 @@
                 <h3>No Cars Found</h3>
                 <p class="mb-4">
                     <span *ngIf="searchTerm">No cars match your search criteria.</span>
-                    <span *ngIf="!searchTerm">You haven't added any cars yet.</span>
+                    <span *ngIf="!searchTerm">You haven't added any cars to your fleet yet.</span>
                 </p>
-                <a href="/car-admin/Car/create" class="btn btn-primary btn-lg">
+                <button class="btn btn-primary btn-lg" (click)="CreateCar()">
                     <i class="fas fa-plus me-2"></i>Add Your First Car
-                </a>
+                </button>
             </div>
 
             <!-- Pagination -->
@@ -210,7 +270,7 @@
                     <div>
                         <small class="text-muted">
                             Showing {{ ((currentPage - 1) * pageSize) + 1 }} to 
-                             {{ minValue }} of 
+                            {{ minValue }} of 
                             {{ totalItems }} cars
                         </small>
                     </div>

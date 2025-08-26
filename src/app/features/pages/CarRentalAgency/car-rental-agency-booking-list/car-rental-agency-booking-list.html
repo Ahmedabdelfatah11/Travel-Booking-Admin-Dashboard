@@ -152,22 +152,7 @@
     </div>
   </div>
 
-  <!-- Debug Information (يمكن إزالتها لاحقاً) -->
-  <div *ngIf="!loading && !error" class="alert alert-info mb-3">
-    <h6>Debug Information:</h6>
-    <ul class="mb-0">
-      <li>Total bookings loaded: {{ bookings.length }}</li>
-      <li>Filtered bookings: {{ filteredBookings.length }}</li>
-      <li>API URL: {{ 'http://pyramigo.runasp.net/api/booking/my-car-rental-bookings' }}</li>
-      <li>Auth Token exists: {{ !!windowRef.localStorage.getItem('authToken') ? 'Yes' : 'No' }}</li>
-    </ul>
-    
-    <!-- Test buttons -->
-    <div class="mt-2">
-      <button class="btn btn-sm btn-outline-primary me-2" (click)="checkToken()">Check Token</button>
-      <button class="btn btn-sm btn-outline-info me-2" (click)="testGetAllBookings()">Test All Bookings</button>
-    </div>
-  </div>
+
 
   <!-- Loading State -->
   <div *ngIf="loading" class="d-flex justify-content-center py-5">
