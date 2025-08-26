@@ -1,1 +1,257 @@
-<p>car-rental-agency-car-list works!</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Management</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .car-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            border: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .car-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+        .car-image {
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px 8px 0 0;
+        }
+        .status-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+        .search-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+        .btn-action {
+            margin: 0 2px;
+        }
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 3rem 0;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <!-- Header Section -->
+        <div class="search-section">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h1 class="mb-0">
+                            <i class="fas fa-car me-3"></i>Car Management
+                        </h1>
+                        <p class="mb-0 mt-2">Manage your rental fleet</p>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <button 
+                                    class="btn btn-light btn-lg"
+                                    (click)="CreateCar()"
+                                    title="Add New Car"
+                                >
+                                    <i class="fas fa-plus me-2"></i>
+                                </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <!-- Search and Filter Section -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input 
+                            type="text" 
+                            class="form-control" 
+                            placeholder="Search cars by model, location..."
+                            [(ngModel)]="searchTerm"
+                            (keyup.enter)="onSearch()"
+                        >
+                        <button class="btn btn-outline-primary" type="button" (click)="onSearch()">
+                            Search
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex gap-2">
+                        <select class="form-select" [(ngModel)]="sortBy" (change)="onSort(sortBy)">
+                            <option value="model">Sort by Model</option>
+                            <option value="price">Sort by Price</option>
+                            <option value="capacity">Sort by Capacity</option>
+                            <option value="location">Sort by Location</option>
+                        </select>
+                        <select class="form-select" [(ngModel)]="pageSize" (change)="onPageChange(1)">
+                            <option value="5">5 per page</option>
+                            <option value="10">10 per page</option>
+                            <option value="20">20 per page</option>
+                            <option value="50">50 per page</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error Alert -->
+            <div *ngIf="error" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>{{ error }}
+                <button type="button" class="btn-close" (click)="error = ''"></button>
+            </div>
+
+            <!-- Loading State -->
+            <div *ngIf="loading" class="loading-spinner">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+
+            <!-- Cars Grid -->
+            <div *ngIf="!loading && cars.length > 0" class="row">
+                <div class="col-xl-3 col-lg-4 col-md-6 mb-4" *ngFor="let car of cars">
+                    <div class="card car-card h-100">
+                        <div class="position-relative">
+                            <img 
+                                [src]="car.imageUrl || '/assets/images/car-placeholder.jpg'" 
+                                [alt]="car.model"
+                                class="card-img-top car-image"
+                            >
+                            <span 
+                                [class]="getStatusBadgeClass(car.isAvailable) + ' status-badge'"
+                            >
+                                {{ getStatusText(car.isAvailable) }}
+                            </span>
+                        </div>
+                        
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">{{ car.model }}</h5>
+                            <p class="card-text text-muted small mb-2">{{ car.name }}</p>
+                            
+                            <div class="mb-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-map-marker-alt me-1"></i>{{ car.location }}
+                                </small>
+                            </div>
+                            
+                            <div class="mb-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-users me-1"></i>{{ car.capacity }} passengers
+                                </small>
+                            </div>
+                            
+                            <p class="card-text flex-grow-1">{{ car.description }}</p>
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="h5 text-primary mb-0">${{ car.price }}/day</span>
+                            </div>
+                            
+                            <div class="btn-group" role="group">
+                                <button 
+                                    class="btn btn-outline-primary btn-sm"
+                                    (click)="editCar(car.id)"
+                                    title="Edit Car"
+                                >
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button 
+                                    class="btn btn-outline-info btn-sm"
+                                    (click)="toggleAvailability(car)"
+                                    [title]="car.isAvailable ? 'Mark Unavailable' : 'Mark Available'"
+                                >
+                                    <i [class]="car.isAvailable ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                                </button>
+                                <button 
+                                    class="btn btn-outline-danger btn-sm"
+                                    (click)="deleteCar(car)"
+                                    title="Delete Car"
+                                >
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div *ngIf="!loading && cars.length === 0" class="empty-state">
+                <i class="fas fa-car fa-4x mb-4 text-muted"></i>
+                <h3>No Cars Found</h3>
+                <p class="mb-4">
+                    <span *ngIf="searchTerm">No cars match your search criteria.</span>
+                    <span *ngIf="!searchTerm">You haven't added any cars yet.</span>
+                </p>
+                <a href="/car-admin/Car/create" class="btn btn-primary btn-lg">
+                    <i class="fas fa-plus me-2"></i>Add Your First Car
+                </a>
+            </div>
+
+            <!-- Pagination -->
+            <nav *ngIf="!loading && cars.length > 0 && totalPages > 1" aria-label="Car pagination">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <small class="text-muted">
+                            Showing {{ ((currentPage - 1) * pageSize) + 1 }} to 
+                             {{ minValue }} of 
+                            {{ totalItems }} cars
+                        </small>
+                    </div>
+                    <ul class="pagination mb-0">
+                        <li class="page-item" [class.disabled]="currentPage === 1">
+                            <a class="page-link" (click)="onPageChange(1)" href="javascript:void(0)">
+                                <i class="fas fa-angle-double-left"></i>
+                            </a>
+                        </li>
+                        <li class="page-item" [class.disabled]="currentPage === 1">
+                            <a class="page-link" (click)="onPageChange(currentPage - 1)" href="javascript:void(0)">
+                                <i class="fas fa-angle-left"></i>
+                            </a>
+                        </li>
+                        
+                        <li 
+                            *ngFor="let page of getPaginationPages()" 
+                            class="page-item" 
+                            [class.active]="page === currentPage"
+                        >
+                            <a class="page-link" (click)="onPageChange(page)" href="javascript:void(0)">
+                                {{ page }}
+                            </a>
+                        </li>
+                        
+                        <li class="page-item" [class.disabled]="currentPage === totalPages">
+                            <a class="page-link" (click)="onPageChange(currentPage + 1)" href="javascript:void(0)">
+                                <i class="fas fa-angle-right"></i>
+                            </a>
+                        </li>
+                        <li class="page-item" [class.disabled]="currentPage === totalPages">
+                            <a class="page-link" (click)="onPageChange(totalPages)" href="javascript:void(0)">
+                                <i class="fas fa-angle-double-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

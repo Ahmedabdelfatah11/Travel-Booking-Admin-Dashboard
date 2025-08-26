@@ -1,1 +1,355 @@
-<p>car-rental-agency-dashboard works!</p>
+<!-- Dashboard Header -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+  <h1 class="h3 mb-0 text-gray-800">
+    <i class="fas fa-car me-2 text-primary"></i>Car Rental Dashboard
+  </h1>
+  <button class="btn btn-primary btn-sm shadow-sm" (click)="refreshDashboard()">
+    <i class="fas fa-sync-alt fa-sm text-white-50 me-1"></i>
+    Refresh Data
+  </button>
+</div>
+
+<!-- Loading State -->
+<div *ngIf="loading" class="text-center py-5">
+  <div class="spinner-border text-primary" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+  <p class="mt-3 text-muted">Loading dashboard data...</p>
+</div>
+
+<!-- Error Alert -->
+<div *ngIf="error" class="alert alert-danger alert-dismissible fade show" role="alert">
+  <i class="fas fa-exclamation-triangle me-2"></i>
+  {{ error }}
+  <button type="button" class="btn-close" (click)="error = null" aria-label="Close"></button>
+</div>
+
+<!-- Dashboard Content -->
+<div *ngIf="!loading && dashboardStats">
+  <!-- Stats Cards Row -->
+  <div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card border-left-primary shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                Total Cars
+              </div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800">
+                {{ dashboardStats.totalCars }}
+              </div>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-car fa-2x text-gray-300"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card border-left-success shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                Total Bookings
+              </div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800">
+                {{ dashboardStats.totalBookings }}
+              </div>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card border-left-info shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                Active Bookings
+              </div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800">
+                {{ dashboardStats.activeBookings }}
+              </div>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-calendar-check fa-2x text-gray-300"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card border-left-warning shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                Total Revenue
+              </div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800">
+                {{ formatCurrency(dashboardStats.totalRevenue) }}
+              </div>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Row -->
+  <div class="row mb-4">
+    <div class="col-xl-8 col-lg-7">
+      <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+          <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-chart-area me-2"></i>Bookings Overview (Last 30 Days)
+          </h6>
+        </div>
+        <div class="card-body">
+          <div class="chart-area" style="height: 320px;">
+            <canvas id="bookingsChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-xl-4 col-lg-5">
+      <div class="card shadow mb-4">
+        <div class="card-header py-3">
+          <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-info-circle me-2"></i>Quick Stats
+          </h6>
+        </div>
+        <div class="card-body">
+          <div class="row g-0 text-center">
+            <div class="col-6 border-end">
+              <div class="py-3">
+                <div class="h4 font-weight-bold text-primary mb-1">
+                  {{ ((dashboardStats.activeBookings / dashboardStats.totalBookings) * 100 || 0) | number:'1.1-1' }}%
+                </div>
+                <div class="text-xs text-muted">Active Rate</div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="py-3">
+                <div class="h4 font-weight-bold text-success mb-1">
+                  {{ (dashboardStats.totalRevenue / dashboardStats.totalBookings || 0) | currency:'USD':'symbol':'1.0-0' }}
+                </div>
+                <div class="text-xs text-muted">Avg. Revenue</div>
+              </div>
+            </div>
+          </div>
+          <hr class="my-3">
+          <div class="text-center">
+            <div class="small text-muted">Cars per Booking</div>
+            <div class="h5 font-weight-bold text-info">
+              {{ (dashboardStats.totalCars / (dashboardStats.totalBookings || 1)) | number:'1.1-1' }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Companies Management -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card shadow mb-4">
+        <div class="card-header py-3">
+          <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-building me-2"></i>My Companies Management
+          </h6>
+        </div>
+        <div class="card-body">
+          <div *ngIf="companies.length === 0" class="text-center py-4">
+            <i class="fas fa-building fa-3x text-gray-300 mb-3"></i>
+            <p class="text-muted">No companies found.</p>
+          </div>
+          
+          <div *ngIf="companies.length > 0" class="row">
+            <div *ngFor="let company of companies" class="col-lg-6 col-xl-4 mb-4">
+              <div class="card h-100 shadow-sm border-0">
+                <div class="card-img-top position-relative">
+                  <img [src]="company.imageUrl" 
+                       class="img-fluid rounded-top" 
+                       style="height: 200px; object-fit: cover; width: 100%;"
+                       [alt]="company.name"
+                       onerror="this.src='assets/imgs/default-car-company.jpg'">
+                  <div class="position-absolute top-0 end-0 m-2">
+                    <span class="badge bg-primary">
+                      <i class="fas fa-star me-1"></i>{{ company.rating }}
+                    </span>
+                  </div>
+                </div>
+                
+                <div class="card-body d-flex flex-column">
+                  <h5 class="card-title text-primary mb-2">
+                    <i class="fas fa-building me-2"></i>{{ company.name }}
+                  </h5>
+                  
+                  <p class="card-text text-muted small mb-2">
+                    {{ company.description }}
+                  </p>
+                  
+                  <div class="mb-3">
+                    <small class="text-muted">
+                      <i class="fas fa-map-marker-alt me-1"></i>{{ company.location }}
+                    </small>
+                  </div>
+
+                  <div class="mb-3">
+                    <div class="d-flex align-items-center">
+                      <span class="me-2">Rating:</span>
+                      <div>
+                        <i *ngFor="let star of getRatingStars(company.rating)" 
+                           [class]="'fas ' + star" 
+                           [class.text-warning]="star === 'fa-star' || star === 'fa-star-half-alt'"
+                           [class.text-muted]="star === 'fa-star-o'"></i>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="mt-auto">
+                    <div class="btn-group w-100" role="group">
+                      <button type="button" 
+                              class="btn btn-outline-primary btn-sm"
+                              (click)="openEditModal(company)">
+                        <i class="fas fa-edit me-1"></i>Edit
+                      </button>
+                      <button type="button" 
+                              class="btn btn-outline-danger btn-sm"
+                              (click)="openDeleteModal(company)">
+                        <i class="fas fa-trash me-1"></i>Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Company Modal -->
+<div class="modal fade" [class.show]="showEditModal" [style.display]="showEditModal ? 'block' : 'none'" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">
+          <i class="fas fa-edit me-2"></i>Edit Company
+        </h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeModals()"></button>
+      </div>
+      <div class="modal-body" *ngIf="selectedCompany">
+        <form>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="companyName" class="form-label">Company Name</label>
+              <input type="text" 
+                     class="form-control" 
+                     id="companyName"
+                     [(ngModel)]="selectedCompany.name" 
+                     name="name">
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="companyLocation" class="form-label">Location</label>
+              <input type="text" 
+                     class="form-control" 
+                     id="companyLocation"
+                     [(ngModel)]="selectedCompany.location" 
+                     name="location">
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <label for="companyDescription" class="form-label">Description</label>
+            <textarea class="form-control" 
+                      id="companyDescription"
+                      rows="3"
+                      [(ngModel)]="selectedCompany.description" 
+                      name="description"></textarea>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="companyRating" class="form-label">Rating</label>
+              <select class="form-select" 
+                      id="companyRating"
+                      [(ngModel)]="selectedCompany.rating" 
+                      name="rating">
+                <option value="1">1 Star</option>
+                <option value="2">2 Stars</option>
+                <option value="3">3 Stars</option>
+                <option value="4">4 Stars</option>
+                <option value="5">5 Stars</option>
+              </select>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="companyImageUrl" class="form-label">Image URL</label>
+              <input type="url" 
+                     class="form-control" 
+                     id="companyImageUrl"
+                     [(ngModel)]="selectedCompany.imageUrl" 
+                     name="imageUrl">
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeModals()">
+          <i class="fas fa-times me-1"></i>Cancel
+        </button>
+        <button type="button" class="btn btn-primary" (click)="saveCompany()">
+          <i class="fas fa-save me-1"></i>Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Company Modal -->
+<div class="modal fade" [class.show]="showDeleteModal" [style.display]="showDeleteModal ? 'block' : 'none'" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">
+          <i class="fas fa-exclamation-triangle me-2"></i>Confirm Delete
+        </h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeModals()"></button>
+      </div>
+      <div class="modal-body" *ngIf="selectedCompany">
+        <p class="mb-0">Are you sure you want to delete <strong>{{ selectedCompany.name }}</strong>?</p>
+        <small class="text-muted">This action cannot be undone.</small>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeModals()">
+          <i class="fas fa-times me-1"></i>Cancel
+        </button>
+        <button type="button" class="btn btn-danger" (click)="deleteCompany()">
+          <i class="fas fa-trash me-1"></i>Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal backdrop -->
+<div *ngIf="showEditModal || showDeleteModal" 
+     class="modal-backdrop fade show" 
+     (click)="closeModals()"></div>
