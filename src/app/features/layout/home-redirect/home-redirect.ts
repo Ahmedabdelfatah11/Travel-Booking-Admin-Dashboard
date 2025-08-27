@@ -12,18 +12,29 @@ export class HomeRedirect {
   private router = inject(Router);
 
   constructor() {
-    // ✅ Only redirect if not already on /login
+
     if (this.router.url === '/login') {
       return; // Let login page render
     }
 
     if (this.auth.hasRole('SuperAdmin')) {
       this.router.navigate(['/admin/dashboard'], { replaceUrl: true });
-    } else if (this.auth.hasRole('TourAdmin')) {
+    }
+    else if (this.auth.hasRole('TourAdmin')) {
       this.router.navigate(['/tour-admin/dashboard'], { replaceUrl: true });
-    } else if (this.auth.isLoggedIn()) {
+    }
+    else if (this.auth.hasRole('FlightAdmin')) {
+      this.router.navigate(['/flight-admin/dashboard'], { replaceUrl: true });
+    }
+    else if (this.auth.hasRole('HotelAdmin')) {
+      this.router.navigate(['/hotel-admin/dashboard'], { replaceUrl: true });
+    }
+    else if (this.auth.hasRole('CarRentalAdmin')) {
+      this.router.navigate(['/car-admin/dashboard'], { replaceUrl: true });
+    }
+    else if (this.auth.isLoggedIn()) {
       this.router.navigate(['/unauthorized'], { replaceUrl: true });
     }
-    // ✅ If not logged in, do nothing — let the user go to /login
+
   }
 }

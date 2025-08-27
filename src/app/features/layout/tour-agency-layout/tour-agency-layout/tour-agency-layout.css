@@ -60,7 +60,11 @@ a:hover
   filter: brightness(0) invert(1); /* Black → White */
   transition: filter 0.3s ease;
 }
-
+.nav-item a:hover
+{
+  background-color: var(--Admin2) !important;
+  color: #fff;
+}
 /* When sidebar is TOGGLED (closed), make logo BLACK */
 .sb-sidenav-toggled #navbar-logo {
   filter: brightness(0) invert(0); /* No invert → original black */

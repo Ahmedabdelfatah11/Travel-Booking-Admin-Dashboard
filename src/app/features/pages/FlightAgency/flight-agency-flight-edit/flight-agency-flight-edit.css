@@ -1,0 +1,72 @@
+.card {
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+.card-header {
+  background: linear-gradient(45deg, #0d6efd, #0dcaf0);
+  font-weight: 600;
+  padding: 1rem 1.25rem;
+  border-bottom: none;
+}
+
+.card-body {
+  background-color: #fdfdfd;
+}
+
+h5.text-primary,
+h5.text-success {
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
+h5.text-primary i,
+h5.text-success i {
+  font-size: 1.2rem;
+}
+
+.form-control {
+  border-radius: 0.5rem;
+  transition: all 0.2s ease-in-out;
+}
+.form-control:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.2);
+}
+
+.input-group-text {
+  background-color: #f1f3f5;
+  border-radius: 0.5rem 0 0 0.5rem;
+}
+
+.btn {
+  border-radius: 2rem;
+  padding: 0.5rem 1.2rem;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+}
+.btn:hover {
+  transform: translateY(-2px);
+}
+
+.btn-primary {
+  background: linear-gradient(45deg, #0d6efd, #0a58ca);
+  border: none;
+}
+.btn-primary:disabled {
+  background: #6c757d;
+}
+
+.btn-outline-warning {
+  border: 2px solid #ffc107;
+  color: #ffc107;
+}
+.btn-outline-warning:hover {
+  background: #ffc107;
+  color: #fff;
+}
+
+.btn-outline-secondary {
+  border: 2px solid #6c757d;
+}

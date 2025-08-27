@@ -104,15 +104,27 @@ export class TourEdit implements OnInit, OnDestroy {
 
   // === LOAD DATA ===
   loadTourCompanies(): void {
+    this.loadingCompanies = true;
+    this.cd.detectChanges();
+
+    const startTime = Date.now();
+
     this.tourService.getMyTourCompanies().subscribe({
       next: (companies) => {
         this.tourCompanies = companies;
-        this.loadingCompanies = false;
       },
       error: () => {
         this.toastService.show('Could not load tour companies.', 'error');
-        this.loadingCompanies = false;
       },
+      complete: () => {
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(1000 - elapsed, 0);
+
+        setTimeout(() => {
+          this.loadingCompanies = false;
+          this.cd.detectChanges();
+        }, remaining);
+      }
     });
   }
 
@@ -128,15 +140,26 @@ export class TourEdit implements OnInit, OnDestroy {
 
   loadTour(id: number): void {
     this.loadingTour = true;
+    this.cd.detectChanges();
+
+    const startTime = Date.now();
+
     this.tourService.getTour(id).subscribe({
       next: (tour) => {
         this.patchFormWithTour(tour);
-        this.loadingTour = false;
       },
       error: () => {
         this.toastService.show('Could not load tour. Please try again.', 'error');
-        this.loadingTour = false;
       },
+      complete: () => {
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(1000 - elapsed, 0);
+
+        setTimeout(() => {
+          this.loadingTour = false;
+          this.cd.detectChanges();
+        }, remaining);
+      }
     });
   }
 
@@ -370,8 +393,11 @@ export class TourEdit implements OnInit, OnDestroy {
     if (!this.tourId) return;
 
     this.submitting = true;
+    this.cd.detectChanges();
 
-    const formValue = this.addTourForm.getRawValue(); // ✅ Use getRawValue() to include disabled controls
+    const startTime = Date.now();
+
+    const formValue = this.addTourForm.getRawValue();
     const formData = new FormData();
 
     const finalTourCompanyId = formValue.tourCompanyId || this.currentTour?.tourCompanyId;
@@ -483,7 +509,13 @@ export class TourEdit implements OnInit, OnDestroy {
         }
       },
       complete: () => {
-        this.submitting = false;
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(1000 - elapsed, 0);
+
+        setTimeout(() => {
+          this.submitting = false;
+          this.cd.detectChanges();
+        }, remaining);
       }
     });
   }

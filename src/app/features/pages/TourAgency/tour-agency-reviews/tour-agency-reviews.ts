@@ -87,7 +87,6 @@ loadReviews(): void {
       },
       error: (err) => {
         this.errorMessage = err.error?.message || 'Failed to load reviews';
-        console.error('Error loading reviews:', err);
       }
     });
 }
@@ -101,17 +100,14 @@ private getTourCompanyId(): number | null {
     const tourCompanyId = payload['TourCompanyId'];
     return tourCompanyId ? +tourCompanyId : null; // Convert to number
   } catch (e) {
-    console.error('Invalid token or unable to parse:', e);
     return null;
   }
 }
 
 loadReviewStats(): void {
   const token = this.authService.getToken();
-  console.log('🔐 Auth Token:', token);
 
   const tourCompanyId = this.getTourCompanyId();
-  console.log('🏢 TourCompanyId:', tourCompanyId);
 
   if (!tourCompanyId) {
     this.errorMessage = 'Not authorized or TourCompanyId missing.';
@@ -120,18 +116,14 @@ loadReviewStats(): void {
     return;
   }
 
-  console.log('🚀 Fetching stats for tourCompanyId:', tourCompanyId);
-
   this.reviewService.getAllTourReviewsStats(tourCompanyId)
     .pipe(takeUntil(this.destroy$))
     .subscribe({
       next: (stats) => {
-        console.log('✅ Stats loaded:', stats);
         this.reviewStats = stats;
         this.cd.detectChanges();
       },
       error: (err) => {
-        console.error('❌ Error loading stats:', err);
         this.errorMessage = 'Failed to load review stats';
         this.reviewStats = undefined;
         this.cd.detectChanges();
@@ -235,9 +227,6 @@ canEditReview(review: ReviewDto): boolean {
   const userId = this.authService.getUserId();
   const roles = this.authService.getRoles();
 
-  console.log('Review:', review);
-  console.log('Current user ID:', userId);
-  console.log('User roles:', roles);
 
   return !!review.userId && (
     review.userId === userId ||

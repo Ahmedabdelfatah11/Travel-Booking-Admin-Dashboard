@@ -55,7 +55,6 @@ export class BookingListComponent implements OnInit {
       error: (err) => {
         this.error = 'Failed to load bookings. Please try again.';
         this.loading = false;
-        console.error('Error loading bookings:', err);
               this.cd.detectChanges();
 
       }
@@ -123,7 +122,6 @@ export class BookingListComponent implements OnInit {
         },
         error: (err) => {
           alert('Failed to confirm booking. Please try again.');
-          console.error('Error confirming booking:', err);
                 this.cd.detectChanges();
 
         }
@@ -141,7 +139,6 @@ export class BookingListComponent implements OnInit {
         },
         error: (err) => {
           alert('Failed to cancel booking. Please try again.');
-          console.error('Error canceling booking:', err);
                 this.cd.detectChanges();
 
         }
@@ -159,7 +156,6 @@ export class BookingListComponent implements OnInit {
         },
         error: (err) => {
           alert('Failed to delete booking. Please try again.');
-          console.error('Error deleting booking:', err);
                 this.cd.detectChanges();
 
         }
@@ -187,8 +183,6 @@ export class BookingListComponent implements OnInit {
     }
   }
 
-
-  // 👇 Mapping بين PaymentStatus → Status
   getBookingStatus(booking: BookingDto): string {
     switch (booking.paymentStatus?.toLowerCase()) {
       case 'paid': return 'Confirmed';
@@ -231,7 +225,6 @@ export class BookingListComponent implements OnInit {
     }
   }
 
-  // 📊 العدادات
   get confirmedCount(): number {
     return this.bookings.filter(b => this.getBookingStatus(b) === 'Confirmed').length;
   }

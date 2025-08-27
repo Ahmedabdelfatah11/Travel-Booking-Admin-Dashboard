@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { catchError, Observable, tap } from 'rxjs';
 
 // Enums
 export enum BookingType {
-  Room = 0,
-  Car = 1,
-  Flight = 2,
-  Tour = 3
+  Room = "Room",
+  Car = "Car",
+  Flight = "Flight",
+  Tour = "Tour"
 }
 
 export enum Status {
@@ -29,6 +29,7 @@ export enum SeatClass {
 
 // DTOs
 export interface BookingDto {
+  status: string;
   id: number;
   customerEmail: string;
   bookingType: BookingType;
@@ -99,12 +100,12 @@ export interface TourBookingResultDto {
   providedIn: 'root'
 })
 export class BookingService {
-  private apiUrl = 'https://localhost:7277/api'; // Adjust your API URL
-  
-  constructor(private http: HttpClient) {}
+  private apiUrl = 'http://pyramigo.runasp.net/api'; // Adjust your API URL
+
+  constructor(private http: HttpClient) { }
 
   private getAuthHeaders(): HttpHeaders {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('authToken'); // Updated to match CarService
     return new HttpHeaders({
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
@@ -153,13 +154,27 @@ export class BookingService {
     });
   }
 
+  // Get bookings for a specific car rental company (NEW METHOD)
+  getCarRentalCompanyBookings(companyId: number): Observable<BookingDto[]> {
+    return this.http.get<BookingDto[]>(`${this.apiUrl}/booking/car-rental-company/${companyId}`, {
+      headers: this.getAuthHeaders()
+    });
+  }
+
+  // Get bookings for the current CarRentalAdmin's company (NEW METHOD)
+  getMyCompanyBookings(): Observable<BookingDto[]> {
+    return this.http.get<BookingDto[]>(`${this.apiUrl}/booking/my-car-rental-bookings`, {
+      headers: this.getAuthHeaders()
+    });
+  }
+
   // Helper methods to get booking type and status labels
-  getBookingTypeLabel(type: BookingDto): string {
-    switch (type.bookingType.toString()) {
-      case 'Room': return 'Room';
-      case 'Car': return  'Car';
-      case 'Flight': return 'Flight';
-      case 'Tour': return 'Tour';
+  getBookingTypeLabel(booking: BookingDto): string {
+    switch (booking.bookingType) {
+      case BookingType.Room: return 'Room';
+      case BookingType.Car: return 'Car';
+      case BookingType.Flight: return 'Flight';
+      case BookingType.Tour: return 'Tour';
       default: return 'Unknown';
     }
   }
@@ -181,4 +196,40 @@ export class BookingService {
       default: return 'badge bg-secondary';
     }
   }
+
+  mapStatus(apiStatus: string | null | undefined): Status {
+    switch (apiStatus) {
+      case 'Confirmed':
+        return Status.Confirmed;
+      case 'Cancelled':
+        return Status.Cancelled;
+      case 'Pending':
+      default:
+        return Status.Pending;
+    }
+  }
+
+  // For flight companies (existing methods)
+  getFlightCompanyBookings(flightCompanyId: number): Observable<BookingDto[]> {
+    return this.http.get<BookingDto[]>(`${this.apiUrl}/booking/flight-company/${flightCompanyId}`, {
+      headers: this.getAuthHeaders()
+    });
+  }
+
+  // Existing method for flight admins - keeping for backward compatibility
+  getMyFlightCompanyBookings(): Observable<BookingDto[]> {
+    return this.http.get<BookingDto[]>(`${this.apiUrl}/booking/my-company-bookings`, {
+      headers: this.getAuthHeaders()
+    });
+  }
+   // Get my car rental bookings (for CarRentalAdmin)
+getMyCarRentalBookings(): Observable<BookingDto[]> {  
+  return this.http.get<BookingDto[]>(`${this.apiUrl}/booking/my-car-rental-bookings`, {
+    headers: this.getAuthHeaders()
+  }).pipe(
+    catchError(error => {
+      throw error;
+    })
+  );
+}
 }

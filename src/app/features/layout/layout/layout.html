@@ -1,20 +1,36 @@
-<div class="sb-nav-fixed">  <!-- or keep class on root -->
-        <nav class="sb-topnav navbar navbar-expand bg-light p-0  border-bottom border-1">
+<div class="sb-nav-fixed"> <!-- or keep class on root -->
+               <nav class="sb-topnav navbar navbar-expand p-0  ">
             <!-- Navbar Brand-->
-            <a class="navbar-brand ps-3  border-end border-1 h-100 title" >Travel</a>
+                <!-- <img src="assets/imgs/palms.png"alt=""> -->
+                 <div class="d-flex h-100">
+                     <a class="navbar-brand ps-1 h-100 title" [class.toggled]="isSidebarToggled">
+        <img 
+          src="assets/imgs/palms.png" 
+          alt="Dates" 
+          class="text-light pe-2" 
+          style="width: 40px;"
+          id="navbar-logo">
+        Pyramigo
+      </a>
+                 </div>
             <!-- Sidebar Toggle-->
-            <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0 ms-2" id="sidebarToggle"><i class="fas fa-bars"></i></button>
-            <!-- Navbar Search-->
+<button 
+  class="btn btn-link text-light btn-sm order-1 order-lg-0 me-4 me-lg-0 ms-2" 
+  (click)="toggleSidebar($event)"
+  type="button">
+  <i class="fas fa-bars"></i>
+</button>            <!-- Navbar Search-->
             <form class="d-none d-md-inline-block form-inline ms-auto me-0 me-md-3 my-2 my-md-0 ">
                 <div class="input-group ">
                     <input class="form-control" type="text" placeholder="Search for..." aria-label="Search for..." aria-describedby="btnNavbarSearch" />
-                    <button class="btn btn-primary" id="btnNavbarSearch" type="button"><i class="fas fa-search"></i></button>
+                    <button class="btn btn-light" id="btnNavbarSearch" type="button"><i class="fas fa-search"></i></button>
                 </div>
             </form>
             <!-- Navbar-->
             <ul class="navbar-nav ms-auto ms-md-0 me-3 me-lg-4">
+                
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" id="navbarDropdown"  role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-user fa-fw"></i></a>
+                    <a class="nav-link dropdown-toggle text-light" id="navbarDropdown"  role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-user fa-fw"></i></a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                         <li><a class="dropdown-item" >Settings</a></li>
                         <li><a class="dropdown-item" >Activity Log</a></li>
@@ -24,194 +40,211 @@
                 </li>
             </ul>
         </nav>
-        <div id="layoutSidenav">
-            <div id="layoutSidenav_nav">
-                <nav class="sb-sidenav accordion sb-sidenav-light border-end border-1" id="sidenavAccordion">
-                    <div class="sb-sidenav-menu">
-                        <div class="nav">
-                            <!-- <div class="sb-sidenav-menu-heading">Core</div> -->
-                            <a class="nav-link mt-3" routerLink="/admin/dashboard" routerLinkActive="active">
-                                <div class="sb-nav-link-icon"><i class="fa-solid fa-house"></i></div>
-                                Dashboard
-                            </a>
+    <div id="layoutSidenav">
+        <div id="layoutSidenav_nav">
+            <nav class="sb-sidenav accordion sb-sidenav-light " id="sidenavAccordion">
+                <div class="sb-sidenav-menu">
+                    <div class="nav">
+                        <!-- <div class="sb-sidenav-menu-heading">Core</div> -->
+                        <a class="nav-link mt-3" routerLink="/admin/dashboard" routerLinkActive="active">
+                            <div class="sb-nav-link-icon"><i class="fa-solid fa-house"></i></div>
+                            Dashboard
+                        </a>
 
-                            <!-- Users -->
-                            <a class="nav-link collapsed mb-1"  data-bs-toggle="collapse" data-bs-target="#collapseLayouts" aria-expanded="false" aria-controls="collapseLayouts">
-                                <div class="sb-nav-link-icon"><i class="fa-solid fa-users"></i></div>
-                                <span>Users</span>
-                                <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
-                            </a>
-                            <div class="collapse" id="collapseLayouts" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordion">
-                                <nav class="sb-sidenav-menu-nested nav">
-                                    <a class="nav-link"  routerLink="/admin/users">List</a>
-                                   <a class="nav-link"  routerLink="/admin/users/create">Create</a>
+                        <!-- Users -->
+                        <a class="nav-link collapsed mb-1" data-bs-toggle="collapse" data-bs-target="#collapseLayouts"
+                            aria-expanded="false" aria-controls="collapseLayouts">
+                            <div class="sb-nav-link-icon"><i class="fa-solid fa-users"></i></div>
+                            <span>Users</span>
+                            <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+                        </a>
+                        <div class="collapse" id="collapseLayouts" aria-labelledby="headingOne"
+                            data-bs-parent="#sidenavAccordion">
+                            <nav class="sb-sidenav-menu-nested nav">
+                                <a class="nav-link" routerLink="/admin/users">List</a>
+                                <a class="nav-link" routerLink="/admin/users/create">Create</a>
 
-                                </nav>
-                                </div>
+                            </nav>
+                        </div>
 
 
-                                <!-- Tour Agencies -->
+                        <!-- Tour Agencies -->
                         <!-- Parent link just toggles collapse -->
-<!-- Parent link just toggles collapse -->
- @if (isSuperAdmin()){
-<a class="nav-link collapsed mb-1" data-bs-toggle="collapse" data-bs-target="#Tour" aria-expanded="false" aria-controls="Tour">
-  <div class="sb-nav-link-icon">
-       <img src="assets/imgs/dates.png" alt="Dates" style="width: 20px; height: 20px;">
+                        <!-- Parent link just toggles collapse -->
+                        @if (isSuperAdmin()){
+                       <a class="nav-link collapsed mb-1" 
+   data-bs-toggle="collapse" 
+   data-bs-target="#Tour" 
+   aria-expanded="false" 
+   aria-controls="Tour"
+   (mouseover)="hoverIcon(true)" 
+   (mouseout)="hoverIcon(false)"
+   #tourLink>
+  <div class="sb-nav-link-icon"
+       style="display: inline-block; width: 20px; height: 20px; position: relative;">
+    
+    <img src="assets/imgs/palms.png" alt="Dates" 
+         style="width: 100%; height: 100%; opacity: 0;">
+
+    <div #iconMask
+         style="
+           position: absolute;
+           top: 0; left: 0;
+           width: 100%; height: 100%;
+           background-color: #808080;
+           mask-image: url('assets/imgs/palms.png');
+           mask-size: cover;
+           mask-repeat: no-repeat;
+           mask-position: center;
+           transition: background-color 0.3s ease;
+         "></div>
   </div>
-  <span>Tour Agencies</span>
-  <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
-</a>
+                            <span>Tour Agencies</span>
+                            <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+                        </a>
 
-<!-- Child links handle routing -->
-<div class="collapse" id="Tour" data-bs-parent="#sidenavAccordion">
-  <nav class="sb-sidenav-menu-nested nav">
-    <a class="nav-link" routerLink="/admin/tour/create" routerLinkActive="active">Create</a>
-    <a class="nav-link" routerLink="/admin/tour" routerLinkActive="active">All</a>
-  </nav>
-</div>
- }
-
-
-
-                                <!-- Hotel Agencies -->
-                                 @if (isSuperAdmin()) {
-                            <a class="nav-link collapsed mb-1"  data-bs-toggle="collapse" data-bs-target="#Hotel" aria-expanded="false" aria-controls="collapseLayouts">
-                                <div class="sb-nav-link-icon">
-                                    <i class="fa-solid fa-hotel"></i>
-                                </div>
-                               
-                                <div>
-                                    <span>Hotel Agencies</span>
-                                </div>
-                                <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
-                            </a>
-                            <div class="collapse" id="Hotel" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordion">
-                                <nav class="sb-sidenav-menu-nested nav">
-                                    <a class="nav-link" routerLink="/admin/hotel/create">Create</a>
-                                    <a class="nav-link" routerLink="/admin/hotel">All</a>
-                                </nav>
-                                </div>
-                            }
-
-                                <!-- Car Agencies -->
-                                @if (isSuperAdmin()) {
-
-                            <a class="nav-link collapsed mb-1"  data-bs-toggle="collapse" data-bs-target="#Car" aria-expanded="false" aria-controls="collapseLayouts">
-                                <div class="sb-nav-link-icon">
-                                     <i class="fa-solid fa-car"></i>
-                                </div>
-                               
-                                <div>
-                                    <span>Car Agencies</span>
-                                </div>
-                                <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
-                            </a>
-                            <div class="collapse" id="Car" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordion">
-                                <nav class="sb-sidenav-menu-nested nav">
-                                    <a class="nav-link" routerLink="/admin/car/create">Create</a>
-                                    <a class="nav-link" routerLink="/admin/car">All</a>
-
-                                     <a class="nav-link" routerLink="/admin/car/edit/:id">Edit</a>
-
-                                </nav>
-                                </div>
-
-                            }
-                                <!-- Flight Agencies -->
-                                @if (isSuperAdmin()) {
-
-                            <a class="nav-link collapsed mb-1"  data-bs-toggle="collapse" data-bs-target="#Flight" aria-expanded="false" aria-controls="collapseLayouts">
-                                <div class="sb-nav-link-icon">
-                                     <i class="fas fa-plane"></i>
-                                </div>
-                               
-                                <div>
-                                    <span>Flight Agencies</span>
-                                </div>
-                                <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
-                            </a>
-                            <div class="collapse" id="Flight" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordion">
-                                <nav class="sb-sidenav-menu-nested nav">
-                                    <a class="nav-link" routerLink="/admin/flight/create">Create</a>
-                                    <a class="nav-link" routerLink="/admin/flight">All</a>
-                                </nav>
-                                </div>
-                            }
-
-                                <!-- Booking -->
-                                 
-                            <a class="nav-link collapsed mb-1"  data-bs-toggle="collapse" data-bs-target="#Booking" aria-expanded="false" aria-controls="collapseLayouts">
-                                <div class="sb-nav-link-icon">
-                                    <i class="fa-solid fa-lock"></i>
-                                </div>
-                                <div>
-                                    <span>Booking</span>
-                                </div>
-                                <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
-                            </a>
-                            <div class="collapse" id="Booking" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordion">
-                                <nav class="sb-sidenav-menu-nested nav">
-                                    <a class="nav-link" routerLink= "/admin/booking">All</a>
-                                    <a class="nav-link"  routerLink="/admin/booking/confirmed">Confirmed</a>
-                                    <a class="nav-link"  routerLink="/admin/booking/pending">Pending</a>
-                                    <a class="nav-link"  routerLink="/admin/booking/cancelled">Cancelled</a>
-                                </nav>
-                                </div>
-
-                                <!-- Reviews -->
-                          <a class="nav-link"  routerLink="/admin/reviews">
-                                <div class="sb-nav-link-icon"><i class="fas fa-sync-alt"></i></div>
-                                Reviews
-                            </a>
-
-                             <a class="nav-link"  routerLink="/admin/favorites">
-                                <div class="sb-nav-link-icon"><i class="fa-solid fa-heart"></i></div>
-                                favorites
-                            </a>
-                          <a class="nav-link"  routerLink="/admin/hotel/hotel:id">
-                                <div class="sb-nav-link-icon"><i class="fa-solid fa-heart"></i></div>
-                                favorites -Hotel
-                            </a>
-                             <a class="nav-link"  routerLink="/admin/tour/tour:id">
-                                <div class="sb-nav-link-icon"><i class="fa-solid fa-heart"></i></div>
-                                favorites -Tour
-                            </a>
-                          <a class="nav-link"  routerLink="/admin/settings">
-                                <div class="sb-nav-link-icon"><i class="fa-solid fa-gear"></i></div>
-                                Setting
-                            </a>
-                          <a class="nav-link" (click)="logout()">
-                                <div class="sb-nav-link-icon"><i class="fas fa-power-off"></i></div>
-                                Log out
-                            </a>
-                          
+                        <!-- Child links handle routing -->
+                        <div class="collapse" id="Tour" data-bs-parent="#sidenavAccordion">
+                            <nav class="sb-sidenav-menu-nested nav">
+                                <a class="nav-link" routerLink="/admin/tour/create" routerLinkActive="active">Create</a>
+                                <a class="nav-link" routerLink="/admin/tour" routerLinkActive="active">All</a>
+                            </nav>
                         </div>
-                    </div>
-                    <!-- <div class="sb-sidenav-footer">
-                        <div class="small">Logged in as:</div>
-                        Start Bootstrap
-                    </div> -->
-                </nav>
-            </div>
-            <div id="layoutSidenav_content">
-                <main>
-                  <div class="container-fluid px-4">
-        <!-- This is where child pages will load -->
-        <router-outlet></router-outlet>
-      </div>
-                </main>
-                <footer class="py-4 bg-light mt-auto">
-                    <div class="container-fluid px-4">
-                        <div class="d-flex align-items-center justify-content-between small">
-                            <div class="text-muted">Copyright &copy; Your Website 2022</div>
-                            <div>
-                                <a >Privacy Policy</a>
-                                &middot;
-                                <a >Terms &amp; Conditions</a>
+                        }
+
+
+
+                        <!-- Hotel Agencies -->
+                        @if (isSuperAdmin()) {
+                        <a class="nav-link collapsed mb-1" data-bs-toggle="collapse" data-bs-target="#Hotel"
+                            aria-expanded="false" aria-controls="collapseLayouts">
+                            <div class="sb-nav-link-icon">
+                                <i class="fa-solid fa-hotel"></i>
                             </div>
+
+                            <div>
+                                <span>Hotel Agencies</span>
+                            </div>
+                            <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+                        </a>
+                        <div class="collapse" id="Hotel" aria-labelledby="headingOne"
+                            data-bs-parent="#sidenavAccordion">
+                            <nav class="sb-sidenav-menu-nested nav">
+                                <a class="nav-link" routerLink="/admin/hotel/create">Create</a>
+                                <a class="nav-link" routerLink="/admin/hotel">All</a>
+                            </nav>
+                        </div>
+                        }
+
+                        <!-- Car Agencies -->
+                        @if (isSuperAdmin()) {
+
+                        <a class="nav-link collapsed mb-1" data-bs-toggle="collapse" data-bs-target="#Car"
+                            aria-expanded="false" aria-controls="collapseLayouts">
+                            <div class="sb-nav-link-icon">
+                                <i class="fa-solid fa-car"></i>
+                            </div>
+
+                            <div>
+                                <span>Car Agencies</span>
+                            </div>
+                            <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+                        </a>
+                        <div class="collapse" id="Car" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordion">
+                            <nav class="sb-sidenav-menu-nested nav">
+                                <a class="nav-link" routerLink="/admin/car/create">Create</a>
+                                <a class="nav-link" routerLink="/admin/car">All</a>
+                            </nav>
+                        </div>
+
+                        }
+                        <!-- Flight Agencies -->
+                        @if (isSuperAdmin()) {
+
+                        <a class="nav-link collapsed mb-1" data-bs-toggle="collapse" data-bs-target="#Flight"
+                            aria-expanded="false" aria-controls="collapseLayouts">
+                            <div class="sb-nav-link-icon">
+                                <i class="fas fa-plane"></i>
+                            </div>
+
+                            <div>
+                                <span>Flight Agencies</span>
+                            </div>
+                            <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+                        </a>
+                        <div class="collapse" id="Flight" aria-labelledby="headingOne"
+                            data-bs-parent="#sidenavAccordion">
+                            <nav class="sb-sidenav-menu-nested nav">
+                                <a class="nav-link" routerLink="/admin/flight/create">Create</a>
+                                <a class="nav-link" routerLink="/admin/flight">All</a>
+                            </nav>
+                        </div>
+                        }
+
+                        <!-- Booking -->
+
+                        <a class="nav-link collapsed mb-1" data-bs-toggle="collapse" data-bs-target="#Booking"
+                            aria-expanded="false" aria-controls="collapseLayouts">
+                            <div class="sb-nav-link-icon">
+                                <i class="fa-solid fa-lock"></i>
+                            </div>
+                            <div>
+                                <span>Booking</span>
+                            </div>
+                            <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+                        </a>
+                        <div class="collapse" id="Booking" aria-labelledby="headingOne"
+                            data-bs-parent="#sidenavAccordion">
+                            <nav class="sb-sidenav-menu-nested nav">
+                                <a class="nav-link" routerLink="/admin/booking">All</a>
+                                <a class="nav-link" routerLink="/admin/booking/confirmed">Confirmed</a>
+                                <a class="nav-link" routerLink="/admin/booking/pending">Pending</a>
+                                <a class="nav-link" routerLink="/admin/booking/cancelled">Cancelled</a>
+                            </nav>
+                        </div>
+
+                        <!-- Reviews -->
+                        <a class="nav-link" routerLink="/admin/reviews">
+                            <div class="sb-nav-link-icon"><i class="fas fa-sync-alt"></i></div>
+                            Reviews
+                        </a>
+
+                        <a class="nav-link" routerLink="/admin/favorites">
+                            <div class="sb-nav-link-icon"><i class="fa-solid fa-heart"></i></div>
+                            favorites
+                        </a>
+                        <a class="nav-link" routerLink="/admin/settings">
+                            <div class="sb-nav-link-icon"><i class="fa-solid fa-gear"></i></div>
+                            Setting
+                        </a>
+                        <a class="nav-link" (click)="logout()">
+                            <div class="sb-nav-link-icon"><i class="fas fa-power-off"></i></div>
+                            Log out
+                        </a>
+
+                    </div>
+                </div>
+            </nav>
+        </div>
+        <div id="layoutSidenav_content">
+            <main>
+                <div class="container-fluid px-4">
+                    <!-- This is where child pages will load -->
+                    <router-outlet></router-outlet>
+                </div>
+            </main>
+            <footer class="py-4 bg-light mt-auto">
+                <div class="container-fluid px-4">
+                    <div class="d-flex align-items-center justify-content-between small">
+                        <div class="text-muted">Copyright &copy; Your Website 2022</div>
+                        <div>
+                            <a>Privacy Policy</a>
+                            &middot;
+                            <a>Terms &amp; Conditions</a>
                         </div>
                     </div>
-                </footer>
-            </div>
+                </div>
+            </footer>
         </div>
-        </div>
+    </div>
+</div>

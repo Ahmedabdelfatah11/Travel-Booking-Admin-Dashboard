@@ -12,12 +12,10 @@ import { TourReadDto } from '../../../../shared/Interfaces/i-tour';
   styleUrl: './tour-list-for-tour-agency.css'
 })
 export class TourListForTourAgency {
-  // ✅ Signals for state
   tours = signal<TourReadDto[]>([]);
   loading = signal<boolean>(true);
   error = signal<string | null>(null);
 
-  // ✅ Computed: derived state
   noTours = computed(() => !this.loading() && this.tours().length === 0);
 
   constructor(private tourService: TourService) {
@@ -27,18 +25,16 @@ export class TourListForTourAgency {
   loadTours(): void {
     this.tourService.getMyTours().subscribe({
       next: (tours) => {
-        this.tours.set([...tours]);        // ✅ Update signal
-        this.loading.set(false);           // ✅ Stop loading
+        this.tours.set([...tours]);        
+        this.loading.set(false);           
       },
       error: (err) => {
-        console.error('Error loading tours:', err);
         this.error.set('Failed to load tours.');
         this.loading.set(false);
       }
     });
   }
 
-  // ✅ Safe image URL handling
   getImageUrl(imageUrl: string | null | undefined): string {
     if (!imageUrl) {
       return 'https://via.placeholder.com/400x250?text=No+Image';

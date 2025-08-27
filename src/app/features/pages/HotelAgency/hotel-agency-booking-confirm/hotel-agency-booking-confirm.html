@@ -1,0 +1,202 @@
+<div class="confirmed-bookings-container">
+  <!-- Full-Screen Loader -->
+  @if (loading) {
+    <div class="loader-container">
+      <div class="loader">
+        <div class="loader__ball"></div>
+        <div class="loader__ball"></div>
+        <div class="loader__ball"></div>
+      </div>
+    </div>
+  }
+
+  <!-- Header Section -->
+  <div class="header">
+    <div class="header-content">
+      <h1>Confirmed Room Bookings</h1>
+      <p class="header-subtitle">Manage and track all confirmed reservations</p>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card total">
+        <div class="stat-icon">🏨</div>
+        <div class="stat-info">
+          <span class="stat-number">{{ getStatusStats().total }}</span>
+          <span class="stat-label">Total Confirmed</span>
+        </div>
+      </div>
+      <div class="stat-card upcoming">
+        <div class="stat-icon">📅</div>
+        <div class="stat-info">
+          <span class="stat-number">{{ getStatusStats().upcoming }}</span>
+          <span class="stat-label">Upcoming</span>
+        </div>
+      </div>
+      <div class="stat-card current">
+        <div class="stat-icon">🔑</div>
+        <div class="stat-info">
+          <span class="stat-number">{{ getStatusStats().current }}</span>
+          <span class="stat-label">Check-in Today</span>
+        </div>
+      </div>
+      <div class="stat-card completed">
+        <div class="stat-icon">✅</div>
+        <div class="stat-info">
+          <span class="stat-number">{{ getStatusStats().completed }}</span>
+          <span class="stat-label">Completed</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  @if (error) {
+    <div class="error-message">
+      <i class="error-icon">⚠️</i>
+      {{ error }}
+      <button (click)="loadConfirmedBookings()" class="retry-btn">Retry</button>
+    </div>
+  }
+
+  <!-- Filters and Search Section -->
+  @if (!loading) {
+    <div class="controls-section">
+      <div class="search-container">
+        <div class="search-box">
+          <i class="search-icon">🔍</i>
+          <input 
+            type="text" 
+            [(ngModel)]="searchQuery" 
+            (ngModelChange)="onSearchChange()"
+            placeholder="Search by guest email, room type, or booking ID..."
+            class="search-input"
+          >
+        </div>
+      </div>
+      
+      <div class="filter-controls">
+        <div class="filter-group">
+          <label for="dateFilter">Filter by Date:</label>
+          <select id="dateFilter" [(ngModel)]="dateFilter" (ngModelChange)="onDateFilterChange()" class="filter-select">
+            <option value="all">All Bookings</option>
+            <option value="upcoming">Upcoming</option>
+            <option value="current">Current Stay</option>
+            <option value="past">Past Bookings</option>
+          </select>
+        </div>
+        
+        <button (click)="clearFilters()" class="clear-btn">
+          Clear Filters
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Bookings Grid -->
+  @if (!loading && !error) {
+    <div class="bookings-grid">
+      @for (booking of paginatedBookings; track booking.id) {
+        <div class="booking-card" [ngClass]="getBookingStatus(booking)">
+          <div class="booking-header">
+            <div class="booking-id">#{{ booking.id }}</div>
+            <div class="booking-status-badge" [ngClass]="getBookingStatus(booking)">
+              <span class="status-dot"></span>
+              {{ getBookingStatus(booking) | titlecase }}
+            </div>
+          </div>
+          
+          <div class="booking-content">
+            <div class="guest-info">
+              <h3 class="guest-name">{{ booking.customerEmail }}</h3>
+              <div class="room-details">
+                <span class="room-type">{{ booking.roomType }}</span>
+                <span class="hotel-name">{{ booking.hotelName }}</span>
+              </div>
+            </div>
+            
+            <div class="booking-details">
+              <div class="date-info">
+                <div class="check-in">
+                  <span class="date-label">Check-in</span>
+                  <span class="date-value">{{ formatDate(booking.checkInDate) }}</span>
+                </div>
+                <div class="nights-separator">
+                  <span class="nights">{{ calculateNights(booking.checkInDate, booking.checkOutDate) }} nights</span>
+                </div>
+                <div class="check-out">
+                  <span class="date-label">Check-out</span>
+                  <span class="date-value">{{ formatDate(booking.checkOutDate) }}</span>
+                </div>
+              </div>
+              
+              <div class="price-info">
+                <span class="price-label">Total Amount</span>
+                <span class="price-value">{{ formatPrice(booking.totalPrice) }}</span>
+              </div>
+              
+              <div class="additional-info" *ngIf="booking.paymentStatus">
+                <div class="payment-status" [ngClass]="'payment-' + booking.paymentStatus.toLowerCase()">
+                  💳 {{ booking.paymentStatus }}
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="booking-actions">
+            <button class="action-btn primary" title="View Details">
+              <i>👁️</i> View Details
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- Empty State -->
+      @if (filteredBookings.length === 0) {
+        <div class="empty-state">
+          <div class="empty-icon">🏨</div>
+          <h3>No Confirmed Bookings Found</h3>
+          <p>No confirmed bookings match your current filters.</p>
+          <button (click)="clearFilters()" class="clear-filters-btn">Clear Filters</button>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Pagination -->
+  @if (!loading && !error && filteredBookings.length > 0) {
+    <div class="pagination">
+      <div class="pagination-info">
+        Showing {{ (currentPage - 1) * itemsPerPage + 1 }} - 
+        {{ getMaxBookingIndex() }}
+        of {{ filteredBookings.length }} confirmed bookings
+      </div>
+      
+      <div class="pagination-controls">
+        <button 
+          (click)="changePage(currentPage - 1)" 
+          [disabled]="currentPage === 1" 
+          class="pagination-btn"
+        >
+          Previous
+        </button>
+        
+        @for (page of pageNumbers; track page) {
+          <button 
+            (click)="changePage(page)" 
+            [ngClass]="{'active': page === currentPage}"
+            class="pagination-btn page-number"
+          >
+            {{ page }}
+          </button>
+        }
+        
+        <button 
+          (click)="changePage(currentPage + 1)" 
+          [disabled]="currentPage === totalPages" 
+          class="pagination-btn"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  }
+</div>

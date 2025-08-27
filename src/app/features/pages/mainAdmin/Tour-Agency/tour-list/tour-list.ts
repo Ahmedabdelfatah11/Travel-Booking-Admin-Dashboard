@@ -32,7 +32,6 @@ export class TourList implements OnInit {
     // Use the correct method to get tour companies
     this.superadminService.getAllTourCompanies().subscribe({
       next: (response: any) => {
-        console.log('API Response:', response);
         
         // Handle the response structure properly
         if (response && response.data) {
@@ -49,7 +48,6 @@ export class TourList implements OnInit {
 
       },
       error: (err) => {
-        console.error('Error fetching companies:', err);
         this.companies = []; // Ensure companies is always an array
         this.loading = false;
         this.error = 'Failed to load companies. Please try again.';
@@ -67,7 +65,6 @@ export class TourList implements OnInit {
         alert('Company deleted successfully');
       },
       error: (err) => {
-        console.error('Error deleting company:', err);
         alert('Failed to delete company: ' + (err.error?.message || err.message || 'Unknown error'));
       }
     });
@@ -117,7 +114,6 @@ export class TourList implements OnInit {
         this.closeModal();
       },
       error: (err) => {
-        console.error('Error updating company:', err);
         alert('Failed to update company: ' + (err.error?.message || err.message || 'Unknown error'));
       }
     });

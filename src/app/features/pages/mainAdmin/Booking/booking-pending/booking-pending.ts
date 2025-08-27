@@ -42,7 +42,6 @@ import { BookingDto, BookingService, BookingType, CarBookingResultDto, FlightBoo
         error: (err) => {
           this.error = 'Failed to load pending bookings. Please try again.';
           this.loading = false;
-          console.error('Error loading pending bookings:', err);
                 this.cd.detectChanges();
 
         }
@@ -59,7 +58,6 @@ import { BookingDto, BookingService, BookingType, CarBookingResultDto, FlightBoo
           },
           error: (err) => {
             alert('Failed to confirm booking. Please try again.');
-            console.error('Error confirming booking:', err);
                   this.cd.detectChanges();
 
           }
@@ -75,7 +73,6 @@ import { BookingDto, BookingService, BookingType, CarBookingResultDto, FlightBoo
           },
           error: (err) => {
             alert('Failed to cancel booking. Please try again.');
-            console.error('Error canceling booking:', err);
           }
         });
       }
@@ -100,7 +97,6 @@ import { BookingDto, BookingService, BookingType, CarBookingResultDto, FlightBoo
 
         }).catch((err) => {
           alert('Some bookings could not be confirmed. Please try again.');
-          console.error('Error in bulk confirm:', err);
         });
       }
     }
@@ -123,7 +119,6 @@ import { BookingDto, BookingService, BookingType, CarBookingResultDto, FlightBoo
 
         }).catch((err) => {
           alert('Some bookings could not be cancelled. Please try again.');
-          console.error('Error in bulk cancel:', err);
         });
       }
     }

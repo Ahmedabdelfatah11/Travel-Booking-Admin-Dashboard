@@ -75,7 +75,6 @@ export class CarRentalListComponent implements OnInit {
 
     this.superadminService.getAllCarRentalCompanies().subscribe({
       next: (response: any) => {
-        console.log('✅ Car rental companies loaded:', response);
         
         // Handle paginated response from CarRental API
         if (response.data && Array.isArray(response.data)) {
@@ -104,7 +103,6 @@ export class CarRentalListComponent implements OnInit {
          this.cd.detectChanges();
       },
       error: (error) => {
-        console.error('❌ Error loading car rental companies:', error);
         this.errorMessage = error.userMessage || 'Failed to load car rental companies';
         this.isLoading = false;
         this.companies = [];
@@ -192,12 +190,10 @@ export class CarRentalListComponent implements OnInit {
   viewCompany(company: CarRentalCompany): void {
     this.selectedCompany = company;
     this.showViewModal = true;
-    console.log('Viewing company:', company);
   }
 
   // FIXED: Edit company function
   editCompany(company: CarRentalCompany): void {
-    console.log('Editing company with ID:', company.id);
      this.router.navigate(['/admin/car/edit', company.id]); 
 
   }
@@ -211,7 +207,6 @@ export class CarRentalListComponent implements OnInit {
     if (this.companyToDelete) {
       this.superadminService.deleteCarRentalCompany(this.companyToDelete.id).subscribe({
         next: (response) => {
-          console.log('✅ Car rental company deleted successfully');
           this.successMessage = 'Car rental company deleted successfully!';
           this.showDeleteModal = false;
           this.companyToDelete = null;
@@ -222,7 +217,6 @@ export class CarRentalListComponent implements OnInit {
           }, 3000);
         },
         error: (error) => {
-          console.error('❌ Error deleting car rental company:', error);
           this.errorMessage = error.userMessage || 'Failed to delete car rental company';
           this.showDeleteModal = false;
           this.companyToDelete = null;

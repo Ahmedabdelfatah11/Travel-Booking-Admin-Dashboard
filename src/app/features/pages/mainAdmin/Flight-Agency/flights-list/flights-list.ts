@@ -26,7 +26,6 @@ companies: any[] = []; // Initialize as empty array
     this.loadCompanies();
   }
   ngOnDestroy(): void {
-    console.log('🧹 Component destroyed');
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -37,7 +36,6 @@ companies: any[] = []; // Initialize as empty array
     // Use the correct method to get tour companies
   this.superadminService.getAllFlightCompanies().subscribe({
   next: (response: any) => {
-    console.log('API Response:', response);
 
     if (Array.isArray(response)) {
       this.companies = response;
@@ -51,7 +49,6 @@ companies: any[] = []; // Initialize as empty array
 
   },
   error: (err) => {
-    console.error('Error fetching companies:', err);
     this.companies = [];
     this.loading = false;
     this.error = 'Failed to load companies. Please try again.';
@@ -71,7 +68,6 @@ companies: any[] = []; // Initialize as empty array
         alert('Company deleted successfully');
       },
       error: (err) => {
-        console.error('Error deleting company:', err);
         alert('Failed to delete company: ' + (err.error?.message || err.message || 'Unknown error'));
       }
     });
@@ -121,7 +117,6 @@ companies: any[] = []; // Initialize as empty array
         this.closeModal();
       },
       error: (err) => {
-        console.error('Error updating company:', err);
         alert('Failed to update company: ' + (err.error?.message || err.message || 'Unknown error'));
       }
     });

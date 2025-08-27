@@ -1,0 +1,370 @@
+<div class="container-fluid py-4">
+  <!-- Full-Screen Loader -->
+  @if (isLoading || isLoadingStats) {
+    <div class="loader-container">
+      <div class="loader">
+        <div class="loader__ball"></div>
+        <div class="loader__ball"></div>
+        <div class="loader__ball"></div>
+      </div>
+    </div>
+  }
+
+  <!-- Toasts -->
+  @for (toast of toasts; track toast.id) {
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1050;">
+      <div
+        class="toast {{ toast.type === 'success' ? 'bg-success' : 'bg-danger' }} text-white"
+        [class.fade]="!toast.visible"
+        [class.show]="toast.visible"
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+        style="min-width: 300px;"
+      >
+        <div class="d-flex">
+          <div class="toast-body">
+            {{ toast.message }}
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" (click)="hideToast(toast.id)"></button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center">
+        <h2 class="mb-0">
+          <i class="fas fa-star text-warning me-2"></i>
+          Car Rental Reviews Management
+        </h2>
+        <button class="btn btn-primary" *ngIf="isAuthenticated && selectedCompany" (click)="openAddReviewModal()">
+          <i class="fas fa-plus me-2"></i>Add Review
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Company Selection -->
+  @if (myCompanies.length > 0) {
+    <div class="row mb-4">
+      <div class="col-md-6">
+        <label for="companySelect" class="form-label fw-bold">Select Company:</label>
+        <select id="companySelect" class="form-select" (change)="onCompanyChange($any($event.target))">
+          @for (company of myCompanies; track company.id) {
+            <option [value]="company.id" [selected]="selectedCompany?.id === company.id">
+              {{ company.name }} - {{ company.location }}
+            </option>
+          }
+        </select>
+      </div>
+    </div>
+  }
+
+  <!-- Review Statistics -->
+  @if (reviewStats && !isLoadingStats) {
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card shadow-sm">
+          <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+              <i class="fas fa-chart-bar me-2"></i>
+              Review Statistics for {{ selectedCompany?.name }}
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="row text-center mb-4">
+              <div class="col-md-3">
+                <div class="stat-item">
+                  <h3 class="text-primary mb-1">{{ reviewStats.averageRating }}/5</h3>
+                  <div class="mb-2">
+                    @for (star of getStarArray(getMath().floor(reviewStats.averageRating)); track $index) {
+                      <span class="text-warning"><i class="fas fa-star"></i></span>
+                    }
+                    @if (reviewStats.averageRating % 1 !== 0) {
+                      <span class="text-warning"><i class="fas fa-star-half-alt"></i></span>
+                    }
+                    @for (star of getEmptyStarArray(getMath().ceil(reviewStats.averageRating)); track $index) {
+                      <span class="text-muted"><i class="fas fa-star"></i></span>
+                    }
+                  </div>
+                  <small class="text-muted">Average Rating</small>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="stat-item">
+                  <h3 class="text-success mb-1">{{ reviewStats.totalReviews }}</h3>
+                  <small class="text-muted">Total Reviews</small>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <h6 class="mb-3">Rating Distribution</h6>
+                <div class="rating-bars">
+                  @for (star of [5,4,3,2,1]; track star) {
+                    <div class="d-flex align-items-center mb-2">
+                      <span class="me-2 fw-bold">{{ star }}★</span>
+                      <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                        <div class="progress-bar bg-warning" [style.width.%]="getRatingPercentage(star)"></div>
+                      </div>
+                      <small class="text-muted">{{ reviewStats.ratingDistribution[star] || 0 }}</small>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Filters and Sorting -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col-md-4">
+              <label for="sortBy" class="form-label">Sort by:</label>
+              <select id="sortBy" class="form-select" [(ngModel)]="sortBy" (change)="onSortChange(sortBy)">
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="rating_high">Highest Rating</option>
+                <option value="rating_low">Lowest Rating</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Filter by Rating:</label>
+              <div class="btn-group d-flex" role="group">
+                <button type="button" 
+                        class="btn btn-outline-warning btn-sm" 
+                        [class.active]="filterRating === null"
+                        (click)="onRatingFilter(null)">
+                  All
+                </button>
+                @for (star of stars; track star) {
+                  <button type="button" 
+                          class="btn btn-outline-warning btn-sm"
+                          [class.active]="filterRating === star"
+                          (click)="onRatingFilter(star)">
+                    {{ star }}★
+                  </button>
+                }
+              </div>
+            </div>
+            <div class="col-md-4 text-end">
+              <small class="text-muted">
+                Showing {{ reviews.length }} of {{ totalReviews }} reviews
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reviews List -->
+  <div class="row">
+    <div class="col-12">
+      <!-- No Reviews -->
+      @if (!isLoading && reviews.length === 0) {
+        <div class="text-center py-5">
+          <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+          <h4 class="text-muted">No Reviews Found</h4>
+          <p class="text-muted">
+            <span *ngIf="!selectedCompany">Please select a company to view reviews.</span>
+            <span *ngIf="selectedCompany">This company doesn't have any reviews yet.</span>
+          </p>
+          <button class="btn btn-primary" *ngIf="isAuthenticated && selectedCompany" (click)="openAddReviewModal()">
+            <i class="fas fa-plus me-2"></i>Be the first to review
+          </button>
+        </div>
+      } @else {
+        <div class="card shadow-sm mb-3" *ngFor="let review of reviews">
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-8">
+                <div class="d-flex align-items-center mb-2">
+                  <div class="user-avatar me-3">
+                    <i class="fas fa-user-circle fa-2x text-secondary"></i>
+                  </div>
+                  <div>
+                    <h6 class="mb-0">{{ review.userName || 'Anonymous User' }}</h6>
+                    <small class="text-muted">{{ formatDate(review.createdAt) }}</small>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4 text-md-end">
+                <div class="d-flex align-items-center justify-content-md-end mb-2">
+                  <div class="rating me-3">
+                    @for (star of getStarArray(review.rating); track $index) {
+                      <span class="text-warning"><i class="fas fa-star"></i></span>
+                    }
+                    @for (star of getEmptyStarArray(review.rating); track $index) {
+                      <span class="text-muted"><i class="fas fa-star"></i></span>
+                    }
+                    <span class="ms-2 fw-bold">{{ review.rating }}/5</span>
+                  </div>
+                  
+                  <!-- Direct Action Buttons -->
+                  <div class="action-buttons d-flex gap-2" *ngIf="canEditReview(review) || canDeleteReview(review)">
+                    <!-- Edit Button -->
+                    <button class="btn btn-sm btn-outline-primary" 
+                            *ngIf="canEditReview(review)"
+                            (click)="openEditReviewModal(review)"
+                            title="Edit Review">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    
+                    <!-- Delete Button -->
+                    <button class="btn btn-sm btn-outline-danger" 
+                            *ngIf="canDeleteReview(review)"
+                            (click)="openDeleteModal(review)"
+                            title="Delete Review">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="review-content" *ngIf="review.comment">
+              <p class="mb-0">{{ review.comment }}</p>
+            </div>
+            
+            <div class="company-info mt-2" *ngIf="review.companyName">
+              <small class="text-muted">
+                <i class="fas fa-building me-1"></i>
+                {{ review.companyName }}
+                <span *ngIf="review.companyLocation"> - {{ review.companyLocation }}</span>
+              </small>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Pagination -->
+      @if (totalPages > 1) {
+        <nav class="mt-4">
+          <ul class="pagination justify-content-center">
+            <li class="page-item" [class.disabled]="currentPage === 1">
+              <a class="page-link" href="#" (click)="onPageChange(currentPage - 1); $event.preventDefault()">
+                <i class="fas fa-chevron-left"></i> Previous
+              </a>
+            </li>
+            @for (page of getPaginationArray(); track page) {
+              <li class="page-item" [class.active]="currentPage === page">
+                <a class="page-link" href="#" (click)="onPageChange(page); $event.preventDefault()">{{ page }}</a>
+              </li>
+            }
+            <li class="page-item" [class.disabled]="currentPage === totalPages">
+              <a class="page-link" href="#" (click)="onPageChange(currentPage + 1); $event.preventDefault()">
+                Next <i class="fas fa-chevron-right"></i>
+              </a>
+            </li>
+          </ul>
+        </nav>
+      }
+    </div>
+  </div>
+</div>
+
+<!-- Edit Review Modal -->
+<div class="modal fade" [class.show]="showEditReviewModal" [style.display]="showEditReviewModal ? 'block' : 'none'" tabindex="-1" *ngIf="showEditReviewModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-edit me-2"></i>Edit Review
+        </h5>
+        <button type="button" class="btn-close" (click)="closeEditReviewModal()"></button>
+      </div>
+      <div class="modal-body">
+        <form (ngSubmit)="updateReview()">
+          <div class="mb-3">
+            <label class="form-label">Rating <span class="text-danger">*</span></label>
+            <div class="rating-input">
+              <div class="btn-group d-flex" role="group">
+                @for (star of stars; track star) {
+                  <button type="button" 
+                          class="btn btn-outline-warning"
+                          [class.active]="editReviewData.rating >= star"
+                          (click)="editReviewData.rating = star">
+                    <i class="fas fa-star"></i> {{ star }}
+                  </button>
+                }
+              </div>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="editComment" class="form-label">Comment</label>
+            <textarea id="editComment" 
+                      class="form-control" 
+                      rows="4" 
+                      placeholder="Update your review..."
+                      [(ngModel)]="editReviewData.comment"
+                      name="editComment"
+                      maxlength="500"></textarea>
+            <div class="form-text">{{ editReviewData.comment?.length || 0 }}/500 characters</div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeEditReviewModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" (click)="updateReview()">
+          <i class="fas fa-save me-2"></i>Update Review
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" [class.show]="showDeleteModal" [style.display]="showDeleteModal ? 'block' : 'none'" tabindex="-1" *ngIf="showDeleteModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">
+          <i class="fas fa-exclamation-triangle me-2"></i>Confirm Delete
+        </h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeDeleteModal()"></button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete this review?</p>
+        <div class="card bg-light" *ngIf="selectedReview">
+          <div class="card-body">
+            <div class="d-flex align-items-center mb-2">
+              <div class="rating me-2">
+                @for (star of getStarArray(selectedReview.rating); track $index) {
+                  <span class="text-warning"><i class="fas fa-star"></i></span>
+                }
+                <span class="ms-2 fw-bold">{{ selectedReview.rating }}/5</span>
+              </div>
+            </div>
+            <p class="mb-0 text-muted" *ngIf="selectedReview.comment">
+              "{{ selectedReview.comment }}"
+            </p>
+          </div>
+        </div>
+        <div class="alert alert-warning mt-3">
+          <i class="fas fa-info-circle me-2"></i>
+          This action cannot be undone.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeDeleteModal()">Cancel</button>
+        <button type="button" class="btn btn-danger" (click)="deleteReview()">
+          <i class="fas fa-trash me-2"></i>Delete Review
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Backdrop -->
+<div class="modal-backdrop fade show" 
+     *ngIf="showAddReviewModal || showEditReviewModal || showDeleteModal"
+     (click)="closeAddReviewModal(); closeEditReviewModal(); closeDeleteModal()">
+</div>

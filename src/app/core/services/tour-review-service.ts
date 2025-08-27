@@ -1,4 +1,3 @@
-// src/app/core/services/tour-review-service.ts
 
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
@@ -7,7 +6,7 @@ import { Observable } from 'rxjs';
 import { Auth } from './auth';
 import { ReviewsResponse, ReviewStatsDto } from '../../shared/Interfaces/i-review';
 
-const API_URL = 'https://localhost:7277/api';
+const API_URL = 'http://pyramigo.runasp.net/api';
 const API_REVIEW_URL = `${API_URL}/Review`;
 
 @Injectable({
@@ -42,8 +41,6 @@ getAllTourReviews(
   params.append('page', page.toString());
   params.append('pageSize', pageSize.toString());
   params.append('sortBy', sortBy);
-  // ❌ Do NOT append tourId
-
   return this.http.get<ReviewsResponse>(`${this.apiUrl}/company?${params.toString()}`, {
     headers: this.getAuthHeaders()
   });
@@ -63,7 +60,7 @@ getAllTourReviews(
 getAllTourReviewsStats(tourCompanyId: number): Observable<ReviewStatsDto> {
   const params = new URLSearchParams();
   params.append('companyType', 'tour');
-  params.append('tourCompanyId', tourCompanyId.toString()); // ✅ Correct param
+  params.append('tourCompanyId', tourCompanyId.toString());
 
   return this.http.get<ReviewStatsDto>(`${this.apiUrl}/stats?${params.toString()}`, {
     headers: this.getAuthHeaders()
@@ -73,7 +70,7 @@ getAllTourReviewsStats(tourCompanyId: number): Observable<ReviewStatsDto> {
 getCompanyAverageRating(tourCompanyId: number): Observable<number> {
   const params = new URLSearchParams();
   params.append('companyType', 'tour');
-  params.append('tourId', tourCompanyId.toString()); // ✅ tourId
+  params.append('tourId', tourCompanyId.toString()); 
 
   return this.http.get<number>(`${this.apiUrl}/average?${params.toString()}`, {
     headers: this.getAuthHeaders()
@@ -83,7 +80,7 @@ getCompanyAverageRating(tourCompanyId: number): Observable<number> {
 getCompanyReviewsCount(tourCompanyId: number): Observable<number> {
   const params = new URLSearchParams();
   params.append('companyType', 'tour');
-  params.append('tourId', tourCompanyId.toString()); // ✅ tourId
+  params.append('tourId', tourCompanyId.toString()); 
 
   return this.http.get<number>(`${this.apiUrl}/count?${params.toString()}`, {
     headers: this.getAuthHeaders()

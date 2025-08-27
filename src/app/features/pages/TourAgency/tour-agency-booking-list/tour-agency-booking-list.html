@@ -1,4 +1,15 @@
 <div class="tour-booking-list-container">
+  <!-- Full-Screen Loader -->
+  @if (loading) {
+    <div class="loader-container">
+      <div class="loader">
+        <div class="loader__ball"></div>
+        <div class="loader__ball"></div>
+        <div class="loader__ball"></div>
+      </div>
+    </div>
+  }
+
   <!-- Header -->
   <header class="header">
     <h2>Tour Bookings Management</h2>
@@ -15,21 +26,23 @@
       </div>
 
       <!-- Dynamic Status Stats -->
-      <ng-container *ngFor="let stat of getStatList()">
+      @for (stat of getStatList(); track $index) {
         <div class="stat-card" [class]="stat.class">
           <span class="stat-number">{{ stat.value }}</span>
           <span class="stat-label">{{ stat.label }}</span>
         </div>
-      </ng-container>
+      }
     </div>
   </header>
 
   <!-- Error Message -->
-  <div *ngIf="error" class="error-message">
-    <i class="error-icon">⚠️</i>
-    {{ error }}
-    <button (click)="loadBookings()" class="retry-btn">Retry</button>
-  </div>
+  @if (error) {
+    <div class="error-message">
+      <i class="error-icon">⚠️</i>
+      {{ error }}
+      <button (click)="loadBookings()" class="retry-btn">Retry</button>
+    </div>
+  }
 
   <!-- Filters -->
   <section class="filters-section">
@@ -38,7 +51,9 @@
       <div class="filter-group">
         <label for="status">Status</label>
         <select id="status" [(ngModel)]="filters.status" (ngModelChange)="onFilterChange()" class="filter-select">
-          <option *ngFor="let option of statusOptions" [value]="option.value">{{ option.label }}</option>
+          @for (option of statusOptions; track $index) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
         </select>
       </div>
 
@@ -88,79 +103,83 @@
     </div>
   </section>
 
-  <!-- Loading -->
-  <div *ngIf="loading" class="loading-spinner">
-    <div class="spinner"></div>
-    <p>Loading tour bookings...</p>
-  </div>
-
   <!-- Table -->
-  <div *ngIf="!loading" class="table-container">
-    <table class="bookings-table">
-      <thead>
-        <tr>
-          <th (click)="sort('id')" class="sortable">ID {{ getSortIcon('id') }}</th>
-          <th>Customer</th>
-          <th (click)="sort('paymentStatus')" class="sortable">Payment Status</th>
-          <th>Tour</th>
-          <th (click)="sort('startDate')" class="sortable">Start</th>
-          <th (click)="sort('endDate')" class="sortable">End</th>
-          <th (click)="sort('totalPrice')" class="sortable">Total</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let booking of paginatedBookings">
-          <td>#{{ booking.id }}</td>
-          <td>
-            <div class="customer-email">{{ booking.customerEmail }}</div>
-            <small *ngIf="booking.paymentStatus" [ngClass]="getPaymentStatusClass(booking.paymentStatus)">
-              💳 {{ getStatusText(booking.paymentStatus) }}
-            </small>
-          </td>
-          <td>
-            <span class="status-badge" [ngClass]="getStatusBadgeClass(getDisplayStatus(booking))">
-              {{ getStatusIcon(getDisplayStatus(booking)) }} {{ getDisplayStatus(booking) }}
-            </span>
-          </td>
-          <td>
-            <strong>{{ getTourName(booking) }}</strong>
-            <div *ngIf="getTourDestination(booking) !== 'N/A'">
-              <small>{{ getTourDestination(booking) }}</small>
-            </div>
-          </td>
-          <td>{{ formatDate(booking.startDate) }}</td>
-          <td>{{ formatDate(booking.endDate) }}</td>
-          <td>{{ formatPrice(booking.totalPrice) }}</td>
-          <td>
-            <button (click)="openTourDetails(booking)" class="action-btn view-btn" title="View Tour">
-              <i class="fas fa-eye"></i>
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+  @if (!loading && !error) {
+    <div class="table-container">
+      <table class="bookings-table">
+        <thead>
+          <tr>
+            <th (click)="sort('id')" class="sortable">ID {{ getSortIcon('id') }}</th>
+            <th>Customer</th>
+            <th (click)="sort('paymentStatus')" class="sortable">Payment Status</th>
+            <th>Tour</th>
+            <th (click)="sort('startDate')" class="sortable">Start</th>
+            <th (click)="sort('endDate')" class="sortable">End</th>
+            <th (click)="sort('totalPrice')" class="sortable">Total</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (booking of paginatedBookings; track booking.id) {
+            <tr>
+              <td>#{{ booking.id }}</td>
+              <td>
+                <div class="customer-email">{{ booking.customerEmail }}</div>
+                <small *ngIf="booking.paymentStatus" [ngClass]="getPaymentStatusClass(booking.paymentStatus)">
+                  💳 {{ getStatusText(booking.paymentStatus) }}
+                </small>
+              </td>
+              <td>
+                <span class="status-badge" [ngClass]="getStatusBadgeClass(getDisplayStatus(booking))">
+                  {{ getStatusIcon(getDisplayStatus(booking)) }} {{ getDisplayStatus(booking) }}
+                </span>
+              </td>
+              <td>
+                <strong>{{ getTourName(booking) }}</strong>
+                <div *ngIf="getTourDestination(booking) !== 'N/A'">
+                  <small>{{ getTourDestination(booking) }}</small>
+                </div>
+              </td>
+              <td>{{ formatDate(booking.startDate) }}</td>
+              <td>{{ formatDate(booking.endDate) }}</td>
+              <td>{{ formatPrice(booking.totalPrice) }}</td>
+              <td>
+                <button class="action-btn view-btn" title="View Tour">
+                  <i class="fas fa-eye"></i>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
 
-    <!-- Empty State -->
-    <div *ngIf="filteredBookings.length === 0" class="empty-state">
-      <div class="empty-icon">🧳</div>
-      <h3>No Bookings Found</h3>
-      <p>Try adjusting your filters.</p>
+      <!-- Empty State -->
+      @if (filteredBookings.length === 0) {
+        <div class="empty-state">
+          <div class="empty-icon">🧳</div>
+          <h3>No Bookings Found</h3>
+          <p>Try adjusting your filters.</p>
+        </div>
+      }
     </div>
-  </div>
+  }
 
   <!-- Pagination -->
-  <footer *ngIf="!loading && filteredBookings.length > 0" class="pagination">
-    <div class="pagination-info">
-      Showing {{ (currentPage - 1) * itemsPerPage + 1 }} - 
-      {{ getMin(currentPage * itemsPerPage, filteredBookings.length) }} of {{ filteredBookings.length }}
-    </div>
-    <div class="pagination-controls">
-      <button (click)="changePage(currentPage - 1)" [disabled]="currentPage === 1" class="pagination-btn">Previous</button>
-      <button *ngFor="let page of pageNumbers" (click)="changePage(page)" [class.active]="page === currentPage" class="pagination-btn">
-        {{ page }}
-      </button>
-      <button (click)="changePage(currentPage + 1)" [disabled]="currentPage === totalPages" class="pagination-btn">Next</button>
-    </div>
-  </footer>
+  @if (!loading && !error && filteredBookings.length > 0) {
+    <footer class="pagination">
+      <div class="pagination-info">
+        Showing {{ (currentPage - 1) * itemsPerPage + 1 }} - 
+        {{ getMin(currentPage * itemsPerPage, filteredBookings.length) }} of {{ filteredBookings.length }}
+      </div>
+      <div class="pagination-controls">
+        <button (click)="changePage(currentPage - 1)" [disabled]="currentPage === 1" class="pagination-btn">Previous</button>
+        @for (page of pageNumbers; track page) {
+          <button (click)="changePage(page)" [class.active]="page === currentPage" class="pagination-btn">
+            {{ page }}
+          </button>
+        }
+        <button (click)="changePage(currentPage + 1)" [disabled]="currentPage === totalPages" class="pagination-btn">Next</button>
+      </div>
+    </footer>
+  }
 </div>

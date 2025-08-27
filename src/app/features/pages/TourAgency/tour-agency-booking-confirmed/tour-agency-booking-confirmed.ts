@@ -52,15 +52,15 @@ export class TourAgencyBookingConfirmed implements OnInit {
         }
       },
       error: (err) => {
-        console.error('Failed to load tour companies:', err);
         this.error = 'Failed to load company. Please try again.';
       }
     });
   }
 
-    getMin(a: number, b: number): number {
+  getMin(a: number, b: number): number {
     return Math.min(a, b);
   }
+
   public loadConfirmedBookings(): void {
     if (!this.tourCompanyId) {
       this.loading = false;
@@ -69,6 +69,9 @@ export class TourAgencyBookingConfirmed implements OnInit {
 
     this.loading = true;
     this.error = null;
+    this.cd.detectChanges(); // Force UI update
+
+    const startTime = Date.now();
 
     this.bookingService.getBookingsByCompany(this.tourCompanyId).subscribe({
       next: (bookings) => {
@@ -77,12 +80,16 @@ export class TourAgencyBookingConfirmed implements OnInit {
         this.applySorting();
       },
       error: (err) => {
-        console.error('Failed to load bookings:', err);
         this.error = 'Failed to load bookings. Please try again.';
       },
       complete: () => {
-        this.loading = false;
-        this.cd.detectChanges();
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(1000 - elapsed, 0); // Minimum 1 second
+
+        setTimeout(() => {
+          this.loading = false;
+          this.cd.detectChanges();
+        }, remaining);
       }
     });
   }
@@ -190,9 +197,5 @@ export class TourAgencyBookingConfirmed implements OnInit {
       currency: 'EGP',
       minimumFractionDigits: 2
     }).format(amount);
-  }
-
-  openTourDetails(booking: BookingTourDto): void {
-    console.log('View tour details:', booking);
   }
 }

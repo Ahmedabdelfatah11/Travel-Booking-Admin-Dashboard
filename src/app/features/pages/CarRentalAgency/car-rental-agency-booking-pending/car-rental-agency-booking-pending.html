@@ -1,0 +1,374 @@
+<div class="container-fluid py-4">
+  <!-- Full-Screen Loader -->
+  @if (loading) {
+    <div class="loader-container">
+      <div class="loader">
+        <div class="loader__ball"></div>
+        <div class="loader__ball"></div>
+        <div class="loader__ball"></div>
+      </div>
+    </div>
+  }
+
+  <!-- Toasts -->
+  @for (toast of toasts; track toast.id) {
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1050;">
+      <div
+        class="toast {{ toast.type === 'success' ? 'bg-success' : toast.type === 'error' ? 'bg-danger' : toast.type === 'warning' ? 'bg-warning' : 'bg-info' }} text-white"
+        [class.fade]="!toast.visible"
+        [class.show]="toast.visible"
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+        style="min-width: 300px;"
+      >
+        <div class="d-flex">
+          <div class="toast-body">
+            {{ toast.message }}
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" (click)="hideToast(toast.id)"></button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h3 mb-0 text-gray-800">
+      <i class="fas fa-clock me-2 text-warning"></i>
+      Pending Car Rentals
+    </h2>
+    <div class="d-flex gap-2">
+      <button 
+        class="btn btn-success" 
+        (click)="bulkConfirmBookings()" 
+        [disabled]="loading || stats.urgentBookings === 0">
+        <i class="fas fa-check-double me-1"></i>
+        Confirm All Urgent ({{ stats.urgentBookings }})
+      </button>
+      <button class="btn btn-outline-primary" (click)="loadPendingBookings()" [disabled]="loading">
+        <i class="fas fa-sync-alt me-1" [class.fa-spin]="loading"></i>
+        Refresh
+      </button>
+    </div>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div *ngIf="!loading" class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card border-left-warning shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                Total Pending
+              </div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800">
+                {{ stats.totalPending }}
+              </div>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-clock fa-2x text-gray-300"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card border-left-danger shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                Urgent Bookings
+              </div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800">
+                {{ stats.urgentBookings }}
+              </div>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card border-left-success shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                Potential Revenue
+              </div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800">
+                {{ formatCurrency(stats.potentialRevenue) }}
+              </div>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card border-left-info shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                Avg. Wait Time
+              </div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800">
+                {{ stats.averageWaitTime | number:'1.0-1' }}h
+              </div>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-hourglass-half fa-2x text-gray-300"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Priority Alert -->
+  @if (stats.urgentBookings > 0) {
+    <div class="alert alert-warning d-flex align-items-center mb-4" role="alert">
+      <i class="fas fa-exclamation-triangle me-2"></i>
+      <div>
+        <strong>Attention!</strong> You have {{ stats.urgentBookings }} urgent booking(s) that need immediate attention.
+        <button class="btn btn-sm btn-warning ms-2" (click)="priorityFilter = 'high'; onFilterChange()">
+          View Urgent
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Filters -->
+  @if (!loading) {
+    <div class="card shadow mb-4">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">
+          <i class="fas fa-filter me-2"></i>
+          Filter & Sort Pending Bookings
+        </h6>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-2 mb-3">
+            <label for="priorityFilter" class="form-label">Priority</label>
+            <select 
+              id="priorityFilter"
+              class="form-select" 
+              [(ngModel)]="priorityFilter" 
+              (change)="onFilterChange()">
+              <option value="all">All Priorities</option>
+              <option value="high">Urgent (24h)</option>
+              <option value="medium">Medium (72h)</option>
+              <option value="low">Low (>72h)</option>
+            </select>
+          </div>
+
+          <div class="col-md-3 mb-3">
+            <label for="searchTerm" class="form-label">Search</label>
+            <input 
+              type="text" 
+              id="searchTerm"
+              class="form-control" 
+              placeholder="Email or Car Model"
+              [(ngModel)]="searchTerm" 
+              (input)="onFilterChange()">
+          </div>
+          
+          <div class="col-md-2 mb-3">
+            <label for="dateFilter" class="form-label">Start Date</label>
+            <input 
+              type="date" 
+              id="dateFilter"
+              class="form-control" 
+              [(ngModel)]="dateFilter" 
+              (change)="onFilterChange()">
+          </div>
+          
+          <div class="col-md-3 mb-3">
+            <label for="sortBy" class="form-label">Sort By</label>
+            <select 
+              id="sortBy"
+              class="form-select" 
+              [(ngModel)]="sortBy" 
+              (change)="onFilterChange()">
+              <option value="priority">Priority</option>
+              <option value="newest">Newest First</option>
+              <option value="oldest">Oldest First</option>
+              <option value="highest-value">Highest Value</option>
+              <option value="lowest-value">Lowest Value</option>
+            </select>
+          </div>
+          
+          <div class="col-md-2 mb-3 d-flex align-items-end">
+            <button 
+              class="btn btn-outline-secondary w-100" 
+              (click)="clearFilters()">
+              <i class="fas fa-times me-1"></i>
+              Clear
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (error) {
+    <div class="alert alert-danger" role="alert">
+      <i class="fas fa-exclamation-triangle me-2"></i>
+      {{ error }}
+      <button class="btn btn-outline-danger btn-sm ms-3" (click)="loadPendingBookings()">
+        <i class="fas fa-redo me-1"></i>
+        Retry
+      </button>
+    </div>
+  }
+
+  <!-- Pending Bookings List -->
+  @if (!loading && !error) {
+    <div class="card shadow mb-4">
+      <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">
+          <i class="fas fa-list me-2"></i>
+          Pending Bookings ({{ filteredBookings.length }})
+        </h6>
+        <span class="badge bg-warning fs-6">{{ formatCurrency(stats.potentialRevenue) }} Potential Revenue</span>
+      </div>
+      <div class="card-body">
+        @if (filteredBookings.length === 0) {
+          <div class="text-center py-5">
+            <i class="fas fa-clock fa-3x text-gray-300 mb-3"></i>
+            <h5 class="text-gray-600">No pending bookings found</h5>
+            <p class="text-gray-500">
+              <span *ngIf="pendingBookings.length === 0">You don't have any pending bookings at the moment.</span>
+              <span *ngIf="pendingBookings.length > 0">Try adjusting your filters to see more results.</span>
+            </p>
+          </div>
+        } @else {
+          <div class="row">
+            @for (booking of filteredBookings; track booking.id) {
+              <div class="col-lg-6 col-xl-4 mb-4">
+                <div class="card h-100" 
+                     [class.border-danger]="getBookingPriority(booking) === 'high'"
+                     [class.border-warning]="getBookingPriority(booking) === 'medium'"
+                     [class.border-info]="getBookingPriority(booking) === 'low'">
+                  <div class="card-header py-2" 
+                       [class.bg-danger]="getBookingPriority(booking) === 'high'"
+                       [class.bg-warning]="getBookingPriority(booking) === 'medium'"
+                       [class.bg-info]="getBookingPriority(booking) === 'low'"
+                       [class.text-white]="getBookingPriority(booking) !== 'low'">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <span class="badge" 
+                            [class.bg-light]="getBookingPriority(booking) !== 'low'"
+                            [class.text-dark]="getBookingPriority(booking) !== 'low'"
+                            [class.bg-primary]="getBookingPriority(booking) === 'low'">
+                        #{{ booking.id }}
+                      </span>
+                      <span [class]="getPriorityBadgeClass(getBookingPriority(booking))">
+                        {{ getPriorityLabel(getBookingPriority(booking)) }}
+                      </span>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <!-- Customer Info -->
+                    <div class="mb-3">
+                      <h6 class="card-title mb-1">
+                        <i class="fas fa-user me-1 text-primary"></i>
+                        {{ booking.customerEmail }}
+                      </h6>
+                    </div>
+
+                    <!-- Car Details -->
+                    <div class="mb-3">
+                      <h6 class="text-primary">
+                        <i class="fas fa-car me-1"></i>
+                        {{ booking.agencyDetails?.model || 'N/A' }}
+                      </h6>
+                      <div class="small text-muted">
+                        <div class="mb-1">
+                          <i class="fas fa-map-marker-alt me-1"></i>
+                          {{ booking.agencyDetails?.location || 'N/A' }}
+                        </div>
+                        <div>
+                          <i class="fas fa-users me-1"></i>
+                          {{ booking.agencyDetails?.capacity || 'N/A' }} passengers
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Dates with time remaining -->
+                    <div class="mb-3">
+                      <div class="row text-sm">
+                        <div class="col-6">
+                          <div class="text-muted">Start Date</div>
+                          <div class="fw-bold">{{ formatDate(booking.startDate) }}</div>
+                        </div>
+                        <div class="col-6">
+                          <div class="text-muted">End Date</div>
+                          <div class="fw-bold">{{ formatDate(booking.endDate) }}</div>
+                        </div>
+                      </div>
+                      <div class="mt-2" *ngIf="getBookingPriority(booking) === 'high'">
+                        <small class="text-danger fw-bold">
+                          <i class="fas fa-clock me-1"></i>
+                          Starts within 24 hours!
+                        </small>
+                      </div>
+                    </div>
+
+                    <!-- Price -->
+                    <div class="mb-3">
+                      <div class="text-center">
+                        <span class="h5 text-success fw-bold">
+                          {{ formatCurrency(booking.totalPrice || 0) }}
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="d-grid gap-2">
+                      <div class="btn-group" role="group">
+                        <button 
+                          class="btn btn-success" 
+                          [disabled]="isProcessing(booking.id)"
+                          (click)="confirmBooking(booking.id)">
+                          <i class="fas fa-check me-1" 
+                             [class.fa-spin]="isProcessing(booking.id)"></i>
+                          {{ isProcessing(booking.id) ? 'Processing...' : 'Confirm' }}
+                        </button>
+                        <button 
+                          class="btn btn-outline-danger" 
+                          [disabled]="isProcessing(booking.id)"
+                          (click)="cancelBooking(booking.id)">
+                          <i class="fas fa-times me-1"></i>
+                          Cancel
+                        </button>
+                      </div>
+                      <button 
+                        class="btn btn-outline-info btn-sm" 
+                        [routerLink]="['/booking', booking.id]">
+                        <i class="fas fa-eye me-1"></i>
+                        View Details
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

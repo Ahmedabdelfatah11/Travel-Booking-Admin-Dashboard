@@ -69,7 +69,7 @@ export class DashBoardComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   
   // Configuration - Update these based on your setup
-  private baseUrl = 'https://localhost:7277'; // Your API base URL
+  private baseUrl = 'http://pyramigo.runasp.net'; // Your API base URL
   private apiUrl = `${this.baseUrl}/api/SuperAdmin/dashboard`;
 
   constructor(private http: HttpClient, private cd: ChangeDetectorRef) {}
@@ -172,9 +172,7 @@ export class DashBoardComponent implements OnInit, OnDestroy {
 
   private handleApiError(error: HttpErrorResponse, context: string): void {
     this.loading = false;
-    
-    console.error(`${context} error:`, error);
-    
+        
     switch (error.status) {
       case 0:
         this.error = 'Cannot connect to server';

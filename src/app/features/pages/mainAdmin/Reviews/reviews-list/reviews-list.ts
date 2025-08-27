@@ -120,10 +120,7 @@ export class ReviewsListComponent implements OnInit, AfterViewInit {
     // Use setTimeout to avoid change detection issues
     setTimeout(() => {
       if (typeof (window as any).bootstrap !== 'undefined') {
-        console.log('✅ Bootstrap is available for modals');
-      } else {
-        console.warn('⚠️ Bootstrap JS not loaded. Using fallback modal handling.');
-      }
+      } 
     }, 100);
   }
 
@@ -258,11 +255,9 @@ export class ReviewsListComponent implements OnInit, AfterViewInit {
         this.totalPages = Math.ceil(this.totalReviews / this.pageSize);
         this.loading = false;
         
-        console.log('✅ All reviews loaded:', response);
         this.cdr.detectChanges();
       },
       error: (error) => {
-        console.error('❌ Error loading reviews:', error);
         this.toastr.error(error.userMessage || 'Failed to load reviews', 'Error');
         this.loading = false;
         this.cdr.detectChanges();
@@ -272,16 +267,13 @@ export class ReviewsListComponent implements OnInit, AfterViewInit {
 
   loadCompanies(): void {
     if (!this.selectedCompanyType) {
-      console.warn('⚠️ No company type selected for loading companies');
       return;
     }
     
     if (this.companiesLoading) {
-      console.log('⏳ Companies already loading...');
       return;
     }
     
-    console.log(`🏢 Loading ${this.selectedCompanyType} companies...`);
     
     this.companiesLoading = true;
     this.companies = [];
@@ -289,7 +281,6 @@ export class ReviewsListComponent implements OnInit, AfterViewInit {
     
     this.superAdminService.getCompaniesByType(this.selectedCompanyType).subscribe({
       next: (companies) => {
-        console.log(`📋 Raw companies response for ${this.selectedCompanyType}:`, companies);
         
         if (Array.isArray(companies)) {
           this.companies = companies;
@@ -298,11 +289,9 @@ export class ReviewsListComponent implements OnInit, AfterViewInit {
         } else if (companies && companies.companies && Array.isArray(companies.companies)) {
           this.companies = companies.companies;
         } else {
-          console.warn('⚠️ Unexpected companies response format:', companies);
           this.companies = [];
         }
         
-        console.log(`✅ ${this.selectedCompanyType} companies processed:`, this.companies);
         this.companiesLoading = false;
         
         if (this.companies.length === 0) {
@@ -312,7 +301,6 @@ export class ReviewsListComponent implements OnInit, AfterViewInit {
         this.cdr.detectChanges();
       },
       error: (error) => {
-        console.error('❌ Error loading companies:', error);
         this.toastr.error(`Failed to load ${this.selectedCompanyType} companies`, 'Error');
         this.companiesLoading = false;
         this.companies = [];
@@ -329,11 +317,9 @@ export class ReviewsListComponent implements OnInit, AfterViewInit {
       next: (stats) => {
         this.reviewStats = stats;
         this.statsLoading = false;
-        console.log('✅ Review stats loaded:', stats);
         this.cdr.detectChanges();
       },
       error: (error) => {
-        console.error('❌ Error loading review stats:', error);
         this.toastr.error('Failed to load review statistics', 'Error');
         this.statsLoading = false;
         this.reviewStats = null;
@@ -345,38 +331,28 @@ export class ReviewsListComponent implements OnInit, AfterViewInit {
   // ==================== FILTERING & SEARCH - FIXED ====================
   
   applyFilters(): void {
-    console.log('🔍 Applying filters:', {
-      companyType: this.selectedCompanyType,
-      companyId: this.selectedCompanyId,
-      rating: this.selectedRating
-    });
+
 
     this.currentPage = 1;
     
     if (this.selectedCompanyType && this.selectedCompanyId) {
-      console.log('✅ Loading reviews for specific company');
       this.loadCompanyReviews();
     } else if (this.selectedCompanyType && !this.selectedCompanyId) {
-      console.log('✅ Loading reviews for company type only');
       this.loadReviewsByType();
     } else {
-      console.log('✅ Loading all reviews');
       this.loadAllReviews();
     }
   }
 
   loadCompanyReviews(): void {
     if (!this.selectedCompanyType) {
-      console.error('❌ Company type is required');
       return;
     }
     
     if (!this.selectedCompanyId || this.selectedCompanyId <= 0) {
-      console.error('❌ Valid company ID is required');
       return;
     }
     
-    console.log(`🔍 Loading reviews for ${this.selectedCompanyType} company ID: ${this.selectedCompanyId}`);
     
     this.loading = true;
     this.cdr.detectChanges();
@@ -389,7 +365,6 @@ export class ReviewsListComponent implements OnInit, AfterViewInit {
       this.sortBy
     ).subscribe({
       next: (response) => {
-        console.log('✅ Company reviews loaded:', response);
         this.reviews = response.reviews;
         this.applyClientFilters();
         this.totalReviews = response.totalCount;
@@ -398,7 +373,6 @@ export class ReviewsListComponent implements OnInit, AfterViewInit {
         this.cdr.detectChanges();
       },
       error: (error) => {
-        console.error('❌ Error loading company reviews:', error);
         this.toastr.error('Failed to load company reviews', 'Error');
         this.loading = false;
         this.cdr.detectChanges();
@@ -408,11 +382,9 @@ export class ReviewsListComponent implements OnInit, AfterViewInit {
 
   loadReviewsByType(): void {
     if (!this.selectedCompanyType) {
-      console.error('❌ Company type is required');
       return;
     }
     
-    console.log(`🔍 Loading all reviews for company type: ${this.selectedCompanyType}`);
     
     this.loading = true;
     this.cdr.detectChanges();
@@ -425,7 +397,6 @@ export class ReviewsListComponent implements OnInit, AfterViewInit {
       this.sortBy
     ).subscribe({
       next: (response) => {
-        console.log('✅ Reviews by type loaded:', response);
         this.reviews = response.reviews;
         this.applyClientFilters();
         this.totalReviews = response.totalCount;
@@ -434,7 +405,6 @@ export class ReviewsListComponent implements OnInit, AfterViewInit {
         this.cdr.detectChanges();
       },
       error: (error) => {
-        console.error('❌ Error loading reviews by type:', error);
         this.toastr.error(`Failed to load ${this.selectedCompanyType} reviews`, 'Error');
         this.loading = false;
         this.cdr.detectChanges();
@@ -491,13 +461,11 @@ export class ReviewsListComponent implements OnInit, AfterViewInit {
   }
 
   onCompanyTypeChange(): void {
-    console.log('🔄 Company type changed to:', this.selectedCompanyType);
     
     this.selectedCompanyId = null;
     this.companies = [];
     
     if (this.selectedCompanyType) {
-      console.log('📋 Loading companies for type:', this.selectedCompanyType);
       this.loadCompanies();
       this.loadReviewsByType();
     } else {
@@ -506,7 +474,6 @@ export class ReviewsListComponent implements OnInit, AfterViewInit {
   }
 
   onCompanyChange(): void {
-    console.log('🏢 Company changed to ID:', this.selectedCompanyId);
     
     if (this.selectedCompanyId && this.selectedCompanyType) {
       this.applyFilters();
@@ -587,7 +554,6 @@ export class ReviewsListComponent implements OnInit, AfterViewInit {
         this.applyFilters();
       },
       error: (error) => {
-        console.error('❌ Error creating review:', error);
         this.toastr.error(error.userMessage || 'Failed to create review', 'Error');
         this.isSubmitting = false;
         this.cdr.detectChanges();
@@ -610,7 +576,6 @@ export class ReviewsListComponent implements OnInit, AfterViewInit {
       comment: formValue.comment
     };
 
-    console.log('📝 Updating review as SuperAdmin:', this.editingReview.id, updateDto);
 
     this.reviewService.updateReview(this.editingReview.id, updateDto).subscribe({
       next: () => {
@@ -620,7 +585,6 @@ export class ReviewsListComponent implements OnInit, AfterViewInit {
         this.applyFilters();
       },
       error: (error) => {
-        console.error('❌ Error updating review:', error);
         
         // Better error handling for 404 errors
         if (error.status === 404) {
@@ -643,7 +607,6 @@ export class ReviewsListComponent implements OnInit, AfterViewInit {
     this.isSubmitting = true;
     this.cdr.detectChanges();
 
-    console.log('🗑️ Deleting review as SuperAdmin:', this.reviewToDelete.id);
 
     this.reviewService.deleteReview(this.reviewToDelete.id).subscribe({
       next: () => {
@@ -653,7 +616,6 @@ export class ReviewsListComponent implements OnInit, AfterViewInit {
         this.applyFilters();
       },
       error: (error) => {
-        console.error('❌ Error deleting review:', error);
         
         // Better error handling for 404 errors
         if (error.status === 404) {

@@ -49,7 +49,6 @@ export class TourAgencyBookingPending implements OnInit {
         }
       },
       error: (err) => {
-        console.error('Failed to load tour companies:', err);
         this.error = 'Failed to load company. Please try again.';
       }
     });
@@ -71,7 +70,6 @@ export class TourAgencyBookingPending implements OnInit {
         this.applySorting();
       },
       error: (err) => {
-        console.error('Failed to load bookings:', err);
         this.error = 'Failed to load bookings. Please try again.';
       },
       complete: () => {
@@ -185,9 +183,7 @@ export class TourAgencyBookingPending implements OnInit {
     }).format(amount);
   }
 
-  openTourDetails(booking: BookingTourDto): void {
-    console.log('View tour details:', booking);
-  }
+
 
   getMin(a: number, b: number): number {
     return Math.min(a, b);

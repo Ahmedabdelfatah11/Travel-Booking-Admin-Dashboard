@@ -1,12 +1,9 @@
-// src/app/core/services/tour-service.ts
-
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
-import { Observable, throwError, retry } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { Observable, throwError,catchError, retry } from 'rxjs';
+import { ITourCompany } from '../../shared/Interfaces/ItourCompany';
 
 // Interfaces
-import { ITourCompany } from '../../shared/Interfaces/ItourCompany';
 import { DashboardStats } from '../../shared/Interfaces/admin-interfaces';
 import { ITourStats, TourReadDto } from '../../shared/Interfaces/i-tour';
 
@@ -14,8 +11,8 @@ import { ITourStats, TourReadDto } from '../../shared/Interfaces/i-tour';
   providedIn: 'root'
 })
 export class TourService {
-  private readonly apiUrl = 'https://localhost:7277/api/Tour';
-  private readonly tourCompanyApiUrl = 'https://localhost:7277/api/TourCompany';
+  private readonly apiUrl = 'http://pyramigo.runasp.net/api/Tour';
+  private readonly tourCompanyApiUrl = 'http://pyramigo.runasp.net/api/TourCompany';
 
   constructor(private http: HttpClient) {}
 
@@ -93,10 +90,6 @@ export class TourService {
       errorMsg = `Server Error: ${error.status} - ${error.message}`;
       errorDetails = typeof error.error === 'object' ? JSON.stringify(error.error, null, 2) : error.error;
     }
-
-    console.error('API Error:', errorMsg);
-    if (errorDetails) console.error('Error Details:', errorDetails);
-
     return throwError(() => new Error(`${errorMsg} | Details: ${errorDetails}`));
   }
    getDashboardStats(): Observable<ITourStats> {

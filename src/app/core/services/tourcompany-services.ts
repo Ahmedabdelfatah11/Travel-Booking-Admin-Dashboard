@@ -6,10 +6,10 @@ import { Observable } from "rxjs";
   providedIn: 'root'
 })
 export class TourcompanyServices {
-  private apiUrl = 'https://localhost:7277/api/TourCompany';
-  
+  private apiUrl = 'http://pyramigo.runasp.net/api/TourCompany';
+
   constructor(private http: HttpClient) { }
-  
+
   GetallToursCompany(): Observable<any> {
     return this.http.get(`${this.apiUrl}`);
   }

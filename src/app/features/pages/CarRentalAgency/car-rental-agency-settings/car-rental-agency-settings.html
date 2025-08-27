@@ -1,0 +1,225 @@
+<div class="settings-container">
+  <h2><i class="fas fa-user-cog"></i> Profile Settings</h2>
+
+  @if (isLoading) {
+    <div class="loading">
+      <i class="fas fa-spinner fa-spin"></i> Loading profile...
+    </div>
+  } @else {
+    @if (error) {
+      <div class="alert alert-danger">
+        <i class="fas fa-exclamation-triangle"></i> {{ error }}
+      </div>
+    }
+
+    @if (success) {
+      <div class="alert alert-success">
+        <i class="fas fa-check-circle"></i> {{ success }}
+      </div>
+    }
+
+    <!-- Profile Form -->
+    <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="profile-form">
+
+      <!-- Profile Picture -->
+      <div class="form-group text-center mb-4">
+        <div class="profile-pic-wrapper d-inline-block position-relative">
+          <img 
+            [src]="profilePictureUrl || 'https://via.placeholder.com/150?text=No+Image'" 
+            alt="Profile Picture"
+            class="profile-pic rounded-circle border"
+            style="width: 120px; height: 120px; object-fit: cover;">
+          <label class="upload-btn btn btn-primary btn-sm position-absolute bottom-0 end-0 rounded-circle d-flex justify-content-center align-items-center">
+            <i class="fas fa-camera"></i>
+            <input 
+              type="file" 
+              (change)="onFileSelected($event)" 
+              accept=".jpg,.jpeg,.png,.webp" 
+              hidden>
+          </label>
+        </div>
+        @if (selectedFile) {
+          <small class="text-muted d-block mt-2">Selected: {{ selectedFile.name }}</small>
+        }
+      </div>
+
+      <!-- First & Last Name -->
+      <div class="form-row mb-3">
+        <div class="form-group">
+          <label for="firstName">First Name</label>
+          <input 
+            id="firstName" 
+            type="text" 
+            formControlName="firstName"
+            class="form-control"
+            [class.is-invalid]="firstName.invalid && firstName.touched">
+          @if (firstName.invalid && firstName.touched) {
+            <div class="invalid-feedback">First name is required.</div>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="lastName">Last Name</label>
+          <input 
+            id="lastName" 
+            type="text" 
+            formControlName="lastName"
+            class="form-control"
+            [class.is-invalid]="lastName.invalid && lastName.touched">
+          @if (lastName.invalid && lastName.touched) {
+            <div class="invalid-feedback">Last name is required.</div>
+          }
+        </div>
+      </div>
+
+      <!-- Email & Username -->
+      <div class="form-row mb-3">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input 
+            id="email" 
+            type="email" 
+            formControlName="email"
+            class="form-control" 
+            readonly>
+        </div>
+
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input 
+            id="username" 
+            type="text" 
+            formControlName="username"
+            class="form-control"
+            [class.is-invalid]="username.invalid && username.touched">
+          @if (username.invalid && username.touched) {
+            <div class="invalid-feedback">Username is required.</div>
+          }
+        </div>
+      </div>
+
+      <!-- Phone & Date of Birth -->
+      <div class="form-row mb-3">
+        <div class="form-group">
+          <label for="phone">Phone</label>
+          <input 
+            id="phone" 
+            type="tel" 
+            formControlName="phone"
+            class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label for="dateOfBirth">Date of Birth</label>
+          <input 
+            id="dateOfBirth" 
+            type="date" 
+            formControlName="dateOfBirth"
+            class="form-control"
+            [max]="today">
+        </div>
+      </div>
+
+      <!-- Address -->
+      <div class="form-group mb-5">
+        <label for="address">Address</label>
+        <textarea 
+          id="address" 
+          formControlName="address"
+          class="form-control"
+          rows="3"></textarea>
+      </div>
+
+      <!-- Submit Button -->
+      <div class="form-actions mb-5">
+        <button 
+          type="submit"
+          [disabled]="profileForm.invalid || isSubmitting"
+          class="btn btn-primary me-2">
+          <i class="fas fa-save"></i>
+          {{ isSubmitting ? 'Saving...' : 'Save Changes' }}
+        </button>
+
+        <button 
+          type="button" 
+          (click)="resetForm()"
+          [disabled]="isSubmitting"
+          class="btn btn-secondary">
+          Reset
+        </button>
+      </div>
+    </form>
+
+    <!-- Change Password Section -->
+   <!-- Change Password Section -->
+<div class="password-section border-top pt-4">
+  <h5><i class="fas fa-lock"></i> Change Password</h5>
+
+  <!-- ✅ Wrap in its own form -->
+  <form [formGroup]="passwordForm" (ngSubmit)="onChangePassword()" class="password-form">
+
+    <div class="form-group">
+      <label for="currentPassword">Current Password</label>
+      <input 
+        id="currentPassword" 
+        type="password" 
+        formControlName="currentPassword"
+        class="form-control"
+        [class.is-invalid]="currentPassword.invalid && currentPassword.touched">
+      @if (currentPassword.invalid && currentPassword.touched) {
+        <div class="invalid-feedback">Current password is required.</div>
+      }
+    </div>
+
+    <div class="form-group">
+      <label for="newPassword">New Password</label>
+      <input 
+        id="newPassword" 
+        type="password" 
+        formControlName="newPassword"
+        class="form-control"
+        [class.is-invalid]="newPassword.invalid && newPassword.touched">
+      @if (newPassword.invalid && newPassword.touched) {
+        <div class="invalid-feedback">Password must be at least 6 characters.</div>
+      }
+    </div>
+
+    <div class="form-group">
+      <label for="confirmNewPassword">Confirm New Password</label>
+      <input 
+        id="confirmNewPassword" 
+        type="password" 
+        formControlName="confirmNewPassword"
+        class="form-control"
+        [class.is-invalid]="confirmNewPassword.invalid && confirmNewPassword.touched">
+      @if (confirmNewPassword.invalid && confirmNewPassword.touched) {
+        <div class="invalid-feedback">Please confirm your password.</div>
+      }
+    </div>
+
+    <!-- Feedback Messages -->
+    @if (confirmNewPassword.value && !passwordsMatch()) {
+      <div class="text-danger small">New passwords must match.</div>
+    }
+
+    @if (newPassword.value && currentPassword.value === newPassword.value && newPassword.value.length >= 6) {
+      <div class="text-warning small">New password must be different from current.</div>
+    }
+
+    @if (error && !success) {
+      <div class="text-danger small mt-2">{{ error }}</div>
+    }
+
+    @if (success) {
+      <div class="text-success small mt-2">{{ success }}</div>
+    }
+
+    <button 
+      type="submit"
+      class="btn btn-success mt-3">
+      <i class="fas fa-key"></i> Change Password
+    </button>
+  </form>
+</div>
+  }
+</div>

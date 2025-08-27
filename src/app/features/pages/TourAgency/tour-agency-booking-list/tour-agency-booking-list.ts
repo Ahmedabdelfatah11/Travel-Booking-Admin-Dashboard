@@ -1,4 +1,3 @@
-// src/app/components/tour-agency/tour-agency-booking-list/tour-agency-booking-list.ts
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -17,7 +16,6 @@ export interface BookingFilters {
   customerEmail: string;
 }
 
-// Define sortable keys for type safety
 type SortableColumn = 'id' | 'startDate' | 'endDate' | 'totalPrice' | 'paymentStatus';
 
 @Component({
@@ -34,7 +32,6 @@ export class TourAgencyBookingList implements OnInit {
   error: string | null = null;
   tourCompanyId: number | null = null;
 
-  // Filter properties
   filters: BookingFilters = {
     status: '',
     tourName: '',
@@ -46,22 +43,19 @@ export class TourAgencyBookingList implements OnInit {
     customerEmail: ''
   };
 
-  // Filter options
- statusOptions = [
-  { value: '', label: 'All Status' },
-  { value: 'Succeeded', label: 'Paid' },
-  { value: 'Pending', label: 'Pending' },
-  { value: 'Cancelled', label: 'Cancelled' },
-  { value: 'Failed', label: 'Failed' },
-  { value: 'NotInitiated', label: 'Payment Not Initiated' }
-];
+  statusOptions = [
+    { value: '', label: 'All Status' },
+    { value: 'Succeeded', label: 'Paid' },
+    { value: 'Pending', label: 'Pending' },
+    { value: 'Cancelled', label: 'Cancelled' },
+    { value: 'Failed', label: 'Failed' },
+    { value: 'NotInitiated', label: 'Payment Not Initiated' }
+  ];
 
-  // Pagination
   currentPage = 1;
   itemsPerPage = 10;
   totalPages = 0;
 
-  // Sorting
   sortBy: SortableColumn = 'id';
   sortDirection: 'asc' | 'desc' = 'desc';
 
@@ -78,18 +72,14 @@ export class TourAgencyBookingList implements OnInit {
   private loadTourCompanyIdAndBookings(): void {
     this.tourService.getMyTourCompanies().subscribe({
       next: (companies) => {
-        console.log('Fetched companies:', companies);
-
         if (Array.isArray(companies) && companies.length > 0) {
           this.tourCompanyId = companies[0].id;
-          console.log('Loading bookings for company ID:', this.tourCompanyId);
           this.loadBookings();
         } else {
           this.error = 'No tour company assigned to your account.';
         }
       },
       error: (err) => {
-        console.error('Failed to load tour companies:', err);
         this.handleError(err, 'Failed to load company. Please try again.');
       }
     });
@@ -103,21 +93,26 @@ export class TourAgencyBookingList implements OnInit {
 
     this.loading = true;
     this.error = null;
+    this.cd.detectChanges(); // Force UI update
+
+    const startTime = Date.now();
 
     this.bookingService.getBookingsByCompany(this.tourCompanyId).subscribe({
       next: (bookings) => {
         this.bookings = Array.isArray(bookings) ? bookings : [];
-        
-        console.log('Loaded bookings:', this.bookings);
         this.applyFilters();
       },
       error: (err) => {
-        console.error('Failed to load bookings:', err);
         this.handleError(err, 'Failed to load bookings. Please try again.');
       },
       complete: () => {
-        this.loading = false;
-        this.cd.detectChanges();
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(1000 - elapsed, 0); // Minimum 1 second
+
+        setTimeout(() => {
+          this.loading = false;
+          this.cd.detectChanges();
+        }, remaining);
       }
     });
   }
@@ -137,89 +132,77 @@ export class TourAgencyBookingList implements OnInit {
     this.loading = false;
     this.cd.detectChanges();
   }
-getDisplayStatus(booking: BookingTourDto): string {
-  const paymentStatus = booking.paymentStatus?.trim().toLowerCase() || '';
 
-  if (paymentStatus === 'succeeded') return 'Confirmed';
-  if (paymentStatus === 'pending') return 'Pending';
-  if (['failed', 'cancelled'].includes(paymentStatus)) return 'Cancelled';
+  getDisplayStatus(booking: BookingTourDto): string {
+    const paymentStatus = booking.paymentStatus?.trim().toLowerCase() || '';
 
-  if (booking.status === 'Confirmed') return 'Confirmed';
-  if (booking.status === 'Cancelled') return 'Cancelled';
+    if (paymentStatus === 'succeeded') return 'Confirmed';
+    if (paymentStatus === 'pending') return 'Pending';
+    if (['failed', 'cancelled'].includes(paymentStatus)) return 'Cancelled';
+    if (booking.status === 'Confirmed') return 'Confirmed';
+    if (booking.status === 'Cancelled') return 'Cancelled';
+    return 'Payment Not Initiated';
+  }
 
-  return 'Payment Not Initiated';
-}
- applyFilters(): void {
-  let filtered = [...this.bookings];
+  applyFilters(): void {
+    let filtered = [...this.bookings];
 
-  // Status filter
-  if (this.filters.status) {
-    filtered = filtered.filter(b => {
-      const displayStatus = this.getDisplayStatus(b);
+    if (this.filters.status) {
+      filtered = filtered.filter(b => {
+        const displayStatus = this.getDisplayStatus(b);
+        if (this.filters.status === 'NotInitiated') return displayStatus === 'Payment Not Initiated';
+        if (this.filters.status === 'Succeeded') return displayStatus === 'Confirmed';
+        const paymentStatus = b.paymentStatus?.toLowerCase();
+        const filterStatus = this.filters.status.toLowerCase();
+        return paymentStatus === filterStatus;
+      });
+    }
 
-      // Handle special cases
-      if (this.filters.status === 'NotInitiated') {
-        return displayStatus === 'Payment Not Initiated';
-      }
+    if (this.filters.tourName.trim()) {
+      const name = this.filters.tourName.toLowerCase().trim();
+      filtered = filtered.filter(b => this.getTourName(b).toLowerCase().includes(name));
+    }
 
-      if (this.filters.status === 'Succeeded') { // "Paid" filter
-        return displayStatus === 'Confirmed'; // ✅ Show all Confirmed (not just succeeded)
-      }
+    if (this.filters.destination.trim()) {
+      const dest = this.filters.destination.toLowerCase().trim();
+      filtered = filtered.filter(b => this.getTourDestination(b).toLowerCase().includes(dest));
+    }
 
-      // Default: match paymentStatus
-      const paymentStatus = b.paymentStatus?.toLowerCase();
-      const filterStatus = this.filters.status.toLowerCase();
-      return paymentStatus === filterStatus;
+    if (this.filters.dateFrom) {
+      const fromDate = new Date(this.filters.dateFrom);
+      filtered = filtered.filter(b => new Date(b.startDate) >= fromDate);
+    }
+
+    if (this.filters.dateTo) {
+      const toDate = new Date(this.filters.dateTo);
+      filtered = filtered.filter(b => new Date(b.endDate) <= toDate);
+    }
+
+    if (this.filters.priceMin !== null && this.filters.priceMin > 0) {
+      filtered = filtered.filter(b => (b.totalPrice || 0) >= this.filters.priceMin!);
+    }
+
+    if (this.filters.priceMax !== null && this.filters.priceMax > 0) {
+      filtered = filtered.filter(b => (b.totalPrice || 0) <= this.filters.priceMax!);
+    }
+
+    if (this.filters.customerEmail.trim()) {
+      const email = this.filters.customerEmail.toLowerCase().trim();
+      filtered = filtered.filter(b => b.customerEmail?.toLowerCase().includes(email));
+    }
+
+    filtered.sort((a, b) => {
+      const aValue = (a as any)[this.sortBy];
+      const bValue = (b as any)[this.sortBy];
+      let comparison = 0;
+      if (aValue < bValue) comparison = -1;
+      else if (aValue > bValue) comparison = 1;
+      return this.sortDirection === 'desc' ? -comparison : comparison;
     });
+
+    this.filteredBookings = filtered;
+    this.calculatePagination();
   }
-
-  // ✅ Rest of your filters (no change needed)
-  if (this.filters.tourName.trim()) {
-    const name = this.filters.tourName.toLowerCase().trim();
-    filtered = filtered.filter(b => this.getTourName(b).toLowerCase().includes(name));
-  }
-
-  if (this.filters.destination.trim()) {
-    const dest = this.filters.destination.toLowerCase().trim();
-    filtered = filtered.filter(b => this.getTourDestination(b).toLowerCase().includes(dest));
-  }
-
-  if (this.filters.dateFrom) {
-    const fromDate = new Date(this.filters.dateFrom);
-    filtered = filtered.filter(b => new Date(b.startDate) >= fromDate);
-  }
-
-  if (this.filters.dateTo) {
-    const toDate = new Date(this.filters.dateTo);
-    filtered = filtered.filter(b => new Date(b.endDate) <= toDate);
-  }
-
-  if (this.filters.priceMin !== null && this.filters.priceMin > 0) {
-    filtered = filtered.filter(b => (b.totalPrice || 0) >= this.filters.priceMin!);
-  }
-
-  if (this.filters.priceMax !== null && this.filters.priceMax > 0) {
-    filtered = filtered.filter(b => (b.totalPrice || 0) <= this.filters.priceMax!);
-  }
-
-  if (this.filters.customerEmail.trim()) {
-    const email = this.filters.customerEmail.toLowerCase().trim();
-    filtered = filtered.filter(b => b.customerEmail?.toLowerCase().includes(email));
-  }
-
-  // Apply sorting
-  filtered.sort((a, b) => {
-    const aValue = (a as any)[this.sortBy];
-    const bValue = (b as any)[this.sortBy];
-    let comparison = 0;
-    if (aValue < bValue) comparison = -1;
-    else if (aValue > bValue) comparison = 1;
-    return this.sortDirection === 'desc' ? -comparison : comparison;
-  });
-
-  this.filteredBookings = filtered;
-  this.calculatePagination();
-}
 
   calculatePagination(): void {
     this.totalPages = Math.ceil(this.filteredBookings.length / this.itemsPerPage);
@@ -238,9 +221,10 @@ getDisplayStatus(booking: BookingTourDto): string {
     this.currentPage = 1;
     this.applyFilters();
   }
+
   getPaymentStatusClass(status: string | null | undefined): string {
-  return status ? 'payment-' + status.toLowerCase() : 'payment-unknown';
-}
+    return status ? 'payment-' + status.toLowerCase() : 'payment-unknown';
+  }
 
   getMin(a: number, b: number): number {
     return Math.min(a, b);
@@ -292,7 +276,6 @@ getDisplayStatus(booking: BookingTourDto): string {
     return pages;
   }
 
-  // Helper methods
   getTourName(booking: BookingTourDto): string {
     return (booking.agencyDetails as TourReadDto)?.name || 'Unknown Tour';
   }
@@ -301,61 +284,33 @@ getDisplayStatus(booking: BookingTourDto): string {
     return (booking.agencyDetails as TourReadDto)?.destination || 'N/A';
   }
 
-getStatusBadgeClass(status: string | null | undefined): string {
-  const statusLower = status?.toLowerCase();
-
-  if (statusLower === 'confirmed' || statusLower === 'paid' || statusLower === 'succeeded') {
-    return 'bg-success text-white';
-  }
-
-  if (statusLower === 'pending') {
-    return 'bg-warning text-dark';
-  }
-
-  if (statusLower === 'cancelled' || statusLower === 'failed') {
-    return 'bg-danger text-white';
-  }
-
-  if (statusLower === 'payment not initiated') {
+  getStatusBadgeClass(status: string | null | undefined): string {
+    const statusLower = status?.toLowerCase();
+    if (statusLower === 'confirmed' || statusLower === 'paid' || statusLower === 'succeeded') return 'bg-success text-white';
+    if (statusLower === 'pending') return 'bg-warning text-dark';
+    if (statusLower === 'cancelled' || statusLower === 'failed') return 'bg-danger text-white';
+    if (statusLower === 'payment not initiated') return 'bg-secondary text-white';
     return 'bg-secondary text-white';
   }
 
-  return 'bg-secondary text-white';
-}
-
-getStatusText(status: string | null | undefined): string {
-  switch (status?.toLowerCase()) {
-    case 'confirmed':
-      return 'Confirmed';
-    case 'paid':
-      return 'Confirmed';
-    case 'pending':
-      return 'Pending';
-    case 'cancelled':
-      return 'Cancelled';
-    default:
-      return 'Pending';
+  getStatusText(status: string | null | undefined): string {
+    switch (status?.toLowerCase()) {
+      case 'confirmed': case 'paid': case 'succeeded': return 'Confirmed';
+      case 'pending': return 'Pending';
+      case 'cancelled': return 'Cancelled';
+      default: return 'Pending';
+    }
   }
-}
 
-
-getStatusIcon(status: string | null | undefined): string {
-  switch (status?.toLowerCase()) {
-    case 'succeeded':
-    case 'paid':
-    case 'confirmed':
-      return '✅';
-    case 'pending':
-      return '⏳';
-    case 'cancelled':
-    case 'failed':
-      return '❌';
-    case 'payment not initiated':
-      return '🔘';
-    default:
-      return '⏳';
+  getStatusIcon(status: string | null | undefined): string {
+    switch (status?.toLowerCase()) {
+      case 'succeeded': case 'paid': case 'confirmed': return '✅';
+      case 'pending': return '⏳';
+      case 'cancelled': case 'failed': return '❌';
+      case 'payment not initiated': return '🔘';
+      default: return '⏳';
+    }
   }
-}
 
   formatDate(dateString: string): string {
     if (!dateString) return 'N/A';
@@ -375,26 +330,21 @@ getStatusIcon(status: string | null | undefined): string {
     }).format(amount);
   }
 
-  openTourDetails(booking: BookingTourDto): void {
-    console.log('View tour details:', booking);
-    // Open modal or navigate
+  getStatusStats() {
+    const confirmed = this.bookings.filter(b => this.getDisplayStatus(b) === 'Confirmed').length;
+    const paymentPending = this.bookings.filter(b => this.getDisplayStatus(b) === 'Pending').length;
+    const notInitiated = this.bookings.filter(b => this.getDisplayStatus(b) === 'Payment Not Initiated').length;
+    const cancelled = this.bookings.filter(b => this.getDisplayStatus(b) === 'Cancelled').length;
+    return { confirmed, paymentPending, notInitiated, cancelled };
   }
 
-getStatusStats() {
-  const confirmed = this.bookings.filter(b => this.getDisplayStatus(b) === 'Confirmed').length;
-  const paymentPending = this.bookings.filter(b => this.getDisplayStatus(b) === 'Pending').length;
-  const notInitiated = this.bookings.filter(b => this.getDisplayStatus(b) === 'Payment Not Initiated').length;
-  const cancelled = this.bookings.filter(b => this.getDisplayStatus(b) === 'Cancelled').length;
-
-  return { confirmed, paymentPending, notInitiated, cancelled };
-}
-getStatList() {
-  const stats = this.getStatusStats();
-  return [
-    { label: 'Payment Pending', value: stats.paymentPending, class: 'pending' },
-    { label: 'Not Initiated', value: stats.notInitiated, class: '' },
-    { label: 'Confirmed', value: stats.confirmed, class: 'confirmed' },
-    { label: 'Cancelled', value: stats.cancelled, class: 'cancelled' }
-  ];
-}
+  getStatList() {
+    const stats = this.getStatusStats();
+    return [
+      { label: 'Payment Pending', value: stats.paymentPending, class: 'pending' },
+      { label: 'Not Initiated', value: stats.notInitiated, class: '' },
+      { label: 'Confirmed', value: stats.confirmed, class: 'confirmed' },
+      { label: 'Cancelled', value: stats.cancelled, class: 'cancelled' }
+    ];
+  }
 }

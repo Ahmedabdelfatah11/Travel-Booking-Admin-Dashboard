@@ -44,7 +44,6 @@ export class CarRentalCreation implements OnInit {
     this.isLoadingAdmins = true;
     this.superadminService.getAllUsers(1, 100).subscribe({
       next: (response: any) => {
-        console.log('✅ Users loaded:', response);
         if (response.users && Array.isArray(response.users)) {
           // Filter users who have CarRentalAdmin role or no specific company role yet
           this.admins = response.users.filter((user: any) => 
@@ -57,7 +56,6 @@ export class CarRentalCreation implements OnInit {
         this.isLoadingAdmins = false;
       },
       error: (error) => {
-        console.error('❌ Error loading admins:', error);
         this.isLoadingAdmins = false;
       }
     });
@@ -125,11 +123,9 @@ export class CarRentalCreation implements OnInit {
         image: this.selectedImage || undefined
       };
 
-      console.log('📝 Submitting car rental data:', carRentalData);
 
       this.superadminService.createCarRentalCompany(carRentalData).subscribe({
         next: (response) => {
-          console.log('✅ Car rental company created successfully:', response);
           this.successMessage = 'Car rental company created successfully!';
           this.isLoading = false;
 
@@ -139,7 +135,6 @@ export class CarRentalCreation implements OnInit {
           }, 1500);
         },
         error: (error) => {
-          console.error('❌ Error creating car rental company:', error);
           this.errorMessage = error.userMessage || 'Failed to create car rental company. Please try again.';
           this.isLoading = false;
         }

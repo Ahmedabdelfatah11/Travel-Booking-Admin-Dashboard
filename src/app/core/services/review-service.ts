@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams, HttpHeaders, HttpResponse, HttpErrorResponse } from '@angular/common/http';
-import { Observable, BehaviorSubject, throwError } from 'rxjs';
-import { catchError, tap, map } from 'rxjs/operators';
+
+import { BehaviorSubject, Observable, of, throwError, catchError, map, tap } from 'rxjs';
+
 // Interfaces
 export interface ReviewDto {
   id: number;
@@ -56,7 +57,7 @@ export interface ReviewsResponse {
   providedIn: 'root'
 })
 export class ReviewService {
-  private apiUrl = 'https://localhost:7277/api/Review';
+  private apiUrl = 'http://pyramigo.runasp.net/api/Review';
   private reviewsSubject = new BehaviorSubject<ReviewDto[]>([]);
   public reviews$ = this.reviewsSubject.asObservable();
 
@@ -64,7 +65,6 @@ export class ReviewService {
 
   private getAuthHeaders(): HttpHeaders {
     const token = localStorage.getItem('authToken');
-    console.log('Retrieved token for reviews:', token ? 'Token exists' : 'No token found');
 
     if (token) {
       return new HttpHeaders({
@@ -78,10 +78,8 @@ export class ReviewService {
   }
 
   private handleError(error: HttpErrorResponse): Observable<never> {
-    console.error('Review API Error:', error);
-    
     let errorMessage = 'An unknown error occurred';
-    
+
     if (error.error instanceof ErrorEvent) {
       errorMessage = `Error: ${error.error.message}`;
     } else {
@@ -95,7 +93,7 @@ export class ReviewService {
         errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
       }
     }
-    
+
     return throwError(() => ({
       ...error,
       userMessage: errorMessage
@@ -103,7 +101,7 @@ export class ReviewService {
   }
 
   /**
-   * FIXED: Get reviews for a specific company - matches backend API exactly
+   * Get reviews for a specific company
    */
   getCompanyReviews(
     companyType: string,
@@ -112,15 +110,7 @@ export class ReviewService {
     pageSize: number = 10,
     sortBy: string = 'newest'
   ): Observable<ReviewsResponse> {
-    console.log(`🔍 Getting ${companyType} reviews`, {
-      companyId,
-      page,
-      pageSize,
-      sortBy
-    });
-
     if (!companyType) {
-      console.error('❌ Company type is required');
       return throwError(() => new Error('Company type is required'));
     }
 
@@ -130,10 +120,7 @@ export class ReviewService {
       .set('pageSize', pageSize.toString())
       .set('sortBy', sortBy);
 
-    // FIXED: Add company ID parameters based on backend API expectations
     if (companyId && companyId > 0) {
-      console.log(`🎯 Adding specific company ID: ${companyId} for type: ${companyType}`);
-      
       switch (companyType.toLowerCase()) {
         case 'hotel':
           params = params.set('hotelId', companyId.toString());
@@ -147,76 +134,54 @@ export class ReviewService {
         case 'tour':
           params = params.set('tourId', companyId.toString());
           break;
-        default:
-          console.warn(`⚠️ Unknown company type: ${companyType}`);
-          break;
       }
-    } else {
-      console.log(`📋 Getting all reviews for company type: ${companyType}`);
-      // When no specific company ID is provided, backend will return all reviews for that company type
     }
 
-    console.log('🌐 Final API params:', params.toString());
-
-    return this.http.get<ReviewDto[]>(`${this.apiUrl}/company`, { 
-      params, 
-      observe: 'response' 
+    return this.http.get<ReviewDto[]>(`${this.apiUrl}/company`, {
+      params,
+      observe: 'response'
     }).pipe(
       map(response => {
         const totalCount = parseInt(response.headers.get('X-Total-Count') || '0');
         const currentPage = parseInt(response.headers.get('X-Page') || page.toString());
         const currentPageSize = parseInt(response.headers.get('X-Page-Size') || pageSize.toString());
-        
+
         const result = {
           reviews: response.body || [],
           totalCount,
           page: currentPage,
           pageSize: currentPageSize
         };
-        
-        console.log(`✅ ${companyType} reviews retrieved:`, {
-          reviewsCount: result.reviews.length,
-          totalCount: result.totalCount,
-          companyId: companyId || 'all'
-        });
-        
+
         return result;
       }),
       tap(result => {
         this.reviewsSubject.next(result.reviews);
       }),
-      catchError(error => {
-        console.error(`❌ Error loading ${companyType} reviews:`, error);
-        return this.handleError(error);
-      })
+      catchError(this.handleError)
     );
   }
 
   /**
-   * FIXED: Get all reviews across all companies (for SuperAdmin)
-   * This uses multiple API calls to get reviews from all company types
+   * Get all reviews across all companies (for SuperAdmin)
    */
   getAllReviews(page: number = 1, pageSize: number = 20): Observable<ReviewsResponse> {
-    console.log(`🔍 Getting all reviews - page ${page}, size ${pageSize}`);
-
     const companyTypes = ['hotel', 'flight', 'carrental', 'tour'];
-    
-    // First, get all reviews from all company types
-    const allReviewsObservables = companyTypes.map(type => 
+
+    const allReviewsObservables = companyTypes.map(type =>
       this.http.get<ReviewDto[]>(`${this.apiUrl}/company`, {
         params: new HttpParams()
           .set('companyType', type)
           .set('page', '1')
-          .set('pageSize', '1000') // Get a large number to capture all
+          .set('pageSize', '1000')
           .set('sortBy', 'newest'),
         observe: 'response'
       }).pipe(
         map(response => response.body || []),
-        catchError(() => []) // Return empty array on error for this type
+        catchError(() => [])
       )
     );
 
-    // Combine all review types
     return new Observable(observer => {
       Promise.all(allReviewsObservables.map(obs => obs.toPromise()))
         .then(results => {
@@ -236,12 +201,10 @@ export class ReviewService {
             pageSize
           };
 
-          console.log('✅ All reviews combined:', response);
           observer.next(response);
           observer.complete();
         })
         .catch(error => {
-          console.error('❌ Error combining all reviews:', error);
           observer.error(error);
         });
     });
@@ -251,20 +214,18 @@ export class ReviewService {
    * Get user's own reviews
    */
   getUserReviews(page: number = 1, pageSize: number = 10): Observable<ReviewsResponse> {
-    console.log(`🔍 Getting user reviews - page ${page}, size ${pageSize}`);
-
     const params = new HttpParams()
       .set('page', page.toString())
       .set('pageSize', pageSize.toString());
 
-    return this.http.get<ReviewDto[]>(`${this.apiUrl}/user`, { 
+    return this.http.get<ReviewDto[]>(`${this.apiUrl}/user`, {
       params,
       headers: this.getAuthHeaders(),
-      observe: 'response' 
+      observe: 'response'
     }).pipe(
       map(response => {
         const totalCount = parseInt(response.headers.get('X-Total-Count') || '0');
-        
+
         return {
           reviews: response.body || [],
           totalCount,
@@ -272,7 +233,6 @@ export class ReviewService {
           pageSize
         };
       }),
-      tap(result => console.log('✅ User reviews retrieved:', result)),
       catchError(this.handleError)
     );
   }
@@ -281,12 +241,9 @@ export class ReviewService {
    * Create a new review
    */
   createReview(reviewData: CreateReviewDto): Observable<ReviewDto> {
-    console.log('🚀 Creating review:', reviewData);
-
     return this.http.post<ReviewDto>(this.apiUrl, reviewData, {
       headers: this.getAuthHeaders()
     }).pipe(
-      tap(response => console.log('✅ Review created:', response)),
       catchError(this.handleError)
     );
   }
@@ -295,12 +252,9 @@ export class ReviewService {
    * Update an existing review
    */
   updateReview(reviewId: number, reviewData: UpdateReviewDto): Observable<any> {
-    console.log('📝 Updating review:', reviewId, reviewData);
-
     return this.http.put(`${this.apiUrl}/${reviewId}`, reviewData, {
       headers: this.getAuthHeaders()
     }).pipe(
-      tap(response => console.log('✅ Review updated:', response)),
       catchError(this.handleError)
     );
   }
@@ -309,12 +263,9 @@ export class ReviewService {
    * Delete a review
    */
   deleteReview(reviewId: number): Observable<any> {
-    console.log('🗑️ Deleting review:', reviewId);
-
     return this.http.delete(`${this.apiUrl}/${reviewId}`, {
       headers: this.getAuthHeaders()
     }).pipe(
-      tap(response => console.log('✅ Review deleted:', response)),
       catchError(this.handleError)
     );
   }
@@ -376,7 +327,7 @@ export class ReviewService {
   }
 
   /**
-   * FIXED: Get comprehensive review statistics - matches backend exactly
+   * Get comprehensive review statistics
    */
   getCompanyReviewStats(companyType: string, companyId?: number): Observable<ReviewStatsDto> {
     let params = new HttpParams().set('companyType', companyType);
@@ -393,14 +344,12 @@ export class ReviewService {
           params = params.set('carRentalId', companyId.toString());
           break;
         case 'tour':
-          // FIXED: Backend uses 'tourCompanyId' instead of 'tourId'
           params = params.set('tourCompanyId', companyId.toString());
           break;
       }
     }
 
     return this.http.get<ReviewStatsDto>(`${this.apiUrl}/stats`, { params }).pipe(
-      tap(stats => console.log('✅ Review stats retrieved:', stats)),
       catchError(this.handleError)
     );
   }
@@ -417,7 +366,7 @@ export class ReviewService {
   }
 
   /**
-   * Get reviews with advanced filtering (client-side implementation)
+   * Get reviews with advanced filtering
    */
   getFilteredReviews(filters: {
     companyType?: string;
@@ -429,8 +378,6 @@ export class ReviewService {
     pageSize?: number;
     sortBy?: string;
   }): Observable<ReviewsResponse> {
-    
-    // Use the main getCompanyReviews method
     const companyType = filters.companyType || '';
     const companyId = filters.companyId;
     const page = filters.page || 1;
@@ -442,15 +389,14 @@ export class ReviewService {
         map(response => {
           let reviews = response.reviews;
 
-          // Apply client-side filters
           if (filters.rating) {
             reviews = reviews.filter(r => r.rating === filters.rating);
           }
-          
+
           if (filters.startDate) {
             reviews = reviews.filter(r => new Date(r.createdAt) >= filters.startDate!);
           }
-          
+
           if (filters.endDate) {
             reviews = reviews.filter(r => new Date(r.createdAt) <= filters.endDate!);
           }
@@ -464,11 +410,9 @@ export class ReviewService {
             pageSize
           };
         }),
-        tap(result => console.log('✅ Filtered reviews retrieved:', result)),
         catchError(this.handleError)
       );
     } else {
-      // If no company type, get all reviews
       return this.getAllReviews(page, pageSize);
     }
   }

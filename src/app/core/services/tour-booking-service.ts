@@ -12,11 +12,9 @@ export class TourBookingService {
 
   constructor(private http: HttpClient) {}
 
-  // ✅ Get token and create headers
   private getAuthHeaders(): HttpHeaders {
-    const token = localStorage.getItem('authToken'); // or 'token' — check your login logic
+    const token = localStorage.getItem('authToken'); 
     if (!token) {
-      console.warn('🔐 No auth token found in localStorage');
     }
     return new HttpHeaders({
       'Content-Type': 'application/json',
@@ -27,7 +25,6 @@ export class TourBookingService {
   // Get all bookings for the current tour company
   getBookingsByCompany(companyId: number): Observable<BookingTourDto[]> {
     const url = `${this.baseUrl}/TourCompany/${companyId}/bookings`;
-    console.log('Fetching bookings from:', url); // 🔍 Debug
     return this.http.get<BookingTourDto[]>(url, { headers: this.getAuthHeaders() });
   }
 }

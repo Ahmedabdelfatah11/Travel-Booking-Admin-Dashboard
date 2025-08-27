@@ -49,7 +49,6 @@ export class TourAgencyBookingCancelled implements OnInit {
         }
       },
       error: (err) => {
-        console.error('Failed to load tour companies:', err);
         this.error = 'Failed to load company. Please try again.';
       }
     });
@@ -63,6 +62,9 @@ export class TourAgencyBookingCancelled implements OnInit {
 
     this.loading = true;
     this.error = null;
+    this.cd.detectChanges(); // Force UI update
+
+    const startTime = Date.now();
 
     this.bookingService.getBookingsByCompany(this.tourCompanyId).subscribe({
       next: (bookings) => {
@@ -71,12 +73,16 @@ export class TourAgencyBookingCancelled implements OnInit {
         this.applySorting();
       },
       error: (err) => {
-        console.error('Failed to load bookings:', err);
         this.error = 'Failed to load bookings. Please try again.';
       },
       complete: () => {
-        this.loading = false;
-        this.cd.detectChanges();
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(1000 - elapsed, 0);
+
+        setTimeout(() => {
+          this.loading = false;
+          this.cd.detectChanges();
+        }, remaining);
       }
     });
   }
@@ -183,10 +189,6 @@ export class TourAgencyBookingCancelled implements OnInit {
       currency: 'EGP',
       minimumFractionDigits: 2
     }).format(amount);
-  }
-
-  openTourDetails(booking: BookingTourDto): void {
-    console.log('View tour details:', booking);
   }
 
   getMin(a: number, b: number): number {

@@ -1,1 +1,145 @@
-<p>flight-agency-booking-confirmed works!</p>
+<div class="confirmed-bookings-container">
+  <!-- Full-Screen Loader -->
+  @if (loading) {
+    <div class="loader-container">
+      <div class="loader">
+        <div class="loader__ball"></div>
+        <div class="loader__ball"></div>
+        <div class="loader__ball"></div>
+      </div>
+    </div>
+  }
+
+  <!-- Header Section -->
+  <div class="header">
+    <h1 class="main-title">✈️ Confirmed Flight Bookings</h1>
+    <p class="subtitle">All successfully confirmed flight reservations</p>
+
+    <!-- Statistics Bar -->
+    <div class="stats-bar">
+      <div class="stat-card pulse">
+        <span class="stat-number">{{ totalBookings }}</span>
+        <span class="stat-label">Total Confirmed</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-number">{{ formatPrice(totalRevenue) }}</span>
+        <span class="stat-label">Total Revenue</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-number">{{ formatPrice(averagePrice) }}</span>
+        <span class="stat-label">Average Price</span>
+      </div>
+    </div>
+
+    <button class="refresh-btn" (click)="refreshBookings()" [disabled]="loading">
+      <span *ngIf="!loading">🔄 Refresh Bookings</span>
+      <span *ngIf="loading">⏳ Loading...</span>
+    </button>
+  </div>
+
+  <!-- Error Message -->
+  @if (error) {
+    <div class="error-message">
+      <i class="error-icon">⚠️</i>
+      {{ error }}
+      <button (click)="refreshBookings()" class="retry-btn">Retry</button>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!loading && confirmedBookings.length === 0) {
+    <div class="empty-state">
+      <div class="plane-icon">✈️</div>
+      <h3>No Confirmed Bookings</h3>
+      <p>There are no confirmed flight bookings at the moment.</p>
+    </div>
+  }
+
+  <!-- Bookings Grid -->
+  @if (!loading && !error && confirmedBookings.length > 0) {
+    <div class="bookings-grid">
+      @for (booking of confirmedBookings; track booking.id; let i = $index) {
+        <div class="booking-card" [style.animation-delay]="(i * 0.1) + 's'">
+
+          <!-- Booking Header -->
+          <div class="booking-header">
+            <div class="booking-id">Booking #{{ booking.id }}</div>
+            <div class="booking-status">
+              <span [class]="getStatusClass(booking.status)">
+                {{ getStatusLabel(booking.status) }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Booking Body -->
+          <div class="booking-body">
+            <!-- Flight Route -->
+            <div class="flight-route">
+              <div class="airport">
+                <div class="airport-code">{{ booking.departureAirport }}</div>
+                <div class="airport-name">Departure</div>
+              </div>
+              <div class="arrow">→</div>
+              <div class="airport">
+                <div class="airport-code">{{ booking.arrivalAirport }}</div>
+                <div class="airport-name">Arrival</div>
+              </div>
+            </div>
+
+            <!-- Flight Details Grid -->
+            <div class="flight-details">
+              <div class="detail-item">
+                <div class="detail-label">Departure</div>
+                <div class="detail-value">{{ formatDate(booking.departureTime) }}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Arrival</div>
+                <div class="detail-value">{{ formatDate(booking.arrivalTime) }}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Duration</div>
+                <div class="detail-value">{{ getFlightDuration(booking.departureTime, booking.arrivalTime) }}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Airline</div>
+                <div class="detail-value">{{ booking.agencyDetails?.airlineName || 'N/A' }}</div>
+              </div>
+            </div>
+
+            <!-- Passenger Information -->
+            <div class="passenger-info">
+              <div class="passenger-email">👤 {{ booking.customerEmail }}</div>
+              <div class="seat-class" [class]="getSeatClassBadge(booking.seatClass)">
+                🎫 {{ getSeatClassLabel(booking.seatClass) }}
+              </div>
+            </div>
+
+            <!-- Payment and Booking Status -->
+            <div class="status-info">
+              <div class="booking-status-detail">
+                <span class="status-label">Booking Status:</span>
+                <span [class]="getStatusClass(booking.status)">
+                  {{ getStatusLabel(booking.status) }}
+                </span>
+              </div>
+              @if (booking.paymentStatus) {
+                <div class="payment-info">
+                  <span class="payment-label">Payment:</span>
+                  <span class="payment-status" [class]="'payment-' + booking.paymentStatus.toLowerCase()">
+                    💳 {{ booking.paymentStatus }}
+                  </span>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Price Section -->
+          <div class="price-section">
+            <div class="price">{{ formatPrice(booking.totalPrice) }}</div>
+            <div class="price-label">Total Amount</div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

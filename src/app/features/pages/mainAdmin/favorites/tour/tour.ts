@@ -38,7 +38,6 @@ export class TourComponent implements OnInit {
 
         },
         error: (err) => {
-          console.error('Error fetching tour:', err);
           this.error = 'Failed to load tour details.';
           this.loading = false;
           this.cd.detectChanges();

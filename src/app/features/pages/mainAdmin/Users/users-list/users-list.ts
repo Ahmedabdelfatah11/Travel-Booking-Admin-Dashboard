@@ -1,10 +1,10 @@
-import { afterNextRender, Component, inject, Inject, PLATFORM_ID, signal } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { isPlatformBrowser } from '@angular/common';
 import { Auth } from '../../../../../core/services/auth';
-import { Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';
 import { ToastService } from '../../../../../core/services/toast-service';
+import { SuperadminServices } from '../../../../../core/services/superadmin-services';
+import { afterNextRender, Component, Inject, inject, PLATFORM_ID, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-users-list',
@@ -19,7 +19,7 @@ export class UsersList {
   router = inject(Router);
   @Inject(PLATFORM_ID) private platformId!: Object;
  toastService = inject(ToastService); 
-
+   superAdminService = inject(SuperadminServices);
   //Some Properties
   // users-list.ts
 selectedCompanyId = signal<number | null>(null);
@@ -28,8 +28,8 @@ isModalOpen = false;
 currentAction: { userId: string; role: string; companyType: string } | null = null;
 
 
-  apiUrl = 'https://localhost:7277/api/SuperAdmin';
-  companyApiUrl='https://localhost:7277/';
+  apiUrl = 'http://pyramigo.runasp.net/api/SuperAdmin';
+  companyApiUrl='http://pyramigo.runasp.net/';
 users = signal<User[]>([]);
   filteredUsers = signal<User[]>([]);
   loading = signal(true);
@@ -59,7 +59,6 @@ users = signal<User[]>([]);
       this.loadUsers();
     });
   }
-
 
 loadUsers() {
   this.loading.set(true);
@@ -121,22 +120,19 @@ loadUsers() {
 
 
 deleteUser(id: string, email: string) {
-  console.log('Attempting to delete:', id, email);
-
-  if (confirm(`Are you sure you want to delete user: ${email}?`)) {
-    this.http.delete(`${this.apiUrl}/delete-user/${id}`, { headers: this.getAuthHeaders() })
-      .subscribe({
+    if (confirm(`Are you sure you want to delete user: ${email}?`)) {
+      this.superAdminService.deleteUser(id).subscribe({
         next: () => {
           this.toastService.show('User deleted successfully', 'success');
           this.loadUsers();
         },
-        error: (err) => {
-          console.error('Delete failed:', err);
-          this.toastService.show(err.error?.message || 'Failed to delete user', 'error');
+        error: () => {
+          this.toastService.show('Failed to delete user', 'error');
         }
       });
+    }
   }
-}
+
 //Roles
 assignRole() {
   if (!this.currentAction || !this.selectedCompanyId) {

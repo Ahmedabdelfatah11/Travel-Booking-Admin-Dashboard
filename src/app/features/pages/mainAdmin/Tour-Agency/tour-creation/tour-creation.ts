@@ -14,17 +14,6 @@ export class TourCreation {
 
   constructor(private superadminServices: SuperadminServices) { }
 
-  // للاختبار - أضف هذا الـ method
-  testAPI() {
-    this.superadminServices.testEndpoint().subscribe({
-      next: (response) => {
-        console.log('API test successful:', response);
-      },
-      error: (error) => {
-        console.log('API test error:', error);
-      }
-    });
-  }
 
   createTourForm: FormGroup = new FormGroup({
     name: new FormControl('', [Validators.required]),
@@ -39,23 +28,18 @@ export class TourCreation {
   onFileChange(event: any) {
     if (event.target.files && event.target.files.length > 0) {
       this.imageFile = event.target.files[0];
-      console.log('File selected:', this.imageFile!.name);
     }
   }
 
   createTourCompany() {
-    console.log('Form submitted');
-    console.log('Form valid:', this.createTourForm.valid);
-    console.log('Image file:', this.imageFile);
+
 
     if (!this.createTourForm.valid) {
-      console.error('Form is invalid');
-      console.log('Form errors:', this.createTourForm.errors);
+    
       return;
     }
 
     if (!this.imageFile) {
-      console.error('Image is required');
       return;
     }
 
@@ -69,11 +53,9 @@ export class TourCreation {
       image: this.imageFile
     };
 
-    console.log('Sending model:', model);
 
     this.superadminServices.createTourCompany(model).subscribe({
       next: (response) => {
-        console.log('Tour created successfully', response);
         alert('Tour company created successfully!');
         
         // Reset form after successful creation
@@ -87,16 +69,7 @@ export class TourCreation {
         }
       },
       error: (error) => {
-        console.error('Error creating tour', error);
-        
-        if (error.status === 405) {
-          console.error('405 Method Not Allowed - Check if the API endpoint exists and accepts POST requests');
-        }
-        
-        if (error.error) {
-          console.error('Server error details:', error.error);
-        }
-        
+       
         alert('Error creating tour company. Check console for details.');
       }
     });

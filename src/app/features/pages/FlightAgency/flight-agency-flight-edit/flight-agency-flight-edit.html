@@ -1,1 +1,264 @@
-<p>flight-agency-flight-edit works!</p>
+<div class="container my-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0">
+            <i class="bi bi-pencil-square me-2"></i>
+            Edit Flight
+          </h4>
+        </div>
+        
+        <div class="card-body">
+          @if(loading()) {
+            <div class="text-center py-5">
+              <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                <span class="visually-hidden">Loading flight details...</span>
+              </div>
+              <p class="mt-3 text-muted">Loading flight details...</p>
+            </div>
+          }
+
+          @if(error()) {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+              <i class="bi bi-exclamation-triangle-fill me-2"></i>
+              <strong>Error!</strong> {{ error() }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          }
+
+          @if(!loading() && !error()) {
+            <form [formGroup]="flightForm" (ngSubmit)="onSubmit()" novalidate>
+              <div class="row">
+                <!-- Flight Route Section -->
+                <div class="col-md-6 mb-3">
+                  <label for="departureAirport" class="form-label">
+                    <i class="bi bi-airplane-engines me-1"></i>
+                    Departure Airport
+                  </label>
+                  <input
+                    type="text"
+                    id="departureAirport"
+                    class="form-control"
+                    formControlName="departureAirport"
+                    [class.is-invalid]="flightForm.get('departureAirport')?.invalid && flightForm.get('departureAirport')?.touched"
+                    placeholder="e.g., JFK - John F. Kennedy International">
+                  <div class="invalid-feedback">
+                    Departure airport is required
+                  </div>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <label for="arrivalAirport" class="form-label">
+                    <i class="bi bi-airplane-engines-fill me-1"></i>
+                    Arrival Airport
+                  </label>
+                  <input
+                    type="text"
+                    id="arrivalAirport"
+                    class="form-control"
+                    formControlName="arrivalAirport"
+                    [class.is-invalid]="flightForm.get('arrivalAirport')?.invalid && flightForm.get('arrivalAirport')?.touched"
+                    placeholder="e.g., LAX - Los Angeles International">
+                  <div class="invalid-feedback">
+                    Arrival airport is required
+                  </div>
+                </div>
+
+                <!-- Date and Time Section -->
+                <div class="col-md-6 mb-3">
+                  <label for="departureTime" class="form-label">
+                    <i class="bi bi-clock me-1"></i>
+                    Departure Date & Time
+                  </label>
+                  <input
+                    type="datetime-local"
+                    id="departureTime"
+                    class="form-control"
+                    formControlName="departureTime"
+                    [class.is-invalid]="flightForm.get('departureTime')?.invalid && flightForm.get('departureTime')?.touched">
+                  <div class="invalid-feedback">
+                    Departure time is required
+                  </div>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <label for="arrivalTime" class="form-label">
+                    <i class="bi bi-clock-fill me-1"></i>
+                    Arrival Date & Time
+                  </label>
+                  <input
+                    type="datetime-local"
+                    id="arrivalTime"
+                    class="form-control"
+                    formControlName="arrivalTime"
+                    [class.is-invalid]="flightForm.get('arrivalTime')?.invalid && flightForm.get('arrivalTime')?.touched">
+                  <div class="invalid-feedback">
+                    Arrival time is required
+                  </div>
+                </div>
+
+                <!-- Seats Section -->
+                <div class="col-12 mb-4">
+                  <h5 class="text-primary mb-3">
+                    <i class="bi bi-person-check me-2"></i>
+                    Available Seats
+                  </h5>
+                  <div class="row">
+                    <div class="col-md-4 mb-3">
+                      <label for="economySeats" class="form-label">Economy Seats</label>
+                      <input
+                        type="number"
+                        id="economySeats"
+                        class="form-control"
+                        formControlName="economySeats"
+                        min="0"
+                        [class.is-invalid]="flightForm.get('economySeats')?.invalid && flightForm.get('economySeats')?.touched">
+                      <div class="invalid-feedback">
+                        Economy seats must be 0 or greater
+                      </div>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                      <label for="businessSeats" class="form-label">Business Seats</label>
+                      <input
+                        type="number"
+                        id="businessSeats"
+                        class="form-control"
+                        formControlName="businessSeats"
+                        min="0"
+                        [class.is-invalid]="flightForm.get('businessSeats')?.invalid && flightForm.get('businessSeats')?.touched">
+                      <div class="invalid-feedback">
+                        Business seats must be 0 or greater
+                      </div>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                      <label for="firstClassSeats" class="form-label">First Class Seats</label>
+                      <input
+                        type="number"
+                        id="firstClassSeats"
+                        class="form-control"
+                        formControlName="firstClassSeats"
+                        min="0"
+                        [class.is-invalid]="flightForm.get('firstClassSeats')?.invalid && flightForm.get('firstClassSeats')?.touched">
+                      <div class="invalid-feedback">
+                        First class seats must be 0 or greater
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Pricing Section -->
+                <div class="col-12 mb-4">
+                  <h5 class="text-success mb-3">
+                    <i class="bi bi-currency-dollar me-2"></i>
+                    Pricing
+                  </h5>
+                  <div class="row">
+                    <div class="col-md-4 mb-3">
+                      <label for="economyPrice" class="form-label">Economy Price ($)</label>
+                      <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input
+                          type="number"
+                          id="economyPrice"
+                          class="form-control"
+                          formControlName="economyPrice"
+                          min="0"
+                          step="0.01"
+                          [class.is-invalid]="flightForm.get('economyPrice')?.invalid && flightForm.get('economyPrice')?.touched">
+                        <div class="invalid-feedback">
+                          Economy price must be 0 or greater
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                      <label for="businessPrice" class="form-label">Business Price ($)</label>
+                      <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input
+                          type="number"
+                          id="businessPrice"
+                          class="form-control"
+                          formControlName="businessPrice"
+                          min="0"
+                          step="0.01"
+                          [class.is-invalid]="flightForm.get('businessPrice')?.invalid && flightForm.get('businessPrice')?.touched">
+                        <div class="invalid-feedback">
+                          Business price must be 0 or greater
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                      <label for="firstClassPrice" class="form-label">First Class Price ($)</label>
+                      <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input
+                          type="number"
+                          id="firstClassPrice"
+                          class="form-control"
+                          formControlName="firstClassPrice"
+                          min="0"
+                          step="0.01"
+                          [class.is-invalid]="flightForm.get('firstClassPrice')?.invalid && flightForm.get('firstClassPrice')?.touched">
+                        <div class="invalid-feedback">
+                          First class price must be 0 or greater
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Form Actions -->
+              <div class="d-flex justify-content-between pt-3 border-top">
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary"
+                  [routerLink]="['/flight-admin/flights']">
+                  <i class="bi bi-arrow-left me-1"></i>
+                  Back to Flights
+                </button>
+
+                <div class="d-flex gap-2">
+                  <button
+                    type="button"
+                    class="btn btn-outline-warning"
+                    (click)="resetForm()"
+                    [disabled]="loading() || updating()">
+                    <i class="bi bi-arrow-clockwise me-1"></i>
+                    Reset
+                  </button>
+
+                  <button
+                    type="submit"
+                    class="btn btn-primary"
+                    [disabled]="flightForm.invalid || loading() || updating()">
+                    @if(updating()) {
+                      <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                    } @else {
+                      <i class="bi bi-check-circle me-1"></i>
+                    }
+                    {{ updating() ? 'Updating...' : 'Update Flight' }}
+                  </button>
+                </div>
+              </div>
+            </form>
+          }
+        </div>
+      </div>
+
+      <!-- Success Message -->
+      @if(updateSuccess()) {
+        <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+          <i class="bi bi-check-circle-fill me-2"></i>
+          <strong>Success!</strong> Flight updated successfully!
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      }
+    </div>
+  </div>
+</div>

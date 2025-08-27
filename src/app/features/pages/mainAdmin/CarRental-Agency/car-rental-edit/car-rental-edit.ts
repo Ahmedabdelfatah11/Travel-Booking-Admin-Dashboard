@@ -58,7 +58,6 @@ export class CarRentalEditComponent implements OnInit {
     this.isLoadingData = true;
     this.superadminService.getCarRentalCompany(this.companyId).subscribe({
       next: (company: any) => {
-        console.log('✅ Company data loaded:', company);
         this.originalData = company;
         
         // Populate form with existing data
@@ -75,7 +74,6 @@ export class CarRentalEditComponent implements OnInit {
          this.cd.detectChanges();
       },
       error: (error) => {
-        console.error('❌ Error loading company data:', error);
         this.errorMessage = error.userMessage || 'Failed to load company data';
         this.isLoadingData = false;
          this.cd.detectChanges();
@@ -87,7 +85,6 @@ export class CarRentalEditComponent implements OnInit {
     this.isLoadingAdmins = true;
     this.superadminService.getAllUsers(1, 100).subscribe({
       next: (response: any) => {
-        console.log('✅ Users loaded:', response);
         if (response.users && Array.isArray(response.users)) {
           // Filter users who have CarRentalAdmin role or no specific company role yet
           this.admins = response.users.filter((user: any) => 
@@ -101,7 +98,6 @@ export class CarRentalEditComponent implements OnInit {
          this.cd.detectChanges();
       },
       error: (error) => {
-        console.error('❌ Error loading admins:', error);
         this.isLoadingAdmins = false;
          this.cd.detectChanges();
       }
@@ -171,11 +167,9 @@ export class CarRentalEditComponent implements OnInit {
         image: this.selectedImage || undefined
       };
 
-      console.log('📝 Updating car rental data:', updateData);
 
       this.superadminService.updateCarRentalCompany(this.companyId, updateData).subscribe({
         next: (response) => {
-          console.log('✅ Car rental company updated successfully:', response);
           this.successMessage = 'Car rental company updated successfully!';
           this.isLoading = false;
 
@@ -185,7 +179,6 @@ export class CarRentalEditComponent implements OnInit {
           }, 1500);
         },
         error: (error) => {
-          console.error('❌ Error updating car rental company:', error);
           this.errorMessage = error.userMessage || 'Failed to update car rental company. Please try again.';
           this.isLoading = false;
         }

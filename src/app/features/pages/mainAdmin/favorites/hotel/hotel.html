@@ -55,7 +55,7 @@
               <ul class="list-unstyled">
                 <li *ngFor="let room of hotel.rooms">
                   <i class="fas fa-door-closed text-primary me-2"></i>
-                  Room {{ room.roomNumber }} - {{ room.type }} - 
+                  Room {{ room.id }} - {{ room.roomType }} - 
                   {{ room.price | currency }}
                   <span
                     [ngClass]="room.isAvailable ? 'badge bg-success ms-2' : 'badge bg-danger ms-2'">
