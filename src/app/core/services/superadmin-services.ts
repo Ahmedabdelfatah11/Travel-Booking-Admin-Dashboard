@@ -151,8 +151,9 @@ addUser(model: RegisterModel, role: string): Observable<any> {
    */
   deleteUser(userId: string): Observable<any> {
     console.log('🗑️ Deleting user:', userId);
-    
-    return this.http.delete(`${this.apiUrl}/delete-user/${userId}`, {
+      const authApiUrl = 'http://pyramigo.runasp.net/api/Auth';
+
+    return this.http.delete(`${authApiUrl}/delete-user/${userId}`, {
       headers: this.getAuthHeaders()
     }).pipe(
       tap(response => console.log('✅ User deleted successfully:', response)),
