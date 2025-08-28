@@ -85,6 +85,8 @@ import { HotelAgencySettingsProfile } from './features/pages/HotelAgency/hotel-a
 import { HotelAgencySettingsPassword } from './features/pages/HotelAgency/hotel-agency-settings-password/hotel-agency-settings-password';
 import { FlightAgencySettingsProfile } from './features/pages/FlightAgency/flight-agency-settings-profile/flight-agency-settings-profile';
 import { FlightAgencySettingsPassword } from './features/pages/FlightAgency/flight-agency-settings-password/flight-agency-settings-password';
+import { AdminAgencySettingsProfile } from './features/pages/mainAdmin/Settings/admin-agency-settings-profile/admin-agency-settings-profile';
+import { AdminAgencySettingsPassword } from './features/pages/mainAdmin/Settings/admin-agency-settings-password/admin-agency-settings-password';
 
 export const routes: Routes = [
   // Login route
@@ -134,7 +136,10 @@ export const routes: Routes = [
       { path: 'admin/car/edit/:id', component: CarRentalEditComponent },
       { path: 'admin/flight', component: FlightsList },
       { path: 'admin/flight/create', component: FlightCreation },
-      { path: 'admin/reviews', component: ReviewsListComponent },
+      // { path: 'admin/reviews', component: ReviewsListComponent },
+      { path: 'settings/profile', component: AdminAgencySettingsProfile },
+      { path: 'settings/password', component: AdminAgencySettingsPassword },
+      { path: 'settings', redirectTo: 'settings/profile', pathMatch: 'full' },
       { path: 'admin/favorites', component: FavoritesListComponent },
       { path: 'admin/settings', component: Settings },
       { path: 'admin/users', component: UsersList },

@@ -8,7 +8,7 @@ import { BookingTourDto } from '../../shared/Interfaces/i-tour';
   providedIn: 'root'
 })
 export class TourBookingService {
-  private baseUrl = 'https://localhost:7277/api';
+  private baseUrl = 'http://pyramigo.runasp.net/api/TourCompany';
 
   constructor(private http: HttpClient) {}
 
@@ -24,7 +24,7 @@ export class TourBookingService {
 
   // Get all bookings for the current tour company
   getBookingsByCompany(companyId: number): Observable<BookingTourDto[]> {
-    const url = `${this.baseUrl}/TourCompany/${companyId}/bookings`;
+    const url = `${this.baseUrl}/${companyId}/bookings`;
     return this.http.get<BookingTourDto[]>(url, { headers: this.getAuthHeaders() });
   }
 }
