@@ -1,9 +1,31 @@
-import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SuperadminServices } from '../../../../../core/services/superadmin-services';
+import { Router } from '@angular/router';
 
 declare var bootstrap: any;
+
+interface TourCompany {
+  id: number;
+  name: string;
+  description?: string;
+  location: string;
+  imageUrl?: string;
+  rating?: string;
+  adminId?: string;
+  tours?: Tour[];
+}
+
+interface Tour {
+  id: number;
+  name: string;
+  price: number;
+  description: string;
+  isAvailable: boolean;
+  destination: string;
+  imageUrl?: string;
+}
 
 @Component({
   selector: 'app-tour-list',
@@ -13,67 +35,165 @@ declare var bootstrap: any;
   styleUrls: ['./tour-list.css']
 })
 export class TourList implements OnInit {
-  companies: any[] = []; // Initialize as empty array
-  loading = true;
-  selectedCompany: any = {};
+  companies: TourCompany[] = [];
+  filteredCompanies: TourCompany[] = [];
+  selectedCompany: any = {}; // For update modal
   selectedFile: File | null = null;
-  error: string = '';
+  isLoading = true;
+  errorMessage = '';
+  successMessage = '';
 
-  constructor(private superadminService: SuperadminServices,private cd: ChangeDetectorRef) {}
+  // Search & Filters
+  searchTerm = '';
+  locationFilter = '';
+  ratingFilter = '';
+
+  // Pagination
+  currentPage = 1;
+  itemsPerPage = 6;
+  totalItems = 0;
+  totalPages = 0;
+
+  // Modal states
+  showDeleteModal = false;
+  showViewModal = false;
+  companyToDelete: TourCompany | null = null;
+
+  constructor(
+    private superadminService: SuperadminServices,
+    private router: Router,
+    private cd: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
-    this.loadCompanies();
+    this.loadTourCompanies();
   }
 
-  loadCompanies() {
-    this.loading = true;
-    this.error = '';
-    
-    // Use the correct method to get tour companies
+  loadTourCompanies(): void {
+    this.isLoading = true;
+    this.errorMessage = '';
+    this.cd.detectChanges();
+
+    const startTime = Date.now();
+
     this.superadminService.getAllTourCompanies().subscribe({
       next: (response: any) => {
-        
-        // Handle the response structure properly
-        if (response && response.data) {
-          this.companies = response.data;
+        if (response && response.data && Array.isArray(response.data)) {
+          this.companies = response.data.map((item: any) => ({
+            id: item.id,
+            name: item.name,
+            description: item.description,
+            location: item.location,
+            imageUrl: item.imageUrl,
+            rating: item.rating,
+            adminId: item.adminId,
+            tours: item.tours || []
+          }));
+          this.totalItems = response.count || response.data.length;
         } else if (Array.isArray(response)) {
           this.companies = response;
+          this.totalItems = response.length;
         } else {
           this.companies = [];
-          this.error = 'Invalid response format';
+          this.totalItems = 0;
         }
-        
-        this.loading = false;
-        this.cd.detectChanges();
 
+        this.applyFilters();
       },
-      error: (err) => {
-        this.companies = []; // Ensure companies is always an array
-        this.loading = false;
-        this.error = 'Failed to load companies. Please try again.';
-        this.cd.detectChanges();
+      error: (error) => {
+        this.errorMessage = error.userMessage || 'Failed to load tour companies';
+        this.companies = [];
+      },
+      complete: () => {
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(500 - elapsed, 0);
+        setTimeout(() => {
+          this.isLoading = false;
+          this.cd.detectChanges();
+        }, remaining);
       }
     });
   }
 
-  deleteCompany(id: number) {
-    if (!confirm('Are you sure you want to delete this company?')) return;
+  applyFilters(): void {
+    let filtered = [...this.companies];
 
-    this.superadminService.deleteTourCompany(id).subscribe({
-      next: () => {
-        this.companies = this.companies.filter(c => c.id !== id);
-        alert('Company deleted successfully');
-      },
-      error: (err) => {
-        alert('Failed to delete company: ' + (err.error?.message || err.message || 'Unknown error'));
-      }
-    });
+    if (this.searchTerm.trim()) {
+      const term = this.searchTerm.toLowerCase().trim();
+      filtered = filtered.filter(company =>
+        company.name.toLowerCase().includes(term) ||
+        company.description?.toLowerCase().includes(term) ||
+        company.location.toLowerCase().includes(term)
+      );
+    }
+
+    if (this.locationFilter.trim()) {
+      const location = this.locationFilter.toLowerCase().trim();
+      filtered = filtered.filter(company =>
+        company.location.toLowerCase().includes(location)
+      );
+    }
+
+    if (this.ratingFilter) {
+      const rating = parseFloat(this.ratingFilter);
+      filtered = filtered.filter(company =>
+        company.rating && Number(company.rating) >= rating
+      );
+    }
+
+    this.filteredCompanies = filtered;
+    this.totalItems = filtered.length;
+    this.totalPages = Math.ceil(this.totalItems / this.itemsPerPage);
+    this.currentPage = 1;
   }
 
-  openUpdateModal(company: any) {
+  clearFilters(): void {
+    this.searchTerm = '';
+    this.locationFilter = '';
+    this.ratingFilter = '';
+    this.applyFilters();
+  }
+
+  getPaginatedCompanies(): TourCompany[] {
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    return this.filteredCompanies.slice(startIndex, startIndex + this.itemsPerPage);
+  }
+
+  onPageChange(page: number): void {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+    }
+  }
+
+  getPaginationPages(): number[] {
+    const pages: number[] = [];
+    const max = 5;
+    let start = Math.max(1, this.currentPage - Math.floor(max / 2));
+    let end = Math.min(this.totalPages, start + max - 1);
+
+    if (end - start + 1 < max) start = Math.max(1, end - max + 1);
+
+    for (let i = start; i <= end; i++) pages.push(i);
+    return pages;
+  }
+
+  createNew(): void {
+    this.router.navigate(['tour/create']);
+  }
+
+  viewCompany(company: TourCompany): void {
+    this.selectedCompany = company;
+    this.showViewModal = true;
+  }
+
+  editCompany(company: TourCompany): void {
+    this.openUpdateModal(company);
+  }
+
+  openUpdateModal(company: TourCompany) {
     this.selectedCompany = { ...company };
-    this.selectedFile = null; // Reset file selection
-    
+    this.selectedFile = null;
+
     const modalEl = document.getElementById('updateModal');
     if (modalEl) {
       const modal = new bootstrap.Modal(modalEl);
@@ -92,7 +212,6 @@ export class TourList implements OnInit {
       return;
     }
 
-    // Prepare the update data
     const updatedData: any = {
       id: this.selectedCompany.id,
       name: this.selectedCompany.name,
@@ -102,19 +221,19 @@ export class TourList implements OnInit {
       adminId: this.selectedCompany.adminId
     };
 
-    // Add image if selected
     if (this.selectedFile) {
       updatedData.image = this.selectedFile;
     }
 
     this.superadminService.updateTourCompany(this.selectedCompany.id, updatedData).subscribe({
       next: () => {
-        alert('Company updated successfully');
-        this.loadCompanies(); // Reload the list
+        this.successMessage = 'Tour company updated successfully!';
         this.closeModal();
+        this.loadTourCompanies();
+        setTimeout(() => this.successMessage = '', 3000);
       },
       error: (err) => {
-        alert('Failed to update company: ' + (err.error?.message || err.message || 'Unknown error'));
+        this.errorMessage = err.userMessage || 'Failed to update tour company';
       }
     });
   }
@@ -127,13 +246,69 @@ export class TourList implements OnInit {
         modal.hide();
       }
     }
-    // Reset form
     this.selectedCompany = {};
     this.selectedFile = null;
   }
 
-  // Track by function for better performance
-  trackByCompanyId(index: number, company: any): number {
-    return company.id;
+  confirmDelete(company: TourCompany): void {
+    this.companyToDelete = company;
+    this.showDeleteModal = true;
+  }
+
+  deleteCompany(): void {
+    if (!this.companyToDelete) return;
+
+    this.superadminService.deleteTourCompany(this.companyToDelete.id).subscribe({
+      next: () => {
+        this.successMessage = 'Tour company deleted successfully!';
+        this.showDeleteModal = false;
+        this.companyToDelete = null;
+        this.loadTourCompanies();
+
+        setTimeout(() => this.successMessage = '', 3000);
+      },
+      error: (error) => {
+        this.errorMessage = error.userMessage || 'Failed to delete tour company';
+        this.showDeleteModal = false;
+        this.companyToDelete = null;
+      }
+    });
+  }
+
+  cancelDelete(): void {
+    this.showDeleteModal = false;
+    this.companyToDelete = null;
+  }
+
+  closeViewModal(): void {
+    this.showViewModal = false;
+    this.selectedCompany = null;
+  }
+
+  getStarArray(rating: number | undefined): boolean[] {
+    if (!rating) return [false, false, false, false, false];
+    return Array(5).fill(0).map((_, i) => i < rating);
+  }
+
+  refreshList(): void {
+    this.clearFilters();
+    this.loadTourCompanies();
+  }
+
+  getDefaultImage(): string {
+    return 'assets/images/default-tour.jpg';
+  }
+
+  onImageError(event: any): void {
+    event.target.src = this.getDefaultImage();
+  }
+
+  getTourCountText(company: TourCompany): string {
+    const count = company.tours?.length || 0;
+    return count === 1 ? '1 tour available' : `${count} tours available`;
+  }
+
+  getAvailableTourCount(company: TourCompany): number {
+    return company.tours?.filter(t => t.isAvailable).length || 0;
   }
 }

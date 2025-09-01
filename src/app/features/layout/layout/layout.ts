@@ -19,7 +19,6 @@ export class Layout implements OnInit {
   private http = inject(HttpClient);
 
   userProfile: UserProfile | null = null;
-  isLoadingProfile = true;
 
   logout() {
     this.auth.Logout();
@@ -60,18 +59,14 @@ export class Layout implements OnInit {
   ngOnInit(): void {
     const saved = localStorage.getItem('sb|sidebar-toggle') === 'true';
     this.isToggled = saved;
-    const body = document.body;
-    body.classList.toggle('sb-sidenav-toggled', saved);
+    document.body.classList.toggle('sb-sidenav-toggled', saved);
 
     this.loadUserProfile();
   }
 
   private loadUserProfile(): void {
     const token = this.auth.getToken();
-    if (!token) {
-      this.isLoadingProfile = false;
-      return;
-    }
+    if (!token) return;
 
     this.http.get<UserProfile>('http://pyramigo.runasp.net/api/UserProfile/GetCurrentUser', {
       headers: {
@@ -80,11 +75,9 @@ export class Layout implements OnInit {
     }).subscribe({
       next: (profile) => {
         this.userProfile = profile;
-        this.isLoadingProfile = false;
       },
       error: (err) => {
         console.error('Failed to load user profile', err);
-        this.isLoadingProfile = false;
       }
     });
   }
@@ -102,7 +95,7 @@ export class Layout implements OnInit {
 
   get profileImageUrl(): string {
     const url = this.userProfile?.profilePictureUrl;
-    if (!url) return 'https://via.placeholder.com/150?text=User';
+    if (!url) return 'https://via.placeholder.com/150?text=User'; // fallback
 
     return url.startsWith('http')
       ? url

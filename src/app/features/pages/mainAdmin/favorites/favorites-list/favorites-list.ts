@@ -28,6 +28,7 @@ interface UserDetails {
   bookingsCount?: number;
   reviewsCount?: number;
   status?: 'Active' | 'Inactive' | 'Suspended';
+    profilePictureUrl?: string | null;
 }
 
 @Component({

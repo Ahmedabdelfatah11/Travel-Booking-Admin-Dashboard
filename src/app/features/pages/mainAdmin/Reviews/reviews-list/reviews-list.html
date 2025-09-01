@@ -1,4 +1,3 @@
-<!-- Reviews Management Page -->
 <div class="container-fluid p-4">
   <!-- Page Header -->
   <div class="d-flex justify-content-between align-items-center mb-4">
@@ -15,25 +14,27 @@
         <i class="fas fa-download me-1"></i>
         Export Reviews
       </button>
-      <button class="btn btn-primary" (click)="openAddReviewModal()">
+      <button class="btn-primary-custom" (click)="openAddReviewModal()">
         <i class="fas fa-plus me-1"></i>
         Add Review
       </button>
     </div>
   </div>
 
-  <!-- FIXED Filters Section -->
-  <div class="card mb-4">
-    <div class="card-header">
-      <h6 class="mb-0"><i class="fas fa-filter me-2"></i>Filters</h6>
+  <!-- Filters Section -->
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-light">
+      <h6 class="mb-0">
+        <i class="fas fa-filter me-2"></i>
+        Filters
+      </h6>
     </div>
     <div class="card-body">
       <div class="row g-3">
         <!-- Company Type Filter -->
         <div class="col-md-3">
-          <label for="companyTypeFilter" class="form-label">Company Type</label>
-          <select id="companyTypeFilter" class="form-select" [(ngModel)]="selectedCompanyType" 
-                  (change)="onCompanyTypeChange()">
+          <label for="companyTypeFilter" class="form-label fw-semibold">Company Type</label>
+          <select id="companyTypeFilter" class="form-select" [(ngModel)]="selectedCompanyType" (change)="onCompanyTypeChange()">
             <option *ngFor="let type of companyTypes" [value]="type.value">{{ type.label }}</option>
           </select>
           <div *ngIf="selectedCompanyType" class="text-muted small mt-1">
@@ -43,9 +44,8 @@
 
         <!-- Company Filter -->
         <div class="col-md-3">
-          <label for="companyFilter" class="form-label">Company</label>
-          <select id="companyFilter" class="form-select" [(ngModel)]="selectedCompanyId" 
-                  (change)="onCompanyChange()" [disabled]="!selectedCompanyType || companiesLoading">
+          <label for="companyFilter" class="form-label fw-semibold">Company</label>
+          <select id="companyFilter" class="form-select" [(ngModel)]="selectedCompanyId" (change)="onCompanyChange()" [disabled]="!selectedCompanyType || companiesLoading">
             <option [value]="null">All Companies</option>
             <option *ngFor="let company of companies; trackBy: trackByCompanyId" [value]="company.id">
               {{ company.name }}
@@ -54,17 +54,15 @@
           <div *ngIf="companiesLoading" class="text-muted small mt-1">
             <i class="fas fa-spinner fa-spin me-1"></i>Loading companies...
           </div>
-          <div *ngIf="!companiesLoading && companies.length === 0 && selectedCompanyType" 
-               class="text-muted small mt-1">
+          <div *ngIf="!companiesLoading && companies.length === 0 && selectedCompanyType" class="text-muted small mt-1">
             <i class="fas fa-info-circle me-1"></i>No companies found
           </div>
         </div>
 
         <!-- Rating Filter -->
         <div class="col-md-2">
-          <label for="ratingFilter" class="form-label">Rating</label>
-          <select id="ratingFilter" class="form-select" [(ngModel)]="selectedRating" 
-                  (change)="applyClientFilters()">
+          <label for="ratingFilter" class="form-label fw-semibold">Rating</label>
+          <select id="ratingFilter" class="form-select" [(ngModel)]="selectedRating" (change)="applyClientFilters()">
             <option [value]="null">All Ratings</option>
             <option *ngFor="let rating of ratings" [value]="rating">
               {{ rating }} Star{{ rating > 1 ? 's' : '' }}
@@ -74,7 +72,7 @@
 
         <!-- Sort Filter -->
         <div class="col-md-2">
-          <label for="sortFilter" class="form-label">Sort By</label>
+          <label for="sortFilter" class="form-label fw-semibold">Sort By</label>
           <select id="sortFilter" class="form-select" [(ngModel)]="sortBy" (change)="applyFilters()">
             <option *ngFor="let option of sortOptions" [value]="option.value">{{ option.label }}</option>
           </select>
@@ -82,7 +80,7 @@
 
         <!-- Page Size -->
         <div class="col-md-2">
-          <label for="pageSizeFilter" class="form-label">Per Page</label>
+          <label for="pageSizeFilter" class="form-label fw-semibold">Per Page</label>
           <select id="pageSizeFilter" class="form-select" [(ngModel)]="pageSize" (change)="changePageSize()">
             <option [value]="5">5</option>
             <option [value]="10">10</option>
@@ -95,7 +93,7 @@
       <div class="row g-3 mt-2">
         <!-- Search -->
         <div class="col-md-4">
-          <label for="searchFilter" class="form-label">Search</label>
+          <label for="searchFilter" class="form-label fw-semibold">Search</label>
           <input type="text" id="searchFilter" class="form-control" 
                  [(ngModel)]="searchTerm" (input)="onSearchChange()"
                  placeholder="Search in comments, company, user...">
@@ -103,13 +101,13 @@
 
         <!-- Date Range -->
         <div class="col-md-3">
-          <label for="startDate" class="form-label">From Date</label>
+          <label for="startDate" class="form-label fw-semibold">From Date</label>
           <input type="date" id="startDate" class="form-control" 
                  [(ngModel)]="startDate" (change)="applyClientFilters()">
         </div>
 
         <div class="col-md-3">
-          <label for="endDate" class="form-label">To Date</label>
+          <label for="endDate" class="form-label fw-semibold">To Date</label>
           <input type="date" id="endDate" class="form-control" 
                  [(ngModel)]="endDate" (change)="applyClientFilters()">
         </div>
@@ -132,7 +130,7 @@
             Type: {{ getCompanyTypeLabel(selectedCompanyType) }}
           </span>
           <span *ngIf="selectedCompanyId" class="badge bg-info text-dark">
-           Company: {{ getCompanyName(selectedCompanyId) }}
+            Company: {{ getCompanyName(selectedCompanyId) }}
           </span>
           <span *ngIf="selectedRating" class="badge bg-warning text-dark">
             Rating: {{ selectedRating }}★
@@ -152,7 +150,7 @@
   </div>
 
   <!-- Reviews List -->
-  <div class="card">
+  <div class="card shadow-sm border-0">
     <div class="card-header d-flex justify-content-between align-items-center">
       <h5 class="mb-0">
         <i class="fas fa-list me-2"></i>
@@ -175,7 +173,7 @@
       <!-- Reviews Table -->
       <div *ngIf="!loading && filteredReviews.length > 0" class="table-responsive">
         <table class="table table-hover mb-0">
-          <thead class="table-dark">
+          <thead class="table-light">
             <tr>
               <th>Company</th>
               <th>Type</th>
@@ -277,34 +275,24 @@
     <div class="card-footer" *ngIf="!loading && totalPages > 1">
       <nav aria-label="Reviews pagination">
         <ul class="pagination pagination-sm mb-0 justify-content-center">
-          <!-- First Page -->
           <li class="page-item" [class.disabled]="currentPage === 1">
             <button class="page-link" (click)="changePage(1)" [disabled]="currentPage === 1">
               <i class="fas fa-angle-double-left"></i>
             </button>
           </li>
-          
-          <!-- Previous Page -->
           <li class="page-item" [class.disabled]="currentPage === 1">
             <button class="page-link" (click)="changePage(currentPage - 1)" [disabled]="currentPage === 1">
               <i class="fas fa-angle-left"></i>
             </button>
           </li>
-
-          <!-- Page Numbers -->
-          <li *ngFor="let page of paginationPages" 
-              class="page-item" [class.active]="page === currentPage">
+          <li *ngFor="let page of paginationPages" class="page-item" [class.active]="page === currentPage">
             <button class="page-link" (click)="changePage(page)">{{ page }}</button>
           </li>
-
-          <!-- Next Page -->
           <li class="page-item" [class.disabled]="currentPage === totalPages">
             <button class="page-link" (click)="changePage(currentPage + 1)" [disabled]="currentPage === totalPages">
               <i class="fas fa-angle-right"></i>
             </button>
           </li>
-
-          <!-- Last Page -->
           <li class="page-item" [class.disabled]="currentPage === totalPages">
             <button class="page-link" (click)="changePage(totalPages)" [disabled]="currentPage === totalPages">
               <i class="fas fa-angle-double-right"></i>
@@ -316,28 +304,23 @@
   </div>
 </div>
 
-<!-- Review Modal - Updated for Bootstrap -->
-<div class="modal fade" #reviewModal tabindex="-1" aria-labelledby="reviewModalLabel" 
-     aria-hidden="true" (keydown)="onModalKeyDown($event)" 
-     (click)="onBackdropClick($event)">
+<!-- Review Modal -->
+<div class="modal fade" #reviewModal tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
+    <div class="modal-content shadow-sm border-0">
+      <div class="modal-header" style="background-color: var(--secondary-color); color: white;">
         <h4 class="modal-title" id="reviewModalLabel">
-          <i class="fas fa-star text-warning me-2"></i>
+          <i class="fas fa-star me-2"></i>
           {{ isEditMode ? 'Edit Review' : 'Add New Review' }}
         </h4>
-        <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+        <button type="button" class="btn-close btn-close-white" (click)="closeModal()"></button>
       </div>
-      
       <form [formGroup]="reviewForm" (ngSubmit)="saveReview()">
         <div class="modal-body">
           <div class="row g-3">
-            <!-- Company Type -->
             <div class="col-md-6">
-              <label for="modalCompanyType" class="form-label">Company Type *</label>
-              <select id="modalCompanyType" class="form-select" formControlName="companyType"
-                      (change)="onModalFormCompanyTypeChange()" [class.is-invalid]="companyType?.touched && companyType?.errors">
+              <label for="modalCompanyType" class="form-label fw-semibold">Company Type *</label>
+              <select id="modalCompanyType" class="form-select" formControlName="companyType" (change)="onModalFormCompanyTypeChange()" [class.is-invalid]="companyType?.touched && companyType?.errors">
                 <option value="">Select Company Type</option>
                 <option *ngFor="let type of companyTypes.slice(1)" [value]="type.value">{{ type.label }}</option>
               </select>
@@ -345,13 +328,9 @@
                 <div *ngIf="companyType?.errors?.['required']">Company type is required</div>
               </div>
             </div>
-
-            <!-- Company -->
             <div class="col-md-6">
-              <label for="modalCompany" class="form-label">Company *</label>
-              <select id="modalCompany" class="form-select" formControlName="companyId"
-                      [disabled]="!selectedCompanyType || companiesLoading"
-                      [class.is-invalid]="companyId?.touched && companyId?.errors">
+              <label for="modalCompany" class="form-label fw-semibold">Company *</label>
+              <select id="modalCompany" class="form-select" formControlName="companyId" [disabled]="!selectedCompanyType || companiesLoading" [class.is-invalid]="companyId?.touched && companyId?.errors">
                 <option value="">Select Company</option>
                 <option *ngFor="let company of companies; trackBy: trackByCompanyId" [value]="company.id">{{ company.name }}</option>
               </select>
@@ -362,13 +341,10 @@
                 <div *ngIf="companyId?.errors?.['required']">Company selection is required</div>
               </div>
             </div>
-
-            <!-- Rating -->
             <div class="col-12">
-              <label for="modalRating" class="form-label">Rating *</label>
+              <label for="modalRating" class="form-label fw-semibold">Rating *</label>
               <div class="d-flex align-items-center gap-3">
-                <select id="modalRating" class="form-select" style="max-width: 150px;" 
-                        formControlName="rating" [class.is-invalid]="rating?.touched && rating?.errors">
+                <select id="modalRating" class="form-select" style="max-width: 150px;" formControlName="rating" [class.is-invalid]="rating?.touched && rating?.errors">
                   <option value="">Select Rating</option>
                   <option *ngFor="let r of ratings" [value]="r">{{ r }} Star{{ r > 1 ? 's' : '' }}</option>
                 </select>
@@ -381,13 +357,9 @@
                 <div *ngIf="rating?.errors?.['min'] || rating?.errors?.['max']">Rating must be between 1 and 5</div>
               </div>
             </div>
-
-            <!-- Comment -->
             <div class="col-12">
-              <label for="modalComment" class="form-label">Comment</label>
-              <textarea id="modalComment" class="form-control" rows="4" 
-                        formControlName="comment" placeholder="Share your experience..."
-                        [class.is-invalid]="comment?.touched && comment?.errors"></textarea>
+              <label for="modalComment" class="form-label fw-semibold">Comment</label>
+              <textarea id="modalComment" class="form-control" rows="4" formControlName="comment" placeholder="Share your experience..." [class.is-invalid]="comment?.touched && comment?.errors"></textarea>
               <div class="form-text">
                 {{ reviewForm.get('comment')?.value?.length || 0 }}/500 characters
               </div>
@@ -397,9 +369,8 @@
             </div>
           </div>
         </div>
-        
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" (click)="closeModal()">
+          <button type="button" class="btn btn-outline-secondary" (click)="closeModal()">
             <i class="fas fa-times me-1"></i>
             Cancel
           </button>
@@ -413,372 +384,5 @@
   </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" #deleteModal tabindex="-1" aria-labelledby="deleteModalLabel" 
-     aria-hidden="true" (keydown)="onModalKeyDown($event)">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h4 class="modal-title text-danger" id="deleteModalLabel">
-          <i class="fas fa-exclamation-triangle me-2"></i>
-          Confirm Delete
-        </h4>
-        <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
-      </div>
-      
-      <div class="modal-body" *ngIf="reviewToDelete">
-        <div class="alert alert-warning">
-          <i class="fas fa-warning me-2"></i>
-          This action cannot be undone!
-        </div>
-        
-        <p>Are you sure you want to delete this review?</p>
-        
-        <div class="card">
-          <div class="card-body">
-            <div class="row">
-              <div class="col-md-6">
-                <strong>Company:</strong> {{ reviewToDelete.companyName }}<br>
-                <strong>Type:</strong> {{ getCompanyTypeLabel(reviewToDelete.companyType) }}
-              </div>
-              <div class="col-md-6">
-                <strong>Rating:</strong> {{ getRatingStars(reviewToDelete.rating) }}<br>
-                <strong>User:</strong> {{ reviewToDelete.userName }}
-              </div>
-            </div>
-            <div class="mt-2" *ngIf="reviewToDelete.comment">
-              <strong>Comment:</strong> {{ reviewToDelete.comment }}
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="closeModal()">
-          <i class="fas fa-times me-1"></i>
-          Cancel
-        </button>
-        <button type="button" class="btn btn-danger" (click)="confirmDeleteReview()">
-          <i class="fas fa-trash me-1"></i>
-          Delete Review
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Statistics Modal -->
-<div class="modal fade" #statsModal tabindex="-1" aria-labelledby="statsModalLabel" 
-     aria-hidden="true" (keydown)="onModalKeyDown($event)">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h4 class="modal-title" id="statsModalLabel">
-          <i class="fas fa-chart-bar text-info me-2"></i>
-          Review Statistics
-        </h4>
-        <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
-      </div>
-      
-      <div class="modal-body">
-        <!-- Loading State -->
-        <div *ngIf="statsLoading" class="text-center py-4">
-          <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading statistics...</span>
-          </div>
-          <p class="mt-2 text-muted">Loading statistics...</p>
-        </div>
-
-        <!-- Statistics Content -->
-        <div *ngIf="!statsLoading && reviewStats">
-          <!-- Overview Cards -->
-          <div class="row mb-4">
-            <div class="col-md-6 mb-3">
-              <div class="card bg-primary text-white">
-                <div class="card-body text-center">
-                  <h3 class="mb-0">{{ reviewStats.totalReviews }}</h3>
-                  <p class="mb-0">Total Reviews</p>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6 mb-3">
-              <div class="card bg-success text-white">
-                <div class="card-body text-center">
-                  <h3 class="mb-0">{{ reviewStats.averageRating }}</h3>
-                  <p class="mb-0">Average Rating</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Rating Distribution -->
-          <div class="card mb-4">
-            <div class="card-header">
-              <h6 class="mb-0">Rating Distribution</h6>
-            </div>
-            <div class="card-body">
-              <div *ngFor="let rating of [5,4,3,2,1]" class="d-flex align-items-center mb-2">
-                <div class="me-3" style="min-width: 60px;">
-                  {{ rating }} {{ getRatingStars(rating).substring(0, rating) }}
-                </div>
-                <div class="progress flex-grow-1 me-3" style="height: 20px;">
-                  <div class="progress-bar" 
-                       [class.bg-success]="rating >= 4"
-                       [class.bg-warning]="rating === 3"
-                       [class.bg-danger]="rating <= 2"
-                       [style.width.%]="reviewStats.totalReviews > 0 ? (reviewStats.ratingDistribution[rating] || 0) / reviewStats.totalReviews * 100 : 0">
-                  </div>
-                </div>
-                <div class="text-muted" style="min-width: 40px;">
-                  {{ reviewStats.ratingDistribution[rating] || 0 }}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Recent Reviews -->
-          <div class="card" *ngIf="reviewStats.recentReviews && reviewStats.recentReviews.length > 0">
-            <div class="card-header">
-              <h6 class="mb-0">Recent Reviews (Last 5)</h6>
-            </div>
-            <div class="card-body">
-              <div *ngFor="let review of reviewStats.recentReviews; let last = last" 
-                   [class.border-bottom]="!last" [class.pb-3]="!last" [class.mb-3]="!last">
-                <div class="d-flex justify-content-between align-items-start">
-                  <div>
-                    <div class="d-flex align-items-center mb-1">
-                      <span class="me-2">{{ getRatingStars(review.rating) }}</span>
-                      <strong class="me-2">{{ review.userName || 'Anonymous' }}</strong>
-                      <span class="badge bg-light text-dark">{{ review.rating }}/5</span>
-                    </div>
-                    <p class="mb-1 text-muted small">{{ review.comment || 'No comment provided' }}</p>
-                  </div>
-                  <small class="text-muted">{{ review.createdAt | date:'MMM d' }}</small>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- No Recent Reviews -->
-          <div *ngIf="reviewStats.recentReviews && reviewStats.recentReviews.length === 0" 
-               class="text-center text-muted py-4">
-            <i class="fas fa-comments fa-3x mb-3 opacity-50"></i>
-            <p>No recent reviews available</p>
-          </div>
-        </div>
-
-        <!-- No Statistics Available -->
-        <div *ngIf="!statsLoading && !reviewStats" class="text-center text-muted py-4">
-          <i class="fas fa-chart-bar fa-3x mb-3 opacity-50"></i>
-          <p>No statistics available</p>
-          <small>Please select a company to view statistics</small>
-        </div>
-      </div>
-      
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="closeModal()">
-          <i class="fas fa-times me-1"></i>
-          Close
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Custom CSS for better UX -->
-<style>
-  .rating-stars {
-    color: #ffc107;
-    font-size: 1.1em;
-    letter-spacing: 1px;
-  }
-
-  .table-responsive {
-    border-radius: 0 0 0.375rem 0.375rem;
-  }
-
-  .modal-backdrop {
-    background-color: rgba(0, 0, 0, 0.5);
-  }
-
-  .card {
-    transition: all 0.2s ease-in-out;
-    border: 1px solid #e9ecef;
-  }
-
-  .card:hover {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    transform: translateY(-1px);
-  }
-
-  .btn-group-sm .btn {
-    padding: 0.25rem 0.4rem;
-    font-size: 0.775rem;
-    border-radius: 0.2rem;
-  }
-
-  .btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-
-  .progress {
-    background-color: #e9ecef;
-    border-radius: 0.25rem;
-  }
-
-  .progress-bar {
-    transition: width 0.6s ease;
-    border-radius: 0.25rem;
-  }
-
-  .text-truncate {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .opacity-50 {
-    opacity: 0.5;
-  }
-
-  /* Responsive adjustments */
-  @media (max-width: 768px) {
-    .table-responsive {
-      font-size: 0.875rem;
-    }
-    
-    .btn-group-sm .btn {
-      padding: 0.2rem 0.3rem;
-      font-size: 0.7rem;
-    }
-    
-    .card-body {
-      padding: 1rem 0.75rem;
-    }
-    
-    .modal-dialog {
-      margin: 0.5rem;
-    }
-  }
-
-  @media (max-width: 576px) {
-    .d-flex.justify-content-between.align-items-center.flex-wrap {
-      flex-direction: column;
-      align-items: stretch;
-    }
-    
-    .d-flex.gap-2.flex-wrap {
-      margin-top: 1rem;
-      justify-content: center;
-    }
-    
-    .table thead th {
-      font-size: 0.75rem;
-      padding: 0.5rem 0.25rem;
-    }
-    
-    .table td {
-      padding: 0.5rem 0.25rem;
-      font-size: 0.875rem;
-    }
-    
-    .btn-group .btn {
-      padding: 0.25rem 0.35rem;
-    }
-  }
-
-  /* Custom scrollbar for modal body when content overflows */
-  .modal-body {
-    max-height: 70vh;
-    overflow-y: auto;
-  }
-
-  .modal-body::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  .modal-body::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 3px;
-  }
-
-  .modal-body::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 3px;
-  }
-
-  .modal-body::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
-  }
-
-  /* Form validation styles */
-  .form-control.is-invalid,
-  .form-select.is-invalid {
-    border-color: #dc3545;
-    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
-  }
-
-  .invalid-feedback {
-    color: #dc3545;
-    font-size: 0.875em;
-    margin-top: 0.25rem;
-  }
-
-  /* Loading spinner animation */
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-
-  .fa-spin {
-    animation: spin 1s linear infinite;
-  }
-
-  /* Accessibility improvements */
-  .btn:focus,
-  .form-control:focus,
-  .form-select:focus {
-    outline: 0;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-  }
-
-  /* Color utility classes */
-  .text-success {
-    color: #198754 !important;
-  }
-
-  .text-warning {
-    color: #ffc107 !important;
-  }
-
-  .text-danger {
-    color: #dc3545 !important;
-  }
-
-  /* Filter badges */
-  .badge {
-    font-size: 0.75em;
-  }
-
-  /* Active filters styling */
-  .badge.bg-primary {
-    background-color: #0d6efd !important;
-  }
-
-  .badge.bg-info {
-    background-color: #0dcaf0 !important;
-  }
-
-  .badge.bg-warning {
-    background-color: #ffc107 !important;
-  }
-
-  .badge.bg-success {
-    background-color: #198754 !important;
-  }
-
-  .badge.bg-secondary {
-    background-color: #6c757d !important;
-  }
-</style>
+<!-- Delete & Stats Modals (same structure) -->
+<!-- Use same styling: .modal-content shadow-sm border-0 -->

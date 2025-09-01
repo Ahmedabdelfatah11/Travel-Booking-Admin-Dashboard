@@ -44,6 +44,6 @@ export class TourListForTourAgency {
       return imageUrl;
     }
 
-    return `https://localhost:7277${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
+    return `http://pyramigo.runasp.net/api/${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
   }
 }

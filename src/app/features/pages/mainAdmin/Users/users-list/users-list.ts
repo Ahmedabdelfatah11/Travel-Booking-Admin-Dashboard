@@ -1,10 +1,33 @@
 import { Auth } from '../../../../../core/services/auth';
 import { ToastService } from '../../../../../core/services/toast-service';
 import { SuperadminServices } from '../../../../../core/services/superadmin-services';
-import { afterNextRender, Component, Inject, inject, PLATFORM_ID, signal } from '@angular/core';
+import { afterNextRender, Component, Inject, inject, PLATFORM_ID, signal, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
+
+interface User {
+  id: string;
+  firstName: string;
+  lastName: string;
+  userName: string;
+  email: string;
+  phoneNumber: string;
+  address: string;
+  roles: string[];
+  managedCompanies: {
+    companyId: number;
+    companyName: string;
+    companyType: string;
+  }[];
+}
+
+interface UsersResponse {
+  data: User[];
+  totalCount: number;
+  pageIndex: number;
+  pageSize: number;
+}
 
 @Component({
   selector: 'app-users-list',
@@ -17,34 +40,36 @@ export class UsersList {
   http = inject(HttpClient);
   auth = inject(Auth);
   router = inject(Router);
-  @Inject(PLATFORM_ID) private platformId!: Object;
- toastService = inject(ToastService); 
-   superAdminService = inject(SuperadminServices);
-  //Some Properties
-  // users-list.ts
-selectedCompanyId = signal<number | null>(null);
-companies = signal<{ id: number; name: string }[]>([]);
-isModalOpen = false;
-currentAction: { userId: string; role: string; companyType: string } | null = null;
+  toastService = inject(ToastService);
+  superAdminService = inject(SuperadminServices);
+  cd = inject(ChangeDetectorRef);
 
+  @Inject(PLATFORM_ID) private platformId!: Object;
+
+  // Signals
+  selectedCompanyId = signal<number | null>(null);
+  companies = signal<{ id: number; name: string }[]>([]);
+  isModalOpen = false;
+  currentAction: { userId: string; role: string; companyType: string } | null = null;
 
   apiUrl = 'http://pyramigo.runasp.net/api/SuperAdmin';
-  companyApiUrl='http://pyramigo.runasp.net/';
-users = signal<User[]>([]);
+  companyApiUrl = 'http://pyramigo.runasp.net/';
+
+  users = signal<User[]>([]);
   filteredUsers = signal<User[]>([]);
-  loading = signal(true);
+  loading = signal<boolean>(true);
   error = signal<string | null>(null);
 
-
   private getAuthHeaders(): HttpHeaders {
-  const token = this.auth.getToken();
-  if (!token) throw new Error('No token');
-  return new HttpHeaders({
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
-  });
-}
- constructor() {
+    const token = this.auth.getToken();
+    if (!token) throw new Error('No token');
+    return new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+  }
+
+  constructor() {
     afterNextRender(() => {
       if (!this.auth.isLoggedIn()) {
         this.router.navigate(['/login']);
@@ -60,47 +85,53 @@ users = signal<User[]>([]);
     });
   }
 
-loadUsers() {
-  this.loading.set(true);
+  loadUsers() {
+    this.loading.set(true);
+    this.error.set(null);
+    this.cd.detectChanges();
 
-  const token = this.auth.getToken();
-
-  if (!token) {
-    this.error.set('No auth token');
-    this.loading.set(false);
-    return;
-  }
-
-  this.http.get<UsersResponse>(`${this.apiUrl}/users?pageIndex=1&pageSize=100`, {
-    headers: this.getAuthHeaders()
-  }).subscribe({
-    next: (res) => {
-      this.users.set(res.data);
-      this.filteredUsers.set(res.data);
-      if (!res?.data) {
-        this.error.set('Invalid response format');
-        this.loading.set(false);
-        return;
-      }
-      this.users.set(res.data);
-      this.filteredUsers.set(res.data);
+    const token = this.auth.getToken();
+    if (!token) {
+      this.error.set('No auth token');
       this.loading.set(false);
-    },
-    error: (err) => {
-    
-
-      this.error.set(`Failed to load users: ${err.status} ${err.message}`);
-      this.loading.set(false);
-
-      if (err.status === 401) {
-        this.auth.Logout();
-        this.router.navigate(['/login']);
-      } else if (err.status === 0) {
-        this.error.set('Network error — check console and HTTPS');
-      }
+      this.cd.detectChanges();
+      return;
     }
-  });
-}
+
+    const startTime = Date.now();
+
+    this.http.get<UsersResponse>(`${this.apiUrl}/users?pageIndex=1&pageSize=100`, {
+      headers: this.getAuthHeaders()
+    }).subscribe({
+      next: (res) => {
+        if (!res?.data) {
+          this.error.set('Invalid response format');
+          return;
+        }
+        this.users.set(res.data);
+        this.filteredUsers.set(res.data);
+      },
+      error: (err) => {
+        if (err.status === 401) {
+          this.auth.Logout();
+          this.router.navigate(['/login']);
+        } else if (err.status === 0) {
+          this.error.set('Network error — check console and HTTPS');
+        } else {
+          this.error.set(`Failed to load users: ${err.status} ${err.message}`);
+        }
+      },
+      complete: () => {
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(1000 - elapsed, 0);
+
+        setTimeout(() => {
+          this.loading.set(false);
+          this.cd.detectChanges();
+        }, remaining);
+      }
+    });
+  }
 
   onSearch(query: string) {
     const term = query.trim().toLowerCase();
@@ -118,8 +149,7 @@ loadUsers() {
     this.filteredUsers.set(filtered);
   }
 
-
-deleteUser(id: string, email: string) {
+  deleteUser(id: string, email: string) {
     if (confirm(`Are you sure you want to delete user: ${email}?`)) {
       this.superAdminService.deleteUser(id).subscribe({
         next: () => {
@@ -133,112 +163,90 @@ deleteUser(id: string, email: string) {
     }
   }
 
-//Roles
-assignRole() {
-  if (!this.currentAction || !this.selectedCompanyId) {
-    this.toastService.show('Please select a company', 'error');
-    return;
+  assignRole() {
+    if (!this.currentAction || !this.selectedCompanyId()) {
+      this.toastService.show('Please select a company', 'error');
+      return;
+    }
+
+    const { userId, role, companyType } = this.currentAction;
+    const companyId = this.selectedCompanyId();
+
+    const dto = { userId, companyId, companyType };
+
+    this.http.post(`${this.apiUrl}/assign-role`, dto, { headers: this.getAuthHeaders() })
+      .subscribe({
+        next: () => {
+          this.toastService.show(`${role} assigned to company successfully`, 'success');
+          this.loadUsers();
+          this.isModalOpen = false;
+        },
+        error: (err) => {
+          this.toastService.show('Failed: ' + (err.error?.message || 'Unknown error'), 'error');
+        }
+      });
   }
 
-  const { userId, role, companyType } = this.currentAction;
-  const companyId = this.selectedCompanyId;
+  removeRole(userId: string, role: string) {
+    const dto = { userId, role };
+    this.http.post(`${this.apiUrl}/remove-role`, dto, { headers: this.getAuthHeaders() })
+      .subscribe({
+        next: () => {
+          this.toastService.show(`${role} removed successfully`, 'success');
+          this.loadUsers();
+        },
+        error: () => {
+          this.toastService.show('Failed to remove role', 'error');
+        }
+      });
+  }
 
-  const dto = { userId, companyId, companyType };
+  loadCompanies(companyType: string) {
+    const urlMap: Record<string, string> = {
+      'hotel': `${this.companyApiUrl}api/HotelCompany`,
+      'flight': `${this.companyApiUrl}FlightCompany`,
+      'carrental': `${this.companyApiUrl}api/CarRental`,
+      'tour': `${this.companyApiUrl}api/TourCompany`
+    };
 
-  this.http.post(`${this.apiUrl}/assign-role`, dto, { headers: this.getAuthHeaders() })
-    .subscribe({
+    const url = urlMap[companyType.toLowerCase()];
+    if (!url) {
+      this.companies.set([]);
+      return;
+    }
+
+    this.http.get<any[]>(url, { headers: this.getAuthHeaders() }).subscribe({
       next: (res: any) => {
-       this.toastService.show(`${role} assigned to company successfully`, 'success');
-        this.loadUsers();
-        this.isModalOpen = false;
+        const companiesData = Array.isArray(res) ? res : res.data;
+        if (!companiesData || !Array.isArray(companiesData)) {
+          this.companies.set([]);
+          return;
+        }
+
+        const unassigned = companiesData.filter((c: any) => {
+          const adminId = c.AdminId || c.adminId || c.admin_id;
+          return !adminId;
+        });
+
+        this.companies.set(
+          unassigned.map((item: any) => ({
+            id: item.id || item.Id,
+            name: item.name || item.Name || item.companyName || 'Unnamed'
+          }))
+        );
       },
-      error: (err) => {
-       this.toastService.show('Failed: ' + (err.error?.message || 'Unknown error'), 'error');
+      error: () => {
+        this.companies.set([]);
+        this.toastService.show(`Failed to load ${companyType} list.`, 'error');
       }
     });
-}
-
-
-
-removeRole(userId: string, role: string) {
-
-  // if (!isPlatformBrowser(this.platformId)) return;
-
-  const dto = { userId, role };
-  this.http.post(`${this.apiUrl}/remove-role`, dto, { headers: this.getAuthHeaders() })
-    .subscribe({
-      next: () => {
-        this.toastService.show(`${role} removed successfully`, 'success');
-        
-        // Force reload
-        this.loadUsers();
-
-        // Debug: Check after a delay
-        setTimeout(() => {
-          const users = this.users();
-          const user = users.find(u => u.id === userId);
-        }, 1000);
-      },
-      error: (err) => {
-         this.toastService.show('Failed to remove role', 'error');
-      }
-    });
-}
-
-loadCompanies(companyType: string) {
-  const urlMap: Record<string, string> = {
-    'hotel': `${this.companyApiUrl}api/HotelCompany`,
-    'flight': `${this.companyApiUrl}FlightCompany`,
-    'carrental': `${this.companyApiUrl}api/CarRental`,
-    'tour': `${this.companyApiUrl}api/TourCompany`
-  };
-
-  const url = urlMap[companyType.toLowerCase()];
-
-  if (!url) {
-   this.companies.set([]);
-    return;
   }
 
-
-  this.http.get<any[]>(url, { headers: this.getAuthHeaders() }).subscribe({
-next: (res: any) => {
-
-  const companiesData = Array.isArray(res) ? res : res.data;
-  if (!companiesData || !Array.isArray(companiesData)) {
+  openCompanyModal(user: User, role: string, companyType: string) {
+    this.currentAction = { userId: user.id, role, companyType };
+    this.selectedCompanyId.set(null);
     this.companies.set([]);
-    return;
+    this.isModalOpen = true;
+    this.loadCompanies(companyType);
   }
-
-  const unassigned = companiesData.filter((c: any) => {
-    const adminId = c.AdminId || c.adminId || c.admin_id;
-    return !adminId;
-  });
-
-
-  this.companies.set(
-    unassigned.map((item: any) => ({
-      id: item.id || item.Id,
-      name: item.name || item.Name || item.companyName || 'Unnamed'
-    }))
-  );
-
-},
-error: (err) => {
-  this.companies.set([]);
-  this.toastService.show(`Failed to load ${companyType} list.`, 'error');
-}
-  });
-}
-
-
-openCompanyModal(user: User, role: string, companyType: string) {
-  this.currentAction = { userId: user.id, role, companyType };
-
-this.selectedCompanyId.set(null);
-  this.companies.set([]);     
-  this.isModalOpen = true;    
-
-  this.loadCompanies(companyType); 
-}
 }

@@ -136,7 +136,7 @@ export const routes: Routes = [
       { path: 'admin/car/edit/:id', component: CarRentalEditComponent },
       { path: 'admin/flight', component: FlightsList },
       { path: 'admin/flight/create', component: FlightCreation },
-      // { path: 'admin/reviews', component: ReviewsListComponent },
+      { path: 'admin/reviews', component: ReviewsListComponent },
       { path: 'settings/profile', component: AdminAgencySettingsProfile },
       { path: 'settings/password', component: AdminAgencySettingsPassword },
       { path: 'settings', redirectTo: 'settings/profile', pathMatch: 'full' },

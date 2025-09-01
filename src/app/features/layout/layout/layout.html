@@ -32,20 +32,19 @@
     <!-- Navbar -->
     <ul class="navbar-nav ms-auto ms-md-0 me-3 me-lg-4">
       <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle text-light d-flex align-items-center" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-          <!-- User Avatar -->
-          <div class="rounded-circle me-2" style="width: 32px; height: 32px; background: #ddd; overflow: hidden;">
-            @if (!isLoadingProfile && userProfile && profileImageUrl) {
-              <img [src]="profileImageUrl" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">
-            } @else if (isLoadingProfile) {
-              <i class="fas fa-spinner fa-spin p-2 text-muted"></i>
-            } @else {
-              <i class="fas fa-user p-2 text-muted" style="font-size: 1.2rem;"></i>
-            }
-          </div>
-          <!-- Show name on larger screens -->
-          <span class="d-none d-md-inline">{{ displayName }}</span>
-        </a>
+    <a class="nav-link dropdown-toggle text-light d-flex align-items-center" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+  <!-- User Avatar -->
+  <div class="rounded-circle me-2" style="width: 32px; height: 32px; background: #ddd; overflow: hidden;">
+    @if (userProfile && profileImageUrl) {
+      <img [src]="profileImageUrl" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">
+    } @else {
+      <i class="fas fa-user p-2 text-muted" style="font-size: 1.2rem;"></i>
+    }
+  </div>
+
+  <!-- Show name on larger screens -->
+  <span class="d-none d-md-inline">{{ displayName }}</span>
+</a>
 
         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
           <li><a class="dropdown-item" routerLink="settings/profile"><i class="fas fa-cog me-2"></i>Settings</a></li>
