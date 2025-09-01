@@ -1,4 +1,4 @@
-# 🏝️ TravelBooking Angular Project
+# 🏝️ Travel-Booking Admin Dashboard
 
 ![Angular](https://img.shields.io/badge/Angular-DB0D12)
 ![RxJS](https://img.shields.io/badge/RxJS-FF5733)
@@ -140,5 +140,6 @@ This project is MIT licensed.
 If you want, I can **also add a badges section for this Angular project** (Angular, RxJS, Bootstrap, Stripe, SignalR) at the top just like the backend one, for visual consistency.  
 
 Do you want me to do that next?
+
 
 
