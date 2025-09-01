@@ -1,59 +1,144 @@
-# AdminDashboard
+# 🏝️ TravelBooking Angular Project
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.0.4.
+![Angular](https://img.shields.io/badge/Angular-DB0D12)
+![RxJS](https://img.shields.io/badge/RxJS-FF5733)
+![Bootstrap](https://img.shields.io/badge/Bootstrap-7952B3)
+![HTML5](https://img.shields.io/badge/HTML5-E34F26)
+![CSS3](https://img.shields.io/badge/CSS3-1572B6)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E)
+![Git](https://img.shields.io/badge/Git-F05032)
 
-## Development server
 
-To start a local development server, run:
+
+A modern Admin Dashboard built with Angular for managing the TravelBooking platform.
+It provides agencies and admins with tools to manage tours, hotels, flights, cars, bookings, and payments through a clean and powerful interface.
+
+---
+
+## 📗 Table of Contents
+- [📖 About the Project](#-about-the-project)
+  - [Tech Stack](#tech-stack)
+- [💻 Getting Started](#-getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Setup](#setup)
+  - [Install](#install)
+  - [Usage](#usage)
+  - [Deployment](#deployment)
+- [👥 Authors](#-authors)
+- [🔭 Future Features](#-future-features)
+- [⭐️ Show your support](#-show-your-support)
+- [🙏 Acknowledgements](#-acknowledgements)
+- [❓ FAQ](#-faq)
+- [📝 License](#-license)
+
+---
+
+## 📖 About the Project
+
+The Travel-Booking Admin Dashboard is the control center of the TravelBooking ecosystem.
+It includes role-based dashboards for different types of admins:
+
+## 👤 Admin Roles
+
+- SuperAdmin → Full system access (manages everything).
+- TourAdmin → Manage tours &tour companies (CRUD).
+- HotelAdmin → Manage hotels & rooms (CRUD).
+- FlightAdmin → Manage flights & flight companies (CRUD).
+- CarAdmin → Manage cars & rental companies (CRUD).
+
+This ensures that each admin only controls their own domain, while the SuperAdmin oversees the entire platform.
+
+Repositories:
+- **Backend API** → [TravelBooking](https://github.com/Ahmedabdelfatah11/TravelBooking)  
+- **Admin Dashboard** → [Travel-Booking-Admin-Dashboard](https://github.com/Ahmedabdelfatah11/Travel-Booking-Admin-Dashboard)  
+- **User Website** → [TravelBookingAngularProject](https://github.com/Ahmedabdelfatah11/TravelBookingAngularProject)
+
+---
+
+### Tech Stack
+- Frontend Framework: Angular 20
+- State Management: RxJS
+- UI Framework: Bootstrap
+- Authentication: JWT (role-based access)
+- API: Connected to [TravelBooking](https://github.com/Ahmedabdelfatah11/TravelBooking)  
+---
+![TravelBooking Screenshot](public/img/screen.png)
+
+## 💻 Getting Started
+
+### Prerequisites
+- Node.js & npm  
+- Angular CLI  
+- Access to the backend API (TravelBooking API)
+
+### Setup
+Clone the repository:
 
 ```bash
+git clone https://github.com/Ahmedabdelfatah11/Travel-Booking-Admin-Dashboard.git
+```
+
+## Install Dependencies
+``` bash
+cd Travel-Booking-Admin-Dashboard
+npm install
+```
+
+## Usage
+``` bash
+Run the Angular app:
 ng serve
 ```
+Visit http://localhost:4200 in your browser.
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
 
-## Code scaffolding
+## Deployment
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+Angular app can be hosted on Netlify, Vercel, or served via Nginx.
 
-```bash
-ng generate component component-name
-```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## 👥 Authors
 
-```bash
-ng generate --help
-```
+All Full Stack Developers:
 
-## Building
+- [Ahmed Abdelfatah](https://github.com/Ahmedabdelfatah11)
+- [Mohamed Sayed](https://github.com/mohamed200184)
+- [Abanoub Emad](https://github.com/Abanoubemad21)
+- [Ayman Abdelnaby](https://github.com/AymanAbdelnaby12)
+- [Ahmed Elmahdy](https://github.com/ahmedelmahdy77)
 
-To build the project run:
+## 🔭 Future Features
 
-```bash
-ng build
-```
+Multi-language support 🌐
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+AI-powered travel recommendations 🤖
 
-## Running unit tests
+Mobile app integration 📱
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+## ⭐️ Show your support
 
-```bash
-ng test
-```
+If you like this project, please ⭐ it on GitHub!
 
-## Running end-to-end tests
+## 🙏 Acknowledgements
 
-For end-to-end (e2e) testing, run:
+Inspired by Booking.com & Expedia
+Thanks to the open-source community ❤️
 
-```bash
-ng e2e
-```
+## ❓ FAQ
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+Q: Can I use this project for my agency?
+A: Yes, it’s open-source under MIT License.
 
-## Additional Resources
+📝 License
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+This project is MIT licensed.
+
+
+---
+
+If you want, I can **also add a badges section for this Angular project** (Angular, RxJS, Bootstrap, Stripe, SignalR) at the top just like the backend one, for visual consistency.  
+
+Do you want me to do that next?
+
+
