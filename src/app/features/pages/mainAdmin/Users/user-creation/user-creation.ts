@@ -173,7 +173,6 @@ export class UserCreation {
       }
 
     } catch (error: any) {
-      console.error(`Error loading ${companyType} companies:`, error);
       this.error.set(`Failed to load ${companyType} companies.`);
       this.companies.set([]);
     } finally {
@@ -208,7 +207,6 @@ export class UserCreation {
         companyId: formValue.companyId || null // Can be null
       };
 
-      console.log('📤 Sending user model:', userModel);
 
       // Create user
       const result = await this.superAdminService.addUser(userModel, formValue.role).toPromise();
@@ -222,11 +220,10 @@ export class UserCreation {
 
       // Navigate back to user list after short delay
       setTimeout(() => {
-        this.router.navigate(['/superadmin/users']);
+        this.router.navigate(['/admin/users']);
       }, 2000);
 
     } catch (error: any) {
-      console.error('Error creating user:', error);
       
       // Better error handling
       let errorMessage = 'Failed to create user. Please try again.';
@@ -310,7 +307,7 @@ export class UserCreation {
 
   // Navigate back to user list
   goBack() {
-    this.router.navigate(['/superadmin/users']);
+    this.router.navigate(['/admin/users']);
   }
 
   // Clear messages

@@ -36,6 +36,7 @@ export interface BookingDto {
   startDate: string;
   endDate: string;
   totalPrice?: number;
+  
   agencyDetails?: any;
   paymentIntentId?: string;
   clientSecret?: string;
@@ -221,23 +222,14 @@ export class BookingService {
       headers: this.getAuthHeaders()
     });
   }
-
-
    // Get my car rental bookings (for CarRentalAdmin)
-// إضافة logging للـ service
-getMyCarRentalBookings(): Observable<BookingDto[]> {
-  console.log('Calling getMyCarRentalBookings API...');
-  
+getMyCarRentalBookings(): Observable<BookingDto[]> {  
   return this.http.get<BookingDto[]>(`${this.apiUrl}/booking/my-car-rental-bookings`, {
     headers: this.getAuthHeaders()
   }).pipe(
-    tap(data => console.log('API Response:', data)),
     catchError(error => {
-      console.error('API Error:', error);
       throw error;
     })
   );
 }
-
-
 }

@@ -45,9 +45,10 @@
   },
   "devDependencies": {
     "@angular/build": "^20.0.4",
-    "@angular/cli": "^20.0.4",
-    "@angular/compiler-cli": "^20.0.0",
+    "@angular/cli": "^20.1.6",
+    "@angular/compiler-cli": "^20.1.7",
     "@types/bootstrap": "^5.2.10",
+    "@types/chart.js": "^2.9.41",
     "@types/express": "^5.0.1",
     "@types/jasmine": "~5.1.0",
     "@types/node": "^20.19.10",

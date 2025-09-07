@@ -31,12 +31,10 @@ export interface CarRentalCompany {
 export class CarRentalService {
   private apiUrl = 'http://pyramigo.runasp.net/api/CarRental';
   
-  // إضافة BehaviorSubject لحفظ company ID
   private currentCompanyIdSubject = new BehaviorSubject<number | null>(null);
   public currentCompanyId$ = this.currentCompanyIdSubject.asObservable();
 
   constructor(private http: HttpClient) { 
-    // محاولة استرجاع company ID من localStorage
     const savedCompanyId = localStorage.getItem('currentCompanyId');
     if (savedCompanyId) {
       this.currentCompanyIdSubject.next(Number(savedCompanyId));
@@ -62,13 +60,13 @@ export class CarRentalService {
       headers: this.getHeaders() 
     });
   }
-  // Method لحفظ company ID
+
   setCurrentCompanyId(companyId: number): void {
     this.currentCompanyIdSubject.next(companyId);
     localStorage.setItem('currentCompanyId', companyId.toString());
   }
 
-  // Method للحصول على company ID الحالي
+  
   getCurrentCompanyIdSync(): number | null {
     return this.currentCompanyIdSubject.value;
   }
@@ -86,7 +84,7 @@ export class CarRentalService {
     });
   }
 
-  // Method لمسح البيانات المحفوظة عند تسجيل الخروج
+  
   clearCurrentCompany(): void {
     this.currentCompanyIdSubject.next(null);
     localStorage.removeItem('currentCompanyId');

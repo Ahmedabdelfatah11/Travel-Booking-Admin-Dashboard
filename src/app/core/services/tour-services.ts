@@ -18,7 +18,7 @@ export interface Tours {
   providedIn: 'root'
 })
 export class TourService {
-  private baseUrl = 'http://pyramigo.runasp.net/api/Tour'; // عدل الـ URL حسب الـ API عندك
+  private baseUrl = 'http://pyramigo.runasp.net/api/Tour'; 
 
   constructor(private http: HttpClient) {}
 

@@ -1,7 +1,6 @@
 <div class="container py-5">
   <h2 class="mb-4 text-primary">My Tours</h2>
 
-  <!-- ✅ Loading State -->
   @if (loading()) {
     <div class="text-center">
       <div class="spinner-border text-primary" role="status">
@@ -10,18 +9,15 @@
       <p class="mt-3">Loading your tours...</p>
     </div>
   } @else if (error()) {
-    <!-- ✅ Error State -->
     <div class="alert alert-danger">
       {{ error() }}
     </div>
   } @else if (noTours()) {
-    <!-- ✅ Empty State -->
     <div class="alert alert-info">
       You haven't created any tours yet.
-      <a routerLink="/tour-admin/add-tour" class="btn btn-primary ms-3">Create First Tour</a>
+      <a routerLink="/tour-admin/tours/create" class="btn btn-primary ms-3">Create First Tour</a>
     </div>
   } @else {
-    <!-- ✅ Tours List -->
     <div class="row g-4">
       @for (tour of tours(); track tour.id) {
         <div class="col-md-6 col-lg-4">

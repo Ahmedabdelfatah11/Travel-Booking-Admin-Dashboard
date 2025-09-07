@@ -5,6 +5,14 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { CarRentalCompany, CarRentalService } from '../../../../core/services/CarRental-Services';
 import { Car, CarCreateUpdate, CarService } from '../../../../core/services/Car-Services';
 
+// Toast interface
+interface Toast {
+  id: number;
+  message: string;
+  type: 'success' | 'error' | 'info';
+  visible: boolean;
+}
+
 @Component({
   selector: 'app-car-rental-agency-car-edit',
   standalone: true,
@@ -24,6 +32,10 @@ export class CarRentalAgencyCarEdit implements OnInit {
   companies: CarRentalCompany[] = [];
   carId: number = 0;
   car: Car | null = null;
+
+  // Toasts
+  private toastId = 0;
+  toasts: Toast[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -49,7 +61,6 @@ export class CarRentalAgencyCarEdit implements OnInit {
     if (this.carId) {
       this.loadCar();
       this.loadCompanies();
-       this.cd.detectChanges();
     } else {
       this.router.navigate(['/car-admin/Cars']);
     }
@@ -57,6 +68,9 @@ export class CarRentalAgencyCarEdit implements OnInit {
 
   loadCar(): void {
     this.loadingCar = true;
+    this.error = '';
+    this.cd.detectChanges();
+
     this.carService.getCar(this.carId).subscribe({
       next: (car) => {
         this.car = car;
@@ -71,13 +85,12 @@ export class CarRentalAgencyCarEdit implements OnInit {
           rentalCompanyId: car.rentalCompanyId
         });
         this.loadingCar = false;
-         this.cd.detectChanges();
+        this.cd.detectChanges();
       },
       error: (error) => {
-        this.error = 'Failed to load car details.';
+        this.showToast('Failed to load car details.', 'error');
         this.loadingCar = false;
-         this.cd.detectChanges();
-        console.error('Error loading car:', error);
+        this.cd.detectChanges();
       }
     });
   }
@@ -86,74 +99,90 @@ export class CarRentalAgencyCarEdit implements OnInit {
     this.carRentalService.getMyCompanies().subscribe({
       next: (companies) => {
         this.companies = companies;
+        this.cd.detectChanges();
       },
       error: (error) => {
-        this.error = 'Failed to load rental companies.';
-        console.error('Error loading companies:', error);
+        this.showToast('Failed to load rental companies.', 'error');
+        this.cd.detectChanges();
       }
     });
   }
 
-onImageSelected(event: any): void {
-  const file = event.target.files?.[0] || event.dataTransfer?.files?.[0];
-  if (file) {
+  onImageSelected(event: any): void {
+    const file = event.target.files?.[0] || event.dataTransfer?.files?.[0];
+    if (!file) return;
+
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      this.error = 'Please select a valid image file.';
+      this.showToast('Please select a valid image file.', 'error');
       return;
     }
-    
+
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      this.error = 'Image size should not exceed 5MB.';
+      this.showToast('Image size should not exceed 5MB.', 'error');
       return;
     }
 
     this.selectedImage = file;
     this.error = '';
-    
+
     // Create preview
     const reader = new FileReader();
     reader.onload = () => {
       this.imagePreview = reader.result as string;
+      this.cd.detectChanges();
     };
     reader.readAsDataURL(file);
   }
-}
 
   removeImage(): void {
     this.selectedImage = null;
     this.imagePreview = null;
+    this.cd.detectChanges();
   }
 
   onSubmit(): void {
-    if (this.carForm.valid) {
-      this.loading = true;
-      this.error = '';
-      this.success = '';
+    if (this.carForm.invalid) {
+      this.markFormGroupTouched();
+      return;
+    }
 
-      const formData: CarCreateUpdate = {
-        ...this.carForm.value,
-        image: this.selectedImage || undefined
-      };
+    this.loading = true;
+    this.error = '';
+    this.success = '';
+    this.cd.detectChanges();
 
-      this.carService.updateCar(this.carId, formData).subscribe({
-        next: () => {
+    const startTime = Date.now();
+
+    const formData: CarCreateUpdate = {
+      ...this.carForm.value,
+      image: this.selectedImage || undefined
+    };
+
+    this.carService.updateCar(this.carId, formData).subscribe({
+      next: () => {
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(1000 - elapsed, 0);
+
+        setTimeout(() => {
           this.loading = false;
-          this.success = 'Car updated successfully!';
+          this.showToast('Car updated successfully!', 'success');
           setTimeout(() => {
             this.router.navigate(['/car-admin/Cars']);
-          }, 1500);
-        },
-        error: (error) => {
+          }, 1000);
+        }, remaining);
+      },
+      error: (err) => {
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(1000 - elapsed, 0);
+
+        setTimeout(() => {
           this.loading = false;
-          this.error = 'Failed to update car. Please try again.';
-          console.error('Error updating car:', error);
-        }
-      });
-    } else {
-      this.markFormGroupTouched();
-    }
+          this.showToast('Failed to update car. Please try again.', 'error');
+        }, remaining);
+      }
+    });
   }
 
   private markFormGroupTouched(): void {
@@ -187,20 +216,42 @@ onImageSelected(event: any): void {
     return this.imagePreview || this.currentImageUrl;
   }
 
-  // Add these methods to your component class
-onDragOver(event: DragEvent): void {
-  event.preventDefault();
-  (event.currentTarget as HTMLElement).classList.add('dragover');
-}
+  // Drag & Drop
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    (event.currentTarget as HTMLElement).classList.add('dragover');
+  }
 
-onDragLeave(event: DragEvent): void {
-  (event.currentTarget as HTMLElement).classList.remove('dragover');
-}
+  onDragLeave(event: DragEvent): void {
+    (event.currentTarget as HTMLElement).classList.remove('dragover');
+  }
 
-onDrop(event: DragEvent): void {
-  event.preventDefault();
-  (event.currentTarget as HTMLElement).classList.remove('dragover');
-  this.onImageSelected(event);
-}
+  onDrop(event: DragEvent): void {
+    event.preventDefault();
+    (event.currentTarget as HTMLElement).classList.remove('dragover');
+    this.onImageSelected(event);
+  }
 
+  // === Toast Management ===
+  showToast(message: string, type: 'success' | 'error' | 'info'): void {
+    const id = ++this.toastId;
+    this.toasts.push({ id, message, type, visible: true });
+
+    this.cd.detectChanges();
+
+    setTimeout(() => {
+      this.hideToast(id);
+    }, 5000);
+  }
+
+  hideToast(id: number): void {
+    const toast = this.toasts.find(t => t.id === id);
+    if (toast) {
+      toast.visible = false;
+      setTimeout(() => {
+        this.toasts = this.toasts.filter(t => t.id !== id);
+        this.cd.detectChanges();
+      }, 300);
+    }
+  }
 }

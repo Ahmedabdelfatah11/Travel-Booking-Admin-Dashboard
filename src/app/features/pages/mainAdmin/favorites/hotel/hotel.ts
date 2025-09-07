@@ -35,8 +35,7 @@ export class HotelComponent implements OnInit {
           this.cd.detectChanges();
 
         },
-        error: (err) => {
-          console.error('Error fetching hotel:', err);
+        error: (err:any) => {
           this.error = 'Failed to load hotel details';
           this.loading = false;
           this.cd.detectChanges();

@@ -12,7 +12,7 @@ export class HomeRedirect {
   private router = inject(Router);
 
   constructor() {
-    // ✅ Only redirect if not already on /login
+
     if (this.router.url === '/login') {
       return; // Let login page render
     }
@@ -35,6 +35,6 @@ export class HomeRedirect {
     else if (this.auth.isLoggedIn()) {
       this.router.navigate(['/unauthorized'], { replaceUrl: true });
     }
-    // ✅ If not logged in, do nothing — let the user go to /login
+
   }
 }

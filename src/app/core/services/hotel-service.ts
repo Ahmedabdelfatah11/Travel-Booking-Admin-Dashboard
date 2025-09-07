@@ -1,4 +1,3 @@
-// hotel.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { catchError, Observable, throwError } from 'rxjs';
@@ -58,7 +57,6 @@ export class HotelService {
   }
   getMyHotels(): Observable<HotelDTO[]> {
     const url = `${this.baseUrl}/my-hotels`;
-    console.log('🚀 Calling my-Hotel And Rooms:', url); // 🔍 DEBUG
     return this.http.get<HotelDTO[]>(url, { headers: this.getAuthHeaders() })
       .pipe(catchError(this.handleError));
   }
@@ -102,18 +100,11 @@ export class HotelService {
       if (error.error) {
         try {
           errorDetails = JSON.stringify(error.error, null, 2);
-          console.error('Backend Error Details:', error.error);
         } catch (e) {
           errorDetails = error.error;
         }
       }
     }
-
-    console.error('API Error:', errorMsg);
-    if (errorDetails) {
-      console.error('Error Body:', errorDetails);
-    }
-
     return throwError(() => new Error(`${errorMsg} | Details: ${errorDetails}`));
   }
 }

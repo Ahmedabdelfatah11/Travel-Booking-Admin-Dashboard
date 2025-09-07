@@ -45,7 +45,6 @@ export class HotelAgencyRoomList {
         }
       },
       error: (err) => {
-        console.error('Error loading Rooms:', err);
         this.error.set('Failed to load Rooms.');
       }
     });
@@ -84,7 +83,6 @@ export class HotelAgencyRoomList {
         }, 3000);
       },
       error: (err) => {
-        console.error('Error deleting Room:', err);
         this.error.set('Failed to delete Room. Please try again.');
       }
     });

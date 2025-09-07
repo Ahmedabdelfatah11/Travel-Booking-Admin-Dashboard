@@ -53,7 +53,6 @@ export class FlightAgencyBookingPending implements OnInit {
       const flightCompanyId = payload['FlightCompanyId'];
       return flightCompanyId ? parseInt(flightCompanyId) : null;
     } catch (error) {
-      console.error('Error decoding token:', error);
       return null;
     }
   }
@@ -87,9 +86,7 @@ export class FlightAgencyBookingPending implements OnInit {
         .filter(b => b.bookingType === BookingType.Flight && b.status === Status.Pending && b.agencyDetails?.flightCompanyId === this.flightCompanyId) || [];
 
       this.updateStatistics();
-      console.log('Pending bookings loaded:', this.pendingBookings);
     } catch (error) {
-      console.error('Error loading pending bookings:', error);
       this.error = 'Failed to load pending flight bookings. Please try again.';
     } finally {
       this.loading = false;

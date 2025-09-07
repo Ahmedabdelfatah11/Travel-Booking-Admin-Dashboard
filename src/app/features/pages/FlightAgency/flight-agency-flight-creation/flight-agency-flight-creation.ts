@@ -69,7 +69,6 @@ export class FlightAgencyFlightCreation implements OnInit {
         this.flightCompanies = companies;
       },
       error: (error) => {
-        console.error('Error loading flight companies:', error);
         this.showError('Failed to load flight companies');
       }
     });
@@ -117,7 +116,6 @@ export class FlightAgencyFlightCreation implements OnInit {
           this.resetForm();
         },
         error: (error) => {
-          console.error('Error creating flight:', error);
           this.showError('Failed to create flight. Please try again.');
         },
         complete: () => {

@@ -94,11 +94,9 @@ export class CarService {
       }
     }
     
-    console.error('Car Service Error:', error);
     return throwError(() => new Error(errorMessage));
   }
 
-  // الطريقة الأصلية للحصول على جميع السيارات
   getCars(params?: CarSpecParams): Observable<Pagination<Car>> {
     let httpParams = new HttpParams();
     
@@ -128,7 +126,6 @@ export class CarService {
     );
   }
 
-  // طريقة جديدة للحصول على سيارات شركة معينة من خلال getMyCompanies
   getCarsByCompanyFromMyCompanies(
     carRentalService: any, 
     companyId: number, 
@@ -136,17 +133,13 @@ export class CarService {
   ): Observable<Pagination<Car>> {
     return carRentalService.getMyCompanies().pipe(
       map((companies: any[]) => {
-        // البحث عن الشركة المطلوبة
         const targetCompany = companies.find(company => company.id === companyId);
         
         if (!targetCompany) {
           throw new Error(`Company with ID ${companyId} not found in your companies`);
         }
 
-        // استخراج سيارات هذه الشركة (إذا كانت متوفرة في البيانات المُعادة)
         let companyCars: Car[] = targetCompany.cars || [];
-        
-        // تطبيق البحث إذا كان موجود
         if (params?.search && params.search.trim()) {
           const searchLower = params.search.toLowerCase().trim();
           companyCars = companyCars.filter(car => 
@@ -156,12 +149,10 @@ export class CarService {
           );
         }
 
-        // تطبيق الترتيب
         if (params?.sort) {
           companyCars = this.sortCars(companyCars, params.sort);
         }
 
-        // تطبيق الترقيم
         const pageIndex = params?.pageIndex || 1;
         const pageSize = params?.pageSize || 10;
         const startIndex = (pageIndex - 1) * pageSize;
@@ -179,7 +170,6 @@ export class CarService {
     );
   }
 
-  // Helper method للترتيب
   private sortCars(cars: Car[], sortBy: string): Car[] {
     return cars.sort((a, b) => {
       switch (sortBy) {

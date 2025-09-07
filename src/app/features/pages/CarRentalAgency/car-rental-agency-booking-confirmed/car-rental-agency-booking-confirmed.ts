@@ -6,6 +6,14 @@ import { CarRentalService, DashboardStats } from '../../../../core/services/CarR
 import { BookingDto, BookingService, Status, BookingType } from '../../../../core/services/booking-services';
 import { CarService } from '../../../../core/services/Car-Services';
 
+// Toast interface
+interface Toast {
+  id: number;
+  message: string;
+  type: 'success' | 'error' | 'info';
+  visible: boolean;
+}
+
 @Component({
   selector: 'app-car-rental-agency-booking-confirmed',
   standalone: true,
@@ -16,14 +24,14 @@ import { CarService } from '../../../../core/services/Car-Services';
 export class CarRentalAgencyBookingConfirmed implements OnInit {
   confirmedBookings: BookingDto[] = [];
   filteredBookings: BookingDto[] = [];
-  loading = true;
+  loading = false;
   error = '';
-  
+
   // Filter properties
   searchTerm = '';
   dateFilter = '';
   sortBy = 'newest';
-  
+
   // Statistics
   stats = {
     totalConfirmed: 0,
@@ -31,6 +39,10 @@ export class CarRentalAgencyBookingConfirmed implements OnInit {
     averageBookingValue: 0,
     thisMonthBookings: 0
   };
+
+  // Toasts
+  private toastId = 0;
+  toasts: Toast[] = [];
 
   constructor(
     private bookingService: BookingService,
@@ -45,11 +57,14 @@ export class CarRentalAgencyBookingConfirmed implements OnInit {
   loadConfirmedBookings(): void {
     this.loading = true;
     this.error = '';
+    this.cdr.detectChanges(); // Force UI update
+
+    const startTime = Date.now();
 
     const userCompanyId = this.getUserCompanyId();
     if (!userCompanyId) {
-      this.error = 'CarRentalCompanyId not found in token.';
-      this.loading = false;
+      this.showToast('CarRentalCompanyId not found in token.', 'error');
+      this.finishLoading(startTime);
       return;
     }
 
@@ -62,44 +77,52 @@ export class CarRentalAgencyBookingConfirmed implements OnInit {
           
           return isCarBooking && isConfirmed && isMyCompany;
         });
-        
+
         this.confirmedBookings = confirmedCarBookings;
         this.filteredBookings = [...confirmedCarBookings];
         this.calculateStats();
         this.applySorting();
-        this.loading = false;
-        this.cdr.detectChanges();
+        this.finishLoading(startTime);
       },
       error: (err) => {
         this.handleError(err);
+        this.finishLoading(startTime);
       }
     });
+  }
+
+  private finishLoading(startTime: number): void {
+    const elapsed = Date.now() - startTime;
+    const remaining = Math.max(1000 - elapsed, 0);
+
+    setTimeout(() => {
+      this.loading = false;
+      this.cdr.detectChanges();
+    }, remaining);
   }
 
   private getUserCompanyId(): number | null {
     const token = localStorage.getItem('authToken');
     if (!token) return null;
-    
+
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
       return payload.CarRentalCompanyId ? parseInt(payload.CarRentalCompanyId) : null;
     } catch (e) {
-      console.error('Error parsing token:', e);
       return null;
     }
   }
 
   private handleError(err: any): void {
+    let message = '';
     if (err.status === 401) {
-      this.error = 'Authentication failed. Please login again.';
+      message = 'Authentication failed. Please login again.';
     } else if (err.status === 403) {
-      this.error = 'Access denied. You may not have CarRentalAdmin permissions.';
+      message = 'Access denied. You may not have CarRentalAdmin permissions.';
     } else {
-      this.error = `Failed to load confirmed bookings. Error: ${err.status} - ${err.message || 'Unknown error'}`;
+      message = `Failed to load confirmed bookings: ${err.status} - ${err.message || 'Unknown error'}`;
     }
-    
-    this.loading = false;
-    this.cdr.detectChanges();
+    this.showToast(message, 'error');
   }
 
   calculateStats(): void {
@@ -162,16 +185,40 @@ export class CarRentalAgencyBookingConfirmed implements OnInit {
   }
 
   cancelBooking(bookingId: number): void {
-    if (confirm('Are you sure you want to cancel this confirmed booking? This action may require customer notification.')) {
-      this.bookingService.cancelBooking(bookingId).subscribe({
-        next: () => {
-          this.loadConfirmedBookings();
-        },
-        error: (err) => {
-          alert('Failed to cancel booking. Please try again.');
-          console.error('Error canceling booking:', err);
-        }
-      });
+    // Show toast instead of confirm()
+    this.showToast('Cancelling booking...', 'info');
+
+    this.bookingService.cancelBooking(bookingId).subscribe({
+      next: () => {
+        this.showToast('Booking cancelled successfully!', 'success');
+        this.loadConfirmedBookings();
+      },
+      error: (err) => {
+        this.showToast('Failed to cancel booking. Please try again.', 'error');
+      }
+    });
+  }
+
+  // === Toast Management ===
+  showToast(message: string, type: 'success' | 'error' | 'info'): void {
+    const id = ++this.toastId;
+    this.toasts.push({ id, message, type, visible: true });
+
+    this.cdr.detectChanges(); // Ensure toast appears
+
+    setTimeout(() => {
+      this.hideToast(id);
+    }, 5000);
+  }
+
+  hideToast(id: number): void {
+    const toast = this.toasts.find(t => t.id === id);
+    if (toast) {
+      toast.visible = false;
+      setTimeout(() => {
+        this.toasts = this.toasts.filter(t => t.id !== id);
+        this.cdr.detectChanges();
+      }, 300);
     }
   }
 
@@ -236,4 +283,3 @@ export class CarRentalAgencyBookingConfirmed implements OnInit {
     window.URL.revokeObjectURL(url);
   }
 }
-

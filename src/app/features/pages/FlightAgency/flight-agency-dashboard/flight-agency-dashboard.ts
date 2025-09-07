@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, ChangeDetectorRef } from '@angular/core';
 import { FlightService } from '../../../../core/services/flight-service';
 import { finalize } from 'rxjs';
 import { CommonModule } from '@angular/common';
@@ -25,37 +25,48 @@ export class FlightAgencyDashboard implements OnInit {
   loading = signal<boolean>(true);
   error = signal<string | null>(null);
   stats = signal<FlightDashboardStats | null>(null);
-  
+
   // Chart data for display
   chartLabels = signal<string[]>([]);
   chartData = signal<number[]>([]);
-  
+
   // Mock recent activities (replace with real data when available)
   recentActivities = signal<RecentActivity[]>([]);
 
   private flightService = inject(FlightService);
+  private cd = inject(ChangeDetectorRef);
 
   ngOnInit(): void {
     this.loadDashboardData();
   }
 
   loadDashboardData(): void {
-  this.loading.set(true);
-  this.error.set(null);
+    this.loading.set(true);
+    this.error.set(null);
+    this.cd.detectChanges(); // Force UI update
 
-  this.flightService.getDashboardStats().pipe(
-    finalize(() => this.loading.set(false))
-  ).subscribe({
-    next: (data) => {
-      this.stats.set(data);
-      this.processChartData(data.bookingsChart);
-    },
-    error: (err) => {
-      console.error('Error loading dashboard data:', err);
-      this.error.set('Failed to load dashboard data. Please try again.');
-    }
-  });
-}
+    const startTime = Date.now();
+
+    this.flightService.getDashboardStats().pipe(
+      finalize(() => {
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(1000 - elapsed, 0);
+
+        setTimeout(() => {
+          this.loading.set(false);
+          this.cd.detectChanges();
+        }, remaining);
+      })
+    ).subscribe({
+      next: (data) => {
+        this.stats.set(data);
+        this.processChartData(data.bookingsChart);
+      },
+      error: (err) => {
+        this.error.set('Failed to load dashboard data. Please try again.');
+      }
+    });
+  }
 
   private processChartData(chartData: { date: string; count: number }[]): void {
     const labels = chartData.map(item => {
@@ -63,7 +74,7 @@ export class FlightAgencyDashboard implements OnInit {
       return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     });
     const data = chartData.map(item => item.count);
-    
+
     this.chartLabels.set(labels);
     this.chartData.set(data);
   }
@@ -105,102 +116,93 @@ export class FlightAgencyDashboard implements OnInit {
       return `${diffDays} days ago`;
     }
   }
+
   getMaxValue(): number {
-  return Math.max(...this.chartData());
-}
-
-getPercentage(value: number): number {
-  return (value / this.getMaxValue()) * 100;
-}
-// Add these methods to your Angular component class
-
-// Helper Methods
-formatCurrency(amount: number): string {
-  if (!amount) return '$0';
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  }).format(amount);
-}
-// Activity Helper Methods
-getActivityTextColor(status: string): string {
-  switch (status?.toLowerCase()) {
-    case 'success': return 'text-success';
-    case 'confirmed': return 'text-success';
-    case 'cancelled': return 'text-danger';
-    case 'pending': return 'text-warning';
-    case 'failed': return 'text-danger';
-    default: return 'text-primary';
+    return Math.max(...this.chartData());
   }
-}
 
-getActivityBadgeClass(status: string): string {
-  switch (status?.toLowerCase()) {
-    case 'success': return 'bg-success bg-opacity-10 text-success';
-    case 'confirmed': return 'bg-success bg-opacity-10 text-success';
-    case 'cancelled': return 'bg-danger bg-opacity-10 text-danger';
-    case 'pending': return 'bg-warning bg-opacity-10 text-warning';
-    case 'failed': return 'bg-danger bg-opacity-10 text-danger';
-    default: return 'bg-primary bg-opacity-10 text-primary';
+  getPercentage(value: number): number {
+    return (value / this.getMaxValue()) * 100;
   }
-}
 
+  // Helper Methods
+  formatCurrency(amount: number): string {
+    if (!amount) return '$0';
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
+  }
 
+  // Activity Helper Methods
+  getActivityTextColor(status: string): string {
+    switch (status?.toLowerCase()) {
+      case 'success': return 'text-success';
+      case 'confirmed': return 'text-success';
+      case 'cancelled': return 'text-danger';
+      case 'pending': return 'text-warning';
+      case 'failed': return 'text-danger';
+      default: return 'text-primary';
+    }
+  }
 
-// Chart Interaction
-onChartBarClick(index: number, value: number): void {
-  const label = this.chartLabels()[index];
-  console.log(`Clicked on ${label}: $${value.toLocaleString()}`);
-  // You can add more interaction logic here
-  // For example, show detailed view for that day
-}
+  getActivityBadgeClass(status: string): string {
+    switch (status?.toLowerCase()) {
+      case 'success': return 'bg-success bg-opacity-10 text-success';
+      case 'confirmed': return 'bg-success bg-opacity-10 text-success';
+      case 'cancelled': return 'bg-danger bg-opacity-10 text-danger';
+      case 'pending': return 'bg-warning bg-opacity-10 text-warning';
+      case 'failed': return 'bg-danger bg-opacity-10 text-danger';
+      default: return 'bg-primary bg-opacity-10 text-primary';
+    }
+  }
 
+  // Chart Interaction
+  onChartBarClick(index: number, value: number): void {
+    const label = this.chartLabels()[index];
+    // You can add more interaction logic here
+  }
 
+  // Animation helper for counters
+  animateCounters(): void {
+    const counters = document.querySelectorAll('.counter');
+    counters.forEach(counter => {
+      const target = parseInt(counter.textContent?.replace(/[^0-9]/g, '') || '0');
+      const increment = target / 100;
+      let current = 0;
 
-openSettings(): void {
-  // Navigate to settings or open settings modal
-  console.log('Opening settings...');
-  // You can navigate to settings page or open a modal
-}
+      const timer = setInterval(() => {
+        current += increment;
+        if (current >= target) {
+          counter.textContent = target.toLocaleString();
+          clearInterval(timer);
+        } else {
+          counter.textContent = Math.floor(current).toLocaleString();
+        }
+      }, 20);
+    });
+  }
 
+  // Lifecycle hook to start animations
+  ngAfterViewInit(): void {
+    // Start counter animation after view is initialized
+    setTimeout(() => this.animateCounters(), 500);
 
+    // Initialize Bootstrap tooltips
+    this.initializeTooltips();
+  }
 
-// Animation helper for counters
-animateCounters(): void {
-  const counters = document.querySelectorAll('.counter');
-  counters.forEach(counter => {
-    const target = parseInt(counter.textContent?.replace(/[^0-9]/g, '') || '0');
-    const increment = target / 100;
-    let current = 0;
-    
-    const timer = setInterval(() => {
-      current += increment;
-      if (current >= target) {
-        counter.textContent = target.toLocaleString();
-        clearInterval(timer);
-      } else {
-        counter.textContent = Math.floor(current).toLocaleString();
-      }
-    }, 20);
-  });
-}
+  private initializeTooltips(): void {
+    // Initialize Bootstrap tooltips for chart bars
+    const tooltipTriggerList = Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.forEach(tooltipTriggerEl => {
+      new (window as any).bootstrap.Tooltip(tooltipTriggerEl);
+    });
+  }
 
-// Lifecycle hook to start animations
-ngAfterViewInit(): void {
-  // Start counter animation after view is initialized
-  setTimeout(() => this.animateCounters(), 500);
-  
-  // Initialize Bootstrap tooltips
-  this.initializeTooltips();
-}
-
-private initializeTooltips(): void {
-  // Initialize Bootstrap tooltips for chart bars
-  const tooltipTriggerList = Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-  tooltipTriggerList.forEach(tooltipTriggerEl => {
-    new (window as any).bootstrap.Tooltip(tooltipTriggerEl);
-  });
-}
+  openSettings(): void {
+    console.log('Opening settings...');
+  }
 }

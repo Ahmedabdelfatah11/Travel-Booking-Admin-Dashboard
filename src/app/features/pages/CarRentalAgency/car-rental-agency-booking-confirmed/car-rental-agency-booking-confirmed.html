@@ -1,15 +1,37 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Confirmed Car Rental Bookings</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-</head>
-<body>
-<!-- car-rental-agency-booking-confirmed.html -->
 <div class="container-fluid py-4">
+  <!-- Full-Screen Loader -->
+  @if (loading) {
+    <div class="loader-container">
+      <div class="loader">
+        <div class="loader__ball"></div>
+        <div class="loader__ball"></div>
+        <div class="loader__ball"></div>
+      </div>
+    </div>
+  }
+
+  <!-- Toasts -->
+  @for (toast of toasts; track toast.id) {
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1050;">
+      <div
+        class="toast {{ toast.type === 'success' ? 'bg-success' : toast.type === 'error' ? 'bg-danger' : 'bg-info' }} text-white"
+        [class.fade]="!toast.visible"
+        [class.show]="toast.visible"
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+        style="min-width: 300px;"
+      >
+        <div class="d-flex">
+          <div class="toast-body">
+            {{ toast.message }}
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" (click)="hideToast(toast.id)"></button>
+        </div>
+      </div>
+    </div>
+  }
+
   <!-- Header -->
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="h3 mb-0 text-gray-800">
@@ -29,7 +51,7 @@
   </div>
 
   <!-- Statistics Cards -->
-  <div class="row mb-4">
+  <div *ngIf="!loading" class="row mb-4">
     <div class="col-xl-3 col-md-6 mb-4">
       <div class="card border-left-success shadow h-100 py-2">
         <div class="card-body">
@@ -112,7 +134,7 @@
   </div>
 
   <!-- Filters -->
-  <div class="card shadow mb-4">
+  <div *ngIf="!loading" class="card shadow mb-4">
     <div class="card-header py-3">
       <h6 class="m-0 font-weight-bold text-primary">
         <i class="fas fa-filter me-2"></i>
@@ -168,149 +190,121 @@
     </div>
   </div>
 
-  <!-- Loading State -->
-  <div *ngIf="loading" class="d-flex justify-content-center py-5">
-    <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">Loading...</span>
-    </div>
-  </div>
-
   <!-- Error State -->
-  <div *ngIf="error" class="alert alert-danger" role="alert">
-    <i class="fas fa-exclamation-triangle me-2"></i>
-    {{ error }}
-    <button class="btn btn-outline-danger btn-sm ms-3" (click)="loadConfirmedBookings()">
-      <i class="fas fa-redo me-1"></i>
-      Retry
-    </button>
-  </div>
+  @if (error) {
+    <div class="alert alert-danger" role="alert">
+      <i class="fas fa-exclamation-triangle me-2"></i>
+      {{ error }}
+      <button class="btn btn-outline-danger btn-sm ms-3" (click)="loadConfirmedBookings()">
+        <i class="fas fa-redo me-1"></i>
+        Retry
+      </button>
+    </div>
+  }
 
   <!-- Confirmed Bookings List -->
-  <div *ngIf="!loading && !error" class="card shadow mb-4">
-    <div class="card-header py-3 d-flex justify-content-between align-items-center">
-      <h6 class="m-0 font-weight-bold text-primary">
-        <i class="fas fa-list me-2"></i>
-        Confirmed Bookings ({{ filteredBookings.length }})
-      </h6>
-      <span class="badge bg-success fs-6">{{ formatCurrency(stats.totalRevenue) }} Total Revenue</span>
-    </div>
-    <div class="card-body">
-      <!-- No bookings message -->
-      <div *ngIf="filteredBookings.length === 0" class="text-center py-5">
-        <i class="fas fa-check-circle fa-3x text-gray-300 mb-3"></i>
-        <h5 class="text-gray-600">No confirmed bookings found</h5>
-        <p class="text-gray-500">
-          <span *ngIf="confirmedBookings.length === 0">You don't have any confirmed bookings yet.</span>
-          <span *ngIf="confirmedBookings.length > 0">Try adjusting your filters to see more results.</span>
-        </p>
+  @if (!loading && !error) {
+    <div class="card shadow mb-4">
+      <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">
+          <i class="fas fa-list me-2"></i>
+          Confirmed Bookings ({{ filteredBookings.length }})
+        </h6>
+        <span class="badge bg-success fs-6">{{ formatCurrency(stats.totalRevenue) }} Total Revenue</span>
       </div>
-
-      <!-- Bookings grid for better visual presentation -->
-      <div *ngIf="filteredBookings.length > 0" class="row">
-        <div *ngFor="let booking of filteredBookings; trackBy: trackByBookingId" 
-             class="col-lg-6 col-xl-4 mb-4">
-          <div class="card h-100 border-left-success">
-            <div class="card-header bg-light py-2">
-              <div class="d-flex justify-content-between align-items-center">
-                <span class="badge bg-primary">#{{ booking.id }}</span>
-                <span class="badge bg-success">Confirmed</span>
-              </div>
-            </div>
-            <div class="card-body">
-              <!-- Customer Info -->
-              <div class="mb-3">
-                <h6 class="card-title mb-1">
-                  <i class="fas fa-user me-1 text-primary"></i>
-                  {{ booking.customerEmail }}
-                </h6>
-              </div>
-
-              <!-- Car Details -->
-              <div class="mb-3">
-                <h6 class="text-primary">
-                  <i class="fas fa-car me-1"></i>
-                  {{ booking.agencyDetails?.model || 'N/A' }}
-                </h6>
-                <div class="small text-muted">
-                  <div class="mb-1">
-                    <i class="fas fa-map-marker-alt me-1"></i>
-                    {{ booking.agencyDetails?.location || 'N/A' }}
-                  </div>
-                  <div>
-                    <i class="fas fa-users me-1"></i>
-                    {{ booking.agencyDetails?.capacity || 'N/A' }} passengers
-                  </div>
-                </div>
-              </div>
-
-              <!-- Dates -->
-              <div class="mb-3">
-                <div class="row text-sm">
-                  <div class="col-6">
-                    <div class="text-muted">Start Date</div>
-                    <div class="fw-bold">{{ formatDate(booking.startDate) }}</div>
-                  </div>
-                  <div class="col-6">
-                    <div class="text-muted">End Date</div>
-                    <div class="fw-bold">{{ formatDate(booking.endDate) }}</div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Price -->
-              <div class="mb-3">
-                <div class="text-center">
-                  <span class="h5 text-success fw-bold">
-                    {{ formatCurrency(booking.totalPrice || 0) }}
-                  </span>
-                </div>
-              </div>
-
-              <!-- Actions -->
-              <div class="d-grid gap-2">
-                <button 
-                  class="btn btn-outline-danger btn-sm" 
-                  (click)="cancelBooking(booking.id)">
-                  <i class="fas fa-ban me-1"></i>
-                  Cancel Booking
-                </button>
-                <button 
-                  class="btn btn-outline-info btn-sm" 
-                  [routerLink]="['/booking', booking.id]">
-                  <i class="fas fa-eye me-1"></i>
-                  View Details
-                </button>
-              </div>
-            </div>
+      <div class="card-body">
+        @if (filteredBookings.length === 0) {
+          <div class="text-center py-5">
+            <i class="fas fa-check-circle fa-3x text-gray-300 mb-3"></i>
+            <h5 class="text-gray-600">No confirmed bookings found</h5>
+            <p class="text-gray-500">
+              <span *ngIf="confirmedBookings.length === 0">You don't have any confirmed bookings yet.</span>
+              <span *ngIf="confirmedBookings.length > 0">Try adjusting your filters to see more results.</span>
+            </p>
           </div>
-        </div>
+        } @else {
+          <div class="row">
+            @for (booking of filteredBookings; track booking.id) {
+              <div class="col-lg-6 col-xl-4 mb-4">
+                <div class="card h-100 border-left-success">
+                  <div class="card-header bg-light py-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <span class="badge bg-primary">#{{ booking.id }}</span>
+                      <span class="badge bg-success">Confirmed</span>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <!-- Customer Info -->
+                    <div class="mb-3">
+                      <h6 class="card-title mb-1">
+                        <i class="fas fa-user me-1 text-primary"></i>
+                        {{ booking.customerEmail }}
+                      </h6>
+                    </div>
+
+                    <!-- Car Details -->
+                    <div class="mb-3">
+                      <h6 class="text-primary">
+                        <i class="fas fa-car me-1"></i>
+                        {{ booking.agencyDetails?.model || 'N/A' }}
+                      </h6>
+                      <div class="small text-muted">
+                        <div class="mb-1">
+                          <i class="fas fa-map-marker-alt me-1"></i>
+                          {{ booking.agencyDetails?.location || 'N/A' }}
+                        </div>
+                        <div>
+                          <i class="fas fa-users me-1"></i>
+                          {{ booking.agencyDetails?.capacity || 'N/A' }} passengers
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Dates -->
+                    <div class="mb-3">
+                      <div class="row text-sm">
+                        <div class="col-6">
+                          <div class="text-muted">Start Date</div>
+                          <div class="fw-bold">{{ formatDate(booking.startDate) }}</div>
+                        </div>
+                        <div class="col-6">
+                          <div class="text-muted">End Date</div>
+                          <div class="fw-bold">{{ formatDate(booking.endDate) }}</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Price -->
+                    <div class="mb-3">
+                      <div class="text-center">
+                        <span class="h5 text-success fw-bold">
+                          {{ formatCurrency(booking.totalPrice || 0) }}
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="d-grid gap-2">
+                      <button 
+                        class="btn btn-outline-danger btn-sm" 
+                        (click)="cancelBooking(booking.id)">
+                        <i class="fas fa-ban me-1"></i>
+                        Cancel Booking
+                      </button>
+                      <button 
+                        class="btn btn-outline-info btn-sm" 
+                        [routerLink]="['/booking', booking.id]">
+                        <i class="fas fa-eye me-1"></i>
+                        View Details
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
       </div>
     </div>
-  </div>
+  }
 </div>
-
-<style>
-.border-left-primary { border-left: 0.25rem solid #4e73df !important; }
-.border-left-success { border-left: 0.25rem solid #1cc88a !important; }
-.border-left-warning { border-left: 0.25rem solid #f6c23e !important; }
-.border-left-info { border-left: 0.25rem solid #36b9cc !important; }
-
-.text-primary { color: #4e73df !important; }
-.text-success { color: #1cc88a !important; }
-.text-warning { color: #f6c23e !important; }
-.text-info { color: #36b9cc !important; }
-.text-gray-300 { color: #dddfeb !important; }
-.text-gray-500 { color: #858796 !important; }
-.text-gray-600 { color: #6e707e !important; }
-.text-gray-800 { color: #5a5c69 !important; }
-
-.card { box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15) !important; }
-
-.fa-spin { animation: fa-spin 2s infinite linear; }
-@keyframes fa-spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(359deg); }
-}
-</style>
-</body>
-</html>

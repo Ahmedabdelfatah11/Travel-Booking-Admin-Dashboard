@@ -1,11 +1,10 @@
-import { afterNextRender, Component, inject, Inject, PLATFORM_ID, signal } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { isPlatformBrowser } from '@angular/common';
 import { Auth } from '../../../../../core/services/auth';
-import { Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';
 import { ToastService } from '../../../../../core/services/toast-service';
 import { SuperadminServices } from '../../../../../core/services/superadmin-services';
+import { afterNextRender, Component, Inject, inject, PLATFORM_ID, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-users-list',
@@ -60,7 +59,6 @@ users = signal<User[]>([]);
       this.loadUsers();
     });
   }
-
 
 loadUsers() {
   this.loading.set(true);
@@ -134,6 +132,7 @@ deleteUser(id: string, email: string) {
       });
     }
   }
+
 //Roles
 assignRole() {
   if (!this.currentAction || !this.selectedCompanyId) {

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -21,12 +21,13 @@ export class CarRentalAgencyCarCreation implements OnInit {
   success = '';
   companies: CarRentalCompany[] = [];
 
-  constructor(
-    private fb: FormBuilder,
-    private carService: CarService,
-    private carRentalService: CarRentalService,
-    private router: Router
-  ) {
+ constructor(
+  private fb: FormBuilder,
+  private carService: CarService,
+  private carRentalService: CarRentalService,
+  private router: Router,
+  private cd: ChangeDetectorRef  // ← Add this
+) { 
     this.carForm = this.fb.group({
       model: ['', [Validators.required, Validators.minLength(2)]],
       price: ['', [Validators.required, Validators.min(0.01)]],
@@ -53,7 +54,6 @@ export class CarRentalAgencyCarCreation implements OnInit {
       },
       error: (error) => {
         this.error = 'Failed to load rental companies.';
-        console.error('Error loading companies:', error);
       }
     });
   }
@@ -85,35 +85,50 @@ export class CarRentalAgencyCarCreation implements OnInit {
     }
   }
 
-  onSubmit(): void {
-    if (this.carForm.valid) {
-      this.loading = true;
-      this.error = '';
-      this.success = '';
-
-      const formData: CarCreateUpdate = {
-        ...this.carForm.value,
-        image: this.selectedImage || undefined
-      };
-
-      this.carService.createCar(formData).subscribe({
-        next: (response) => {
-          this.loading = false;
-          this.success = 'Car created successfully!';
-          setTimeout(() => {
-            this.router.navigate(['/car-admin/Cars']);
-          }, 1500);
-        },
-        error: (error) => {
-          this.loading = false;
-          this.error = 'Failed to create car. Please try again.';
-          console.error('Error creating car:', error);
-        }
-      });
-    } else {
-      this.markFormGroupTouched();
-    }
+onSubmit(): void {
+  if (this.carForm.invalid) {
+    this.markFormGroupTouched();
+    return;
   }
+
+  this.loading = true;
+  this.error = '';
+  this.success = '';
+  this.cd.detectChanges(); // ✅ Force UI update to show loader
+
+  const startTime = Date.now();
+
+  const formData: CarCreateUpdate = {
+    ...this.carForm.value,
+    image: this.selectedImage || undefined
+  };
+
+  this.carService.createCar(formData).subscribe({
+    next: (response) => {
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(1000 - elapsed, 0);
+
+      setTimeout(() => {
+        this.loading = false;
+        this.success = 'Car created successfully!';
+        this.cd.detectChanges(); // Ensure UI updates
+        setTimeout(() => {
+          this.router.navigate(['/car-admin/Cars']);
+        }, 1000);
+      }, remaining);
+    },
+    error: (err) => {
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(1000 - elapsed, 0);
+
+      setTimeout(() => {
+        this.loading = false;
+        this.error = 'Failed to create car. Please try again.';
+        this.cd.detectChanges(); // Ensure error is shown
+      }, remaining);
+    }
+  });
+}
 
   private markFormGroupTouched(): void {
     Object.keys(this.carForm.controls).forEach(key => {

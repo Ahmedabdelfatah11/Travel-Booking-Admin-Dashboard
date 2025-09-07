@@ -2,3 +2,87 @@ a
 {
     cursor: pointer;
 }
+
+a
+{
+    cursor: pointer;
+}
+#sidenavAccordion
+{
+    background-color: var(--Admin2);
+}
+/* Default: Pyramigo with custom background and teal text */
+.title {
+  background-color: var(--Admin);
+  color: #47ebbf;
+  display: flex;
+  align-items: center;
+  padding: 0 1rem;
+  height: 100%;
+  text-decoration: none;
+}
+.title {
+  background-color: var(--Admin);
+  color: #47ebbf;
+  display: flex;
+  align-items: center;
+  padding: 0 1rem;
+  height: 100%;
+  text-decoration: none;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.title.toggled {
+  background-color: var(--nav) !important;
+  color: white !important;
+}
+.sb-sidenav-toggled .title {
+  background-color: var(--nav) !important;
+  color: white !important;
+}
+
+.sb-topnav {
+  background-color: var(--nav) !important;
+}
+
+.title {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+#sidenavAccordion a
+{
+    color: white !important;
+}
+
+a:hover i
+{
+    color: #47ebbf;
+}
+a:hover
+{
+    background-color: var(--Admin);
+}
+#navbar-logo {
+  filter: brightness(0) invert(1); /* Black → White */
+  transition: filter 0.3s ease;
+}
+
+/* When sidebar is TOGGLED (closed), make logo BLACK */
+.sb-sidenav-toggled #navbar-logo {
+  filter: brightness(0) invert(0); /* No invert → original black */
+  /* Or just: filter: none; if source image is black */
+}
+.nav-item a:hover
+{
+  background-color: var(--Admin2) !important;
+  color: #fff;
+}
+
+
+
+@media screen and (max-width: 996px) {
+  .title
+  {
+    background-color:var(--nav) !important;
+    color: #fff !important;
+  }
+}

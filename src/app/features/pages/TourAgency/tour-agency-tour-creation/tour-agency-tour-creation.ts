@@ -1,13 +1,26 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, FormArray, ReactiveFormsModule } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  Validators,
+  FormArray,
+  AbstractControl,
+  ValidatorFn,
+} from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
+
+// Services
 import { TourService } from '../../../../core/services/tour-service';
-import { CommonModule } from '@angular/common';
+import { ToastService } from '../../../../core/services/toast-service';
 
 // Interfaces
-import { TourCategory, TourReadDto } from '../../../../shared/Interfaces/itour-create';
 import { ITourCompany } from '../../../../shared/Interfaces/ItourCompany';
+
+// Helpers
+import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule } from '@angular/forms';
+import { TourCategory, TourQuestionDto, TourReadDto, TourTicketDto } from '../../../../shared/Interfaces/i-tour';
 
 interface ImagePreview {
   file: File;
@@ -19,10 +32,10 @@ interface ImagePreview {
   templateUrl: './tour-agency-tour-creation.html',
   styleUrls: ['./tour-agency-tour-creation.css'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule]
+  imports: [CommonModule, ReactiveFormsModule],
 })
 export class TourAgencyTourCreation implements OnInit, OnDestroy {
-  addTourForm: FormGroup;
+  addTourForm!: FormGroup;
   categories = Object.values(TourCategory);
   readonly TourCategory = TourCategory;
 
@@ -46,13 +59,14 @@ export class TourAgencyTourCreation implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private tourService: TourService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    public toastService: ToastService
   ) {
     this.addTourForm = this.fb.group({
       id: [null],
       name: ['', [Validators.required, Validators.minLength(3)]],
       destination: ['', Validators.required],
-      startDate: ['', Validators.required],
+      startDate: ['', [Validators.required, this.futureDateValidator()]],
       endDate: ['', Validators.required],
       description: ['', [Validators.required, Validators.minLength(10)]],
       maxGuests: [1, [Validators.required, Validators.min(1)]],
@@ -65,132 +79,64 @@ export class TourAgencyTourCreation implements OnInit, OnDestroy {
       tickets: this.fb.array([]),
       questions: this.fb.array([]),
       includedItems: this.fb.array([], [Validators.minLength(4), Validators.maxLength(10)]),
-      excludedItems: this.fb.array([], [Validators.minLength(4), Validators.maxLength(10)])
-    }, { validators: () => this.imagesRequiredValidator() });
+      excludedItems: this.fb.array([], [Validators.minLength(4), Validators.maxLength(10)]),
+    }, {
+      validators: [this.endDateAfterStartDateValidator()],
+    });
 
     this.initializeDefaultItems();
     this.addTicket();
     this.addQuestion();
     this.updateFormValidity();
   }
-ngOnInit(): void {
-  this.loadingCompanies = true;
-  this.tourCompanies = [];
 
-  this.tourService.getMyTourCompanies().subscribe({
-    next: (companies: ITourCompany[]) => {
-      console.log('✅ Companies loaded:', companies); // ✅ Confirm data
-      this.tourCompanies = companies;
-      this.loadingCompanies = false;
-
-      if (!this.isEditMode && companies.length > 0) {
-        this.addTourForm.patchValue({ tourCompanyId: companies[0].id });
-      }
-    },
-    error: (err) => {
-      console.error('❌ Failed to load companies:', err);
-      this.loadingCompanies = false;
-      this.tourCompanies = [];
-    }
-  });
-
-  this.routeSub = this.route.paramMap.subscribe(params => {
-    const id = params.get('id');
-    if (id) {
-      this.isEditMode = true;
-      this.tourId = +id;
-      this.loadTour(+id);
-    }
-  });
-}
-
+  ngOnInit(): void {
+    this.loadCompanies();
+    this.loadRouteParams();
+  }
 
   ngOnDestroy(): void {
     this.routeSub.unsubscribe();
-    [this.mainImagePreview, ...this.galleryFiles.map(g => g.url)].forEach(url => {
-      if (url) URL.revokeObjectURL(url);
-    });
+    this.revokePreviews();
   }
 
-  // === VALIDATORS ===
-  private imagesRequiredValidator() {
-    const hasMainImage = !!this.mainImage;
-    const hasSixGalleryImages = this.galleryFiles.length === 6;
-    return hasMainImage && hasSixGalleryImages ? null : { imagesRequired: true };
-  }
-
-  // === LOAD TOUR COMPANIES ===
-loadTourCompanies(): Promise<void> {
-  return new Promise((resolve, reject) => {
+  // === DATA LOADING ===
+  private loadCompanies(): void {
+    this.loadingCompanies = true;
     this.tourService.getMyTourCompanies().subscribe({
       next: (companies: ITourCompany[]) => {
-        console.log('✅ Companies loaded:', companies);
         this.tourCompanies = companies;
         this.loadingCompanies = false;
 
-        // Resolve only after data is set
-        resolve();
+        if (!this.isEditMode && companies.length > 0) {
+          this.addTourForm.patchValue({ tourCompanyId: companies[0].id });
+        }
       },
-      error: (err: any) => {
-        console.error('❌ Failed to load companies:', err);
+      error: () => {
         this.loadingCompanies = false;
-        reject(err);
+        this.toastService.show('Could not load tour companies.', 'error');
+      },
+    });
+  }
+
+  private loadRouteParams(): void {
+    this.routeSub = this.route.paramMap.subscribe((params) => {
+      const id = params.get('id');
+      if (id) {
+        this.isEditMode = true;
+        this.tourId = +id;
+        this.loadTour(+id);
       }
     });
-  });
-}
-
-  // === FILE HANDLERS ===
-  onMainImageSelected(event: any): void {
-    const file = event.target.files?.[0];
-    if (!file || !file.type.startsWith('image/')) {
-      alert('Please select a valid image file.');
-      return;
-    }
-
-    if (this.mainImagePreview) URL.revokeObjectURL(this.mainImagePreview);
-
-    this.mainImage = file;
-    this.mainImagePreview = URL.createObjectURL(file);
-    this.updateFormValidity();
   }
 
-  onGalleryImagesSelected(event: any): void {
-    const files = Array.from(event.target.files).slice(0, 6 - this.galleryFiles.length) as File[];
-
-    files.forEach(file => {
-      if (file.type.startsWith('image/')) {
-        this.galleryFiles.push({
-          file,
-          url: URL.createObjectURL(file)
-        });
-      }
-    });
-
-    this.updateFormValidity();
-  }
-
-  removeGalleryImage(index: number): void {
-    const item = this.galleryFiles[index];
-    URL.revokeObjectURL(item.url);
-    this.galleryFiles.splice(index, 1);
-    this.updateFormValidity();
-  }
-
-  // === HELPERS ===
-  public updateFormValidity(): void {
-    this.addTourForm.updateValueAndValidity();
-  }
-
-  // === LOAD EXISTING TOUR ===
-  loadTour(id: number): void {
+  private loadTour(id: number): void {
     this.tourService.getTour(id).subscribe({
       next: (tour) => this.patchFormWithTour(tour),
-      error: (err) => {
-        console.error('Failed to load tour:', err);
-        alert('Could not load tour details.');
+      error: () => {
+        this.toastService.show('Could not load tour details.', 'error');
         this.router.navigate(['/tour-admin/tours']);
-      }
+      },
     });
   }
 
@@ -208,29 +154,109 @@ loadTourCompanies(): Promise<void> {
       price: tour.price,
       category: tour.category,
       languages: tour.languages,
-      tourCompanyId: tour.tourCompanyId
+      tourCompanyId: tour.tourCompanyId,
     });
 
     this.includedItemsArray.clear();
     this.excludedItemsArray.clear();
-
-    tour.includedItems?.forEach(item => this.addIncludedItem(item));
-    tour.excludedItems?.forEach(item => this.addExcludedItem(item));
-
     this.tickets.clear();
-    tour.tickets.forEach(t => this.addTicket(t));
-
     this.questions.clear();
-    tour.questions.forEach(q => this.addQuestion(q));
+
+    tour.includedItems?.forEach((item:string) => this.addIncludedItem(item));
+    tour.excludedItems?.forEach((item:string) => this.addExcludedItem(item));
+    tour.tickets?.forEach((t:TourTicketDto) => this.addTicket(t));
+    tour.questions.forEach((q:TourQuestionDto) => this.addQuestion(q));
 
     this.updateFormValidity();
   }
 
-  // === FORM ARRAY HELPERS ===
-  get tickets(): FormArray { return this.addTourForm.get('tickets') as FormArray; }
-  get questions(): FormArray { return this.addTourForm.get('questions') as FormArray; }
-  get includedItemsArray(): FormArray { return this.addTourForm.get('includedItems') as FormArray; }
-  get excludedItemsArray(): FormArray { return this.addTourForm.get('excludedItems') as FormArray; }
+  // === VALIDATORS ===
+  private futureDateValidator(): ValidatorFn {
+    return (control: AbstractControl) => {
+      const value = control.value;
+      if (!value) return null;
+      const date = new Date(value);
+      return date > new Date() ? null : { pastDate: true };
+    };
+  }
+
+  private endDateAfterStartDateValidator(): ValidatorFn {
+    return (group: AbstractControl) => {
+      const start = group.get('startDate')?.value;
+      const end = group.get('endDate')?.value;
+      if (!start || !end) return null;
+      return new Date(end) > new Date(start) ? null : { endDateBeforeStart: true };
+    };
+  }
+
+  // === FILE HANDLERS ===
+  onMainImageSelected(event: any): void {
+    const file = event.target.files?.[0];
+    if (!file || !file.type.startsWith('image/')) {
+      this.toastService.show('Please select a valid image file.', 'warning');
+      return;
+    }
+
+    this.revokeMainImagePreview();
+    this.mainImage = file;
+    this.mainImagePreview = URL.createObjectURL(file);
+    this.updateFormValidity();
+  }
+
+  onGalleryImagesSelected(event: any): void {
+    const files = Array.from(event.target.files).slice(0, 6 - this.galleryFiles.length) as File[];
+
+    files.forEach((file) => {
+      if (file.type.startsWith('image/')) {
+        this.galleryFiles.push({
+          file,
+          url: URL.createObjectURL(file),
+        });
+      }
+    });
+
+    this.updateFormValidity();
+  }
+
+  removeGalleryImage(index: number): void {
+    URL.revokeObjectURL(this.galleryFiles[index].url);
+    this.galleryFiles.splice(index, 1);
+    this.updateFormValidity();
+  }
+
+  // === HELPERS ===
+  updateFormValidity(): void {
+    this.addTourForm.updateValueAndValidity();
+  }
+
+  private revokePreviews(): void {
+    this.revokeMainImagePreview();
+    this.galleryFiles.forEach((f) => URL.revokeObjectURL(f.url));
+  }
+
+  private revokeMainImagePreview(): void {
+    if (this.mainImagePreview) {
+      URL.revokeObjectURL(this.mainImagePreview);
+      this.mainImagePreview = null;
+    }
+  }
+
+  // === FORM ARRAY GETTERS ===
+  get tickets(): FormArray {
+    return this.addTourForm.get('tickets') as FormArray;
+  }
+
+  get questions(): FormArray {
+    return this.addTourForm.get('questions') as FormArray;
+  }
+
+  get includedItemsArray(): FormArray {
+    return this.addTourForm.get('includedItems') as FormArray;
+  }
+
+  get excludedItemsArray(): FormArray {
+    return this.addTourForm.get('excludedItems') as FormArray;
+  }
 
   // === INCLUDED/EXCLUDED ITEMS ===
   private initializeDefaultItems(): void {
@@ -238,24 +264,24 @@ loadTourCompanies(): Promise<void> {
       'Licensed Egyptologist guide',
       'Camel ride',
       'Entrance fees to Pyramids & Sphinx',
-      'Hotel pickup and drop-off'
+      'Hotel pickup and drop-off',
     ];
-    defaults.forEach(item => this.addIncludedItem(item));
+    defaults.forEach((item) => this.addIncludedItem(item));
 
     const excludes = ['Gratuities', 'Personal expenses', 'Lunch'];
-    excludes.forEach(item => this.addExcludedItem(item));
+    excludes.forEach((item) => this.addExcludedItem(item));
   }
 
   addIncludedItem(value: string = '') {
     if (this.includedItemsArray.length >= 10) return;
-    const control = this.fb.control(value, [Validators.required, Validators.maxLength(25)]);
+    const control = this.fb.control(value, [Validators.required, Validators.maxLength(45)]);
     this.includedItemsArray.push(control);
     this.updateFormValidity();
   }
 
   addExcludedItem(value: string = '') {
     if (this.excludedItemsArray.length >= 10) return;
-    const control = this.fb.control(value, [Validators.required, Validators.maxLength(25)]);
+    const control = this.fb.control(value, [Validators.required, Validators.maxLength(45)]);
     this.excludedItemsArray.push(control);
     this.updateFormValidity();
   }
@@ -280,7 +306,7 @@ loadTourCompanies(): Promise<void> {
       type: [ticket?.type || '', Validators.required],
       price: [ticket?.price || 0, [Validators.required, Validators.min(0.01)]],
       availableQuantity: [ticket?.availableQuantity || 1, [Validators.required, Validators.min(1)]],
-      isActive: [ticket?.isActive ?? true]
+      isActive: [ticket?.isActive ?? true],
     });
     this.tickets.push(group);
     this.updateFormValidity();
@@ -296,7 +322,7 @@ loadTourCompanies(): Promise<void> {
   addQuestion(question?: any) {
     const group = this.fb.group({
       questionText: [question?.questionText || '', Validators.required],
-      answerText: [question?.answerText || '', Validators.required]
+      answerText: [question?.answerText || '', Validators.required],
     });
     this.questions.push(group);
     this.updateFormValidity();
@@ -308,52 +334,79 @@ loadTourCompanies(): Promise<void> {
   }
 
   // === SUBMIT ===
-  onSubmit() {
-    const formValue = this.addTourForm.value;
+  onSubmit(): void {
+    this.markFormGroupTouched(this.addTourForm);
 
-    // ✅ Validate dates
-    const startDate = new Date(formValue.startDate);
-    const endDate = new Date(formValue.endDate);
-
-    if (startDate <= new Date()) {
-      alert('Start date must be in the future.');
-      return;
-    }
-
-    if (endDate <= startDate) {
-      alert('End date must be after start date.');
-      return;
-    }
-
-    if (!formValue.tourCompanyId) {
-      alert('Tour Company is required.');
-      return;
-    }
-
+    // File validation
     if (!this.mainImage) {
-      alert('Main image is required.');
+      this.toastService.show('Please upload a main image.', 'warning');
       return;
     }
-
     if (this.galleryFiles.length !== 6) {
-      alert('You must upload exactly 6 gallery images.');
+      this.toastService.show(`Please upload exactly 6 gallery images. Currently: ${this.galleryFiles.length}`, 'warning');
       return;
     }
 
+    // Form validation
+    if (this.addTourForm.invalid) {
+      let message = 'Please fix the following:\n';
+      let hasError = false;
+
+      if (this.addTourForm.get('name')?.invalid) {
+        message += '- Title is required (min 3 chars)\n';
+        hasError = true;
+      }
+      if (this.addTourForm.get('destination')?.invalid) {
+        message += '- Destination is required\n';
+        hasError = true;
+      }
+      if (this.addTourForm.get('startDate')?.invalid) {
+        message += '- Start date is required\n';
+        hasError = true;
+      }
+      if (this.addTourForm.get('endDate')?.hasError('endDateBeforeStart')) {
+        message += '- End date must be after start date\n';
+        hasError = true;
+      }
+      if (this.includedItemsArray.length < 4) {
+        message += `- Add ${4 - this.includedItemsArray.length} more 'Included' items\n`;
+        hasError = true;
+      }
+      if (this.excludedItemsArray.length < 4) {
+        message += `- Add ${4 - this.excludedItemsArray.length} more 'Excluded' items\n`;
+        hasError = true;
+      }
+
+      if (hasError) {
+        this.toastService.show(message, 'warning');
+        return;
+      }
+
+      // Skip deep error logging in production
+      this.toastService.show('Form has errors. Please check all fields.', 'warning');
+      return;
+    }
+
+    const formValue = this.addTourForm.value;
     const formData = new FormData();
 
-    // Append fields
+    // Append scalar fields
     formData.append('Name', formValue.name.trim());
-    formData.append('StartDate', startDate.toISOString());
-    formData.append('EndDate', endDate.toISOString());
+    formData.append('StartDate', new Date(formValue.startDate).toISOString());
+    formData.append('EndDate', new Date(formValue.endDate).toISOString());
     formData.append('Description', formValue.description.trim());
     formData.append('Destination', formValue.destination.trim());
     formData.append('MaxGuests', formValue.maxGuests.toString());
-    formData.append('MinGroupSize', formValue.minGroupSize.toString());
-    formData.append('MaxGroupSize', formValue.maxGroupSize.toString());
+    formData.append('MinGroupSize', formValue.minGroupSize?.toString() || '1');
+    formData.append('MaxGroupSize', formValue.maxGroupSize?.toString() || '20');
     formData.append('Price', formValue.price.toString());
     formData.append('Category', formValue.category);
     formData.append('Languages', formValue.languages.trim());
+
+    if (!formValue.tourCompanyId) {
+      this.toastService.show('Tour company is required.', 'error');
+      return;
+    }
     formData.append('TourCompanyId', formValue.tourCompanyId.toString());
 
     // Files
@@ -362,18 +415,24 @@ loadTourCompanies(): Promise<void> {
       formData.append('GalleryImages', item.file, item.file.name);
     });
 
-    // Sanitize and append included/excluded
+    // Lists
     const sanitize = (items: string[]) => items.map(i => i.trim()).filter(i => i);
-    const includedItems = sanitize(formValue.includedItems);
-    const excludedItems = sanitize(formValue.excludedItems);
+    const included = sanitize(formValue.includedItems);
+    const excluded = sanitize(formValue.excludedItems);
 
-    if (includedItems.length < 4 || excludedItems.length < 4) {
-      alert('At least 4 items are required for both Included and Excluded.');
+    if (included.length < 4 || excluded.length < 4) {
+      this.toastService.show('You need at least 4 items in "Included" and "Excluded".', 'warning');
       return;
     }
 
-    includedItems.forEach(item => formData.append('IncludedItems', item));
-    excludedItems.forEach(item => formData.append('ExcludedItems', item));
+    included.forEach(item => formData.append('IncludedItems', item));
+    excluded.forEach(item => formData.append('ExcludedItems', item));
+
+    // Questions
+    formValue.questions.forEach((q: any, i: number) => {
+      formData.append(`Questions[${i}].QuestionText`, q.questionText.trim());
+      formData.append(`Questions[${i}].AnswerText`, q.answerText.trim());
+    });
 
     // Tickets
     formValue.tickets.forEach((t: any, i: number) => {
@@ -383,21 +442,49 @@ loadTourCompanies(): Promise<void> {
       formData.append(`Tickets[${i}].IsActive`, t.isActive.toString());
     });
 
-    // Submit
-    this.tourService.createTour(formData).subscribe({
+    const request$ = this.isEditMode
+      ? this.tourService.updateTour(this.tourId!, formData)
+      : this.tourService.createTour(formData);
+
+    request$.subscribe({
       next: () => {
-        alert('Tour created successfully!');
+        this.toastService.show(
+          this.isEditMode
+            ? '🎉 Tour updated successfully!'
+            : '🎉 Tour created successfully!',
+          'success'
+        );
         this.router.navigate(['/tour-admin/tours']);
       },
       error: (err) => {
-        console.error('Creation failed:', err);
-        alert(`Error: ${err.message}`);
+        const serverErrors = err.error?.errors;
+        if (serverErrors) {
+          Object.keys(serverErrors).forEach(field => {
+            this.toastService.show(`${field}: ${serverErrors[field].join(', ')}`, 'error');
+          });
+        } else {
+          this.toastService.show('Request failed. Please try again.', 'error');
+        }
       }
     });
   }
 
-  // Helper to get company name in edit mode
+  // === UTILS ===
   getCompanyName(id: number | null): string {
-    return this.tourCompanies.find(c => c.id === id)?.name || 'Unknown';
+    return this.tourCompanies.find((c) => c.id === id)?.name || 'Unknown';
+  }
+
+  getToday(): string {
+    return new Date().toISOString().split('T')[0];
+  }
+
+  private markFormGroupTouched(group: FormGroup): void {
+    Object.keys(group.controls).forEach((key) => {
+      const control = group.get(key);
+      control?.markAsTouched();
+      if (control instanceof FormArray) {
+        control.controls.forEach((c) => c.markAsTouched());
+      }
+    });
   }
 }

@@ -47,7 +47,10 @@ export class CarRentalAgencyCarList implements OnInit, OnDestroy {
   loadMyCompaniesAndCars(): void {
     this.loading = true;
     this.error = '';
-    
+    this.cd.detectChanges(); // Force UI update to show loader
+
+    const startTime = Date.now();
+
     this.subscription.add(
       this.carRentalService.getMyCompanies().subscribe({
         next: (companies: CarRentalCompany[]) => {
@@ -62,45 +65,37 @@ export class CarRentalAgencyCarList implements OnInit, OnDestroy {
             this.userCompanyId = targetCompany.id;
             this.carRentalService.setCurrentCompanyId(this.userCompanyId);
             
-            console.log('Managing company:', targetCompany.name, 'ID:', this.userCompanyId);
-            
-            this.loadCompanyCars();
+            this.loadCompanyCars(startTime);
           } else {
             this.error = 'No companies found for current user.';
-            this.loading = false;
-            this.cd.detectChanges();
+            this.finishLoading(startTime);
           }
         },
         error: (error: any) => {
           this.error = 'Failed to load company information.';
-          this.loading = false;
-          console.error('Error loading companies:', error);
-          this.cd.detectChanges();
+          this.finishLoading(startTime);
         }
       })
     );
   }
 
-  /**
-   * استخدام الطريقة الجديدة للحصول على سيارات الشركة من getMyCompanies
-   */
-  loadCompanyCars(): void {
+  loadCompanyCars(startTime: number): void {
     if (!this.userCompanyId) {
       this.error = 'Company ID not found.';
+      this.finishLoading(startTime);
       return;
     }
 
     this.loading = true;
     this.error = '';
-    
+    this.cd.detectChanges();
+
     const params = {
       pageIndex: this.currentPage,
       pageSize: this.pageSize,
       search: this.searchTerm || undefined,
       sort: this.sortBy
     };
-
-    console.log('Loading cars for company:', this.userCompanyId);
 
     this.subscription.add(
       this.carService.getCarsByCompanyFromMyCompanies(this.carRentalService, this.userCompanyId, params).subscribe({
@@ -110,24 +105,16 @@ export class CarRentalAgencyCarList implements OnInit, OnDestroy {
           this.totalPages = Math.ceil(this.totalItems / this.pageSize);
           this.minValue = Math.min((this.currentPage * this.pageSize), this.totalItems);
           
-          console.log(`Loaded ${this.cars.length} cars from ${this.totalItems} total for company ${this.userCompanyId}`);
-          
-          this.loading = false;
-          this.cd.detectChanges();
+          this.finishLoading(startTime);
         },
         error: (error: any) => {
-          // إذا فشلت الطريقة الجديدة، نستخدم الطريقة القديمة كبديل
-          console.log('New method failed, falling back to original method');
-          this.loadCompanyCarsOldWay();
+          this.loadCompanyCarsOldWay(startTime);
         }
       })
     );
   }
 
-  /**
-   * الطريقة القديمة كبديل في حالة فشل الطريقة الجديدة
-   */
-  loadCompanyCarsOldWay(): void {
+  loadCompanyCarsOldWay(startTime: number): void {
     const params = {
       pageIndex: 1,
       pageSize: 1000,
@@ -139,10 +126,8 @@ export class CarRentalAgencyCarList implements OnInit, OnDestroy {
     this.subscription.add(
       this.carService.getCars(params).subscribe({
         next: (response: Pagination<Car>) => {
-          // تصفية السيارات للشركة الحالية
           const allCompanyCars = response.data.filter(car => car.rentalCompanyId === this.userCompanyId);
           
-          // تطبيق الترقيم يدوياً
           this.totalItems = allCompanyCars.length;
           this.totalPages = Math.ceil(this.totalItems / this.pageSize);
           
@@ -150,22 +135,29 @@ export class CarRentalAgencyCarList implements OnInit, OnDestroy {
           const endIndex = startIndex + this.pageSize;
           this.cars = allCompanyCars.slice(startIndex, endIndex);
           this.minValue = Math.min(endIndex, this.totalItems);
-          
-          console.log(`Fallback: Loaded ${this.cars.length} cars from ${this.totalItems} total`);
-          
-          this.loading = false;
-          this.cd.detectChanges();
+                    
+          this.finishLoading(startTime);
         },
         error: (error: any) => {
           this.error = 'Failed to load cars. Please try again.';
-          this.loading = false;
-          console.error('Error loading cars:', error);
-          this.cd.detectChanges();
+          this.finishLoading(startTime);
         }
       })
     );
   }
 
+  // === Helper: Enforce minimum 1-second loading ===
+  private finishLoading(startTime: number): void {
+    const elapsed = Date.now() - startTime;
+    const remaining = Math.max(1000 - elapsed, 0);
+
+    setTimeout(() => {
+      this.loading = false;
+      this.cd.detectChanges();
+    }, remaining);
+  }
+
+  // === UI Actions ===
   onCompanyChange(companyId: number): void {
     if (companyId !== this.userCompanyId) {
       this.userCompanyId = companyId;
@@ -173,25 +165,29 @@ export class CarRentalAgencyCarList implements OnInit, OnDestroy {
       this.currentPage = 1;
       this.searchTerm = '';
       
-      this.loadCompanyCars();
+      const startTime = Date.now();
+      this.loadCompanyCars(startTime);
     }
   }
 
   onSearch(): void {
     this.currentPage = 1;
-    this.loadCompanyCars();
+    const startTime = Date.now();
+    this.loadCompanyCars(startTime);
   }
 
   onSort(field: string): void {
     this.sortBy = field;
     this.currentPage = 1;
-    this.loadCompanyCars();
+    const startTime = Date.now();
+    this.loadCompanyCars(startTime);
   }
 
   onPageChange(page: number): void {
     if (page < 1 || page > this.totalPages) return;
     this.currentPage = page;
-    this.loadCompanyCars();
+    const startTime = Date.now();
+    this.loadCompanyCars(startTime);
   }
 
   editCar(carId: number): void {
@@ -203,26 +199,22 @@ export class CarRentalAgencyCarList implements OnInit, OnDestroy {
   }
 
   deleteCar(car: Car): void {
-    if (!confirm(`Are you sure you want to delete ${car.model}?`)) {
-      return;
-    }
+    if (!confirm(`Are you sure you want to delete ${car.model}?`)) return;
 
-    // التأكد من أن السيارة تخص الشركة الحالية
     if (car.rentalCompanyId !== this.userCompanyId) {
       this.error = 'You can only delete cars from your own company.';
+      this.cd.detectChanges();
       return;
     }
 
     this.subscription.add(
       this.carService.deleteCar(car.id).subscribe({
         next: () => {
-          // إعادة تحميل البيانات بدلاً من التصفية المحلية
-          this.loadCompanyCars();
-          console.log('Car deleted successfully');
+          const startTime = Date.now();
+          this.loadCompanyCars(startTime);
         },
         error: (error: any) => {
           this.error = 'Failed to delete car. Please try again.';
-          console.error('Error deleting car:', error);
           this.cd.detectChanges();
         }
       })
@@ -232,6 +224,7 @@ export class CarRentalAgencyCarList implements OnInit, OnDestroy {
   toggleAvailability(car: Car): void {
     if (!this.userCompanyId || car.rentalCompanyId !== this.userCompanyId) {
       this.error = 'You can only update cars from your own company.';
+      this.cd.detectChanges();
       return;
     }
 
@@ -248,19 +241,18 @@ export class CarRentalAgencyCarList implements OnInit, OnDestroy {
     this.subscription.add(
       this.carService.updateCar(car.id, updatedCar).subscribe({
         next: () => {
-          // تحديث السيارة محلياً
           car.isAvailable = !car.isAvailable;
           this.cd.detectChanges();
         },
         error: (error: any) => {
           this.error = 'Failed to update car availability.';
-          console.error('Error updating car:', error);
           this.cd.detectChanges();
         }
       })
     );
   }
 
+  // === Utility Methods ===
   isCarFromMyCompany(car: Car): boolean {
     return car.rentalCompanyId === this.userCompanyId;
   }
@@ -289,7 +281,8 @@ export class CarRentalAgencyCarList implements OnInit, OnDestroy {
     this.currentPage = 1;
     this.searchTerm = '';
     this.sortBy = 'model';
-    this.loadCompanyCars();
+    const startTime = Date.now();
+    this.loadCompanyCars(startTime);
   }
 
   getCurrentCompanyName(): string {
@@ -299,9 +292,7 @@ export class CarRentalAgencyCarList implements OnInit, OnDestroy {
 
   getCompanyCarStats(): string {
     if (!this.userCompanyId || this.cars.length === 0) return 'No cars found';
-    
-    // هذا سيحسب الإحصائيات للسيارات المعروضة حالياً فقط
-    // يمكنك تعديلها للحصول على إجمالي السيارات إذا كنت تحتفظ بها
+
     const available = this.cars.filter(car => car.isAvailable).length;
     const unavailable = this.cars.length - available;
     

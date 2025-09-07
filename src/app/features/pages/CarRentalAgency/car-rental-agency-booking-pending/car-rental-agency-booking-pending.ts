@@ -6,6 +6,13 @@ import { CarRentalService, DashboardStats } from '../../../../core/services/CarR
 import { BookingDto, BookingService, Status, BookingType } from '../../../../core/services/booking-services';
 import { CarService } from '../../../../core/services/Car-Services';
 
+// Toast interface
+interface Toast {
+  id: number;
+  message: string;
+  type: 'success' | 'error' | 'info' | 'warning';
+  visible: boolean;
+}
 
 @Component({
   selector: 'app-car-rental-agency-booking-pending',
@@ -17,16 +24,16 @@ import { CarService } from '../../../../core/services/Car-Services';
 export class CarRentalAgencyBookingPending implements OnInit {
   pendingBookings: BookingDto[] = [];
   filteredBookings: BookingDto[] = [];
-  loading = true;
+  loading = false;
   error = '';
   processingBookingId: number | null = null;
-  
+
   // Filter properties
   searchTerm = '';
   dateFilter = '';
-  sortBy = 'newest';
+  sortBy = 'priority';
   priorityFilter = 'all';
-  
+
   // Statistics
   stats = {
     totalPending: 0,
@@ -34,6 +41,10 @@ export class CarRentalAgencyBookingPending implements OnInit {
     potentialRevenue: 0,
     averageWaitTime: 0
   };
+
+  // Toasts
+  private toastId = 0;
+  toasts: Toast[] = [];
 
   constructor(
     private bookingService: BookingService,
@@ -48,11 +59,14 @@ export class CarRentalAgencyBookingPending implements OnInit {
   loadPendingBookings(): void {
     this.loading = true;
     this.error = '';
+    this.cdr.detectChanges(); // Force UI update
+
+    const startTime = Date.now();
 
     const userCompanyId = this.getUserCompanyId();
     if (!userCompanyId) {
-      this.error = 'CarRentalCompanyId not found in token.';
-      this.loading = false;
+      this.showToast('CarRentalCompanyId not found in token.', 'error');
+      this.finishLoading(startTime);
       return;
     }
 
@@ -62,47 +76,55 @@ export class CarRentalAgencyBookingPending implements OnInit {
           const isCarBooking = booking.bookingType === BookingType.Car;
           const isPending = this.bookingService.mapStatus(booking.status) === Status.Pending;
           const isMyCompany = booking.agencyDetails?.rentalCompanyId === userCompanyId;
-          
+
           return isCarBooking && isPending && isMyCompany;
         });
-        
+
         this.pendingBookings = pendingCarBookings;
         this.filteredBookings = [...pendingCarBookings];
         this.calculateStats();
         this.applySorting();
-        this.loading = false;
-        this.cdr.detectChanges();
+        this.finishLoading(startTime);
       },
       error: (err) => {
         this.handleError(err);
+        this.finishLoading(startTime);
       }
     });
+  }
+
+  private finishLoading(startTime: number): void {
+    const elapsed = Date.now() - startTime;
+    const remaining = Math.max(1000 - elapsed, 0);
+
+    setTimeout(() => {
+      this.loading = false;
+      this.cdr.detectChanges();
+    }, remaining);
   }
 
   private getUserCompanyId(): number | null {
     const token = localStorage.getItem('authToken');
     if (!token) return null;
-    
+
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
       return payload.CarRentalCompanyId ? parseInt(payload.CarRentalCompanyId) : null;
     } catch (e) {
-      console.error('Error parsing token:', e);
       return null;
     }
   }
 
   private handleError(err: any): void {
+    let message = '';
     if (err.status === 401) {
-      this.error = 'Authentication failed. Please login again.';
+      message = 'Authentication failed. Please login again.';
     } else if (err.status === 403) {
-      this.error = 'Access denied. You may not have CarRentalAdmin permissions.';
+      message = 'Access denied. You may not have CarRentalAdmin permissions.';
     } else {
-      this.error = `Failed to load pending bookings. Error: ${err.status} - ${err.message || 'Unknown error'}`;
+      message = `Failed to load pending bookings: ${err.status} - ${err.message || 'Unknown error'}`;
     }
-    
-    this.loading = false;
-    this.cdr.detectChanges();
+    this.showToast(message, 'error');
   }
 
   calculateStats(): void {
@@ -110,22 +132,21 @@ export class CarRentalAgencyBookingPending implements OnInit {
     this.stats.potentialRevenue = this.pendingBookings.reduce((sum, booking) => 
       sum + (booking.totalPrice || 0), 0
     );
-    
+
     const now = new Date();
     const urgentThreshold = 24 * 60 * 60 * 1000; // 24 hours
-    
+
     this.stats.urgentBookings = this.pendingBookings.filter(booking => {
       const startDate = new Date(booking.startDate);
       return (startDate.getTime() - now.getTime()) <= urgentThreshold;
     }).length;
-    
-    // Calculate average wait time (simplified calculation)
+
     const totalWaitTime = this.pendingBookings.reduce((sum, booking) => {
       const startDate = new Date(booking.startDate);
       const diffHours = Math.max(0, (startDate.getTime() - now.getTime()) / (1000 * 60 * 60));
       return sum + diffHours;
     }, 0);
-    
+
     this.stats.averageWaitTime = this.stats.totalPending > 0 
       ? totalWaitTime / this.stats.totalPending 
       : 0;
@@ -135,7 +156,7 @@ export class CarRentalAgencyBookingPending implements OnInit {
     const now = new Date();
     const startDate = new Date(booking.startDate);
     const hoursUntilStart = (startDate.getTime() - now.getTime()) / (1000 * 60 * 60);
-    
+
     if (hoursUntilStart <= 24) return 'high';
     if (hoursUntilStart <= 72) return 'medium';
     return 'low';
@@ -164,7 +185,7 @@ export class CarRentalAgencyBookingPending implements OnInit {
       const matchesSearch = !this.searchTerm || 
         booking.customerEmail.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
         (booking.agencyDetails?.model || '').toLowerCase().includes(this.searchTerm.toLowerCase());
-      
+
       const matchesDate = !this.dateFilter || 
         new Date(booking.startDate).toDateString() === new Date(this.dateFilter).toDateString();
 
@@ -173,7 +194,7 @@ export class CarRentalAgencyBookingPending implements OnInit {
 
       return matchesSearch && matchesDate && matchesPriority;
     });
-    
+
     this.applySorting();
   }
 
@@ -213,61 +234,67 @@ export class CarRentalAgencyBookingPending implements OnInit {
   }
 
   confirmBooking(bookingId: number): void {
-    if (confirm('Are you sure you want to confirm this booking?')) {
-      this.processingBookingId = bookingId;
-      this.bookingService.confirmBooking(bookingId).subscribe({
-        next: () => {
-          this.processingBookingId = null;
-          this.loadPendingBookings();
-        },
-        error: (err) => {
-          this.processingBookingId = null;
-          alert('Failed to confirm booking. Please try again.');
-          console.error('Error confirming booking:', err);
-        }
-      });
-    }
+    this.showToast('Confirming booking...', 'info');
+    this.processingBookingId = bookingId;
+    this.cdr.detectChanges();
+
+    this.bookingService.confirmBooking(bookingId).subscribe({
+      next: () => {
+        this.processingBookingId = null;
+        this.showToast('Booking confirmed successfully!', 'success');
+        this.loadPendingBookings();
+      },
+      error: (err) => {
+        this.processingBookingId = null;
+        this.showToast('Failed to confirm booking. Please try again.', 'error');
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   cancelBooking(bookingId: number): void {
-    if (confirm('Are you sure you want to cancel this booking?')) {
-      this.processingBookingId = bookingId;
-      this.bookingService.cancelBooking(bookingId).subscribe({
-        next: () => {
-          this.processingBookingId = null;
-          this.loadPendingBookings();
-        },
-        error: (err) => {
-          this.processingBookingId = null;
-          alert('Failed to cancel booking. Please try again.');
-          console.error('Error canceling booking:', err);
-        }
-      });
-    }
+    this.showToast('Cancelling booking...', 'info');
+    this.processingBookingId = bookingId;
+    this.cdr.detectChanges();
+
+    this.bookingService.cancelBooking(bookingId).subscribe({
+      next: () => {
+        this.processingBookingId = null;
+        this.showToast('Booking cancelled successfully!', 'success');
+        this.loadPendingBookings();
+      },
+      error: (err) => {
+        this.processingBookingId = null;
+        this.showToast('Failed to cancel booking. Please try again.', 'error');
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   bulkConfirmBookings(): void {
     const selectedBookings = this.filteredBookings.filter(b => 
       this.getBookingPriority(b) === 'high'
     );
-    
+
     if (selectedBookings.length === 0) {
-      alert('No urgent bookings to confirm.');
+      this.showToast('No urgent bookings to confirm.', 'warning');
       return;
     }
 
-    if (confirm(`Are you sure you want to confirm ${selectedBookings.length} urgent booking(s)?`)) {
-      const confirmPromises = selectedBookings.map(booking => 
-        this.bookingService.confirmBooking(booking.id).toPromise()
-      );
+    this.showToast(`Confirming ${selectedBookings.length} urgent booking(s)...`, 'info');
 
-      Promise.all(confirmPromises).then(() => {
+    const confirmPromises = selectedBookings.map(booking => 
+      this.bookingService.confirmBooking(booking.id).toPromise()
+    );
+
+    Promise.all(confirmPromises)
+      .then(() => {
+        this.showToast(`${selectedBookings.length} bookings confirmed successfully!`, 'success');
         this.loadPendingBookings();
-      }).catch(err => {
-        alert('Some bookings failed to confirm. Please check and try again.');
-        console.error('Bulk confirm error:', err);
+      })
+      .catch(err => {
+        this.showToast('Some bookings failed to confirm. Please check and try again.', 'error');
       });
-    }
   }
 
   formatDate(dateString: string): string {
@@ -291,5 +318,28 @@ export class CarRentalAgencyBookingPending implements OnInit {
 
   isProcessing(bookingId: number): boolean {
     return this.processingBookingId === bookingId;
+  }
+
+  // === Toast Management ===
+  showToast(message: string, type: 'success' | 'error' | 'info' | 'warning'): void {
+    const id = ++this.toastId;
+    this.toasts.push({ id, message, type, visible: true });
+
+    this.cdr.detectChanges(); // Ensure toast appears
+
+    setTimeout(() => {
+      this.hideToast(id);
+    }, 5000);
+  }
+
+  hideToast(id: number): void {
+    const toast = this.toasts.find(t => t.id === id);
+    if (toast) {
+      toast.visible = false;
+      setTimeout(() => {
+        this.toasts = this.toasts.filter(t => t.id !== id);
+        this.cdr.detectChanges();
+      }, 300); // Match fade-out animation
+    }
   }
 }

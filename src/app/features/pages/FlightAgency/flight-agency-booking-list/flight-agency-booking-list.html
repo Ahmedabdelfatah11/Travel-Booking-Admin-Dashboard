@@ -1,4 +1,15 @@
 <div class="flight-booking-list-container">
+  <!-- Full-Screen Loader -->
+  @if (loading) {
+    <div class="loader-container">
+      <div class="loader">
+        <div class="loader__ball"></div>
+        <div class="loader__ball"></div>
+        <div class="loader__ball"></div>
+      </div>
+    </div>
+  }
+
   <!-- Header -->
   <div class="header">
     <h2>Flight Bookings Management</h2>
@@ -28,11 +39,13 @@
   </div>
 
   <!-- Error Message -->
-  <div *ngIf="error" class="error-message">
-    <i class="error-icon">⚠️</i>
-    {{ error }}
-    <button (click)="loadBookings()" class="retry-btn">Retry</button>
-  </div>
+  @if (error) {
+    <div class="error-message">
+      <i class="error-icon">⚠️</i>
+      {{ error }}
+      <button (click)="loadBookings()" class="retry-btn">Retry</button>
+    </div>
+  }
 
   <!-- Filters Section -->
   <div class="filters-section">
@@ -42,9 +55,9 @@
       <div class="filter-group">
         <label for="status">Status</label>
         <select id="status" [(ngModel)]="filters.status" (ngModelChange)="onFilterChange()" class="filter-select">
-          <option *ngFor="let option of statusOptions" [value]="option.value">
-            {{ option.label }}
-          </option>
+          @for (option of statusOptions; track $index) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
         </select>
       </div>
 
@@ -52,9 +65,9 @@
       <div class="filter-group">
         <label for="seatClass">Seat Class</label>
         <select id="seatClass" [(ngModel)]="filters.seatClass" (ngModelChange)="onFilterChange()" class="filter-select">
-          <option *ngFor="let option of seatClassOptions" [value]="option.value">
-            {{ option.label }}
-          </option>
+          @for (option of seatClassOptions; track $index) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
         </select>
       </div>
 
@@ -115,137 +128,147 @@
     </div>
   </div>
 
-  <!-- Loading Spinner -->
-  <div *ngIf="loading" class="loading-spinner">
-    <div class="spinner"></div>
-    <p>Loading flight bookings...</p>
-  </div>
-
   <!-- Bookings Table -->
-  <div *ngIf="!loading" class="table-container">
-    <table class="bookings-table">
-      <thead>
-        <tr>
-          <th (click)="sort('id')" class="sortable">
-            Booking ID {{ getSortIcon('id') }}
-          </th>
-          <th>Customer</th>
-          <th (click)="sort('status')" class="sortable">
-            Status {{ getSortIcon('status') }}
-          </th>
-          <th>Flight Details</th>
-          <th (click)="sort('seatClass')" class="sortable">
-            Class {{ getSortIcon('seatClass') }}
-          </th>
-          <th (click)="sort('departureTime')" class="sortable">
-            Departure {{ getSortIcon('departureTime') }}
-          </th>
-          <th (click)="sort('arrivalTime')" class="sortable">
-            Arrival {{ getSortIcon('arrivalTime') }}
-          </th>
-          <th (click)="sort('totalPrice')" class="sortable">
-            Price {{ getSortIcon('totalPrice') }}
-          </th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let booking of paginatedBookings" class="booking-row">
-          <td class="booking-id">#{{ booking.id }}</td>
-          <td class="customer-info">
-            <div class="customer-email">{{ booking.customerEmail }}</div>
-            <div class="payment-status" *ngIf="booking.paymentStatus">
-              <small [ngClass]="'payment-' + booking.paymentStatus.toLowerCase()">
-                💳 {{ booking.paymentStatus }}
-              </small>
-            </div>
-          </td>
-          <td>
-            <span class="status-badge" [ngClass]="getStatusClass(booking.status)">
-              {{ getStatusIcon(booking.status) }} {{ getStatusLabel(booking.status) }}
-            </span>
-          </td>
-          <td class="flight-details">
-            <div class="flight-route">
-              <strong>{{ booking.departureAirport }}</strong>
-              <span class="arrow">→</span>
-              <strong>{{ booking.arrivalAirport }}</strong>
-            </div>
-            <div class="airline-info" *ngIf="booking.agencyDetails?.airlineName">
-              <small>{{ booking.agencyDetails?.airlineName }}</small>
-            </div>
-            <div class="flight-id" *ngIf="booking.flightId">
-              <small>Flight ID: {{ booking.flightId }}</small>
-            </div>
-          </td>
-          <td>
-            <span class="seat-class-badge" [ngClass]="getSeatClassBadge(booking.seatClass)">
-              {{ getSeatClassLabel(booking.seatClass) }}
-            </span>
-          </td>
-          <td class="date-time">
-            {{ formatDate(booking.departureTime) }}
-          </td>
-          <td class="date-time">
-            {{ formatDate(booking.arrivalTime) }}
-          </td>
-          <td class="price">
-            {{ formatPrice(booking.totalPrice) }}
-          </td>
-          <td class="actions">
-            <div class="action-buttons">
-              <!-- Confirm -->
-              <button *ngIf="canConfirmBooking(booking)" (click)="confirmBooking(booking.id)"
-                class="action-btn confirm-btn" title="Confirm Booking">
-                <i class="fas fa-check"></i>
-              </button>
+  @if (!loading && !error) {
+    <div class="table-container">
+      <table class="bookings-table">
+        <thead>
+          <tr>
+            <th (click)="sort('id')" class="sortable">
+              Booking ID {{ getSortIcon('id') }}
+            </th>
+            <th>Customer</th>
+            <th (click)="sort('status')" class="sortable">
+              Status {{ getSortIcon('status') }}
+            </th>
+            <th>Flight Details</th>
+            <th (click)="sort('seatClass')" class="sortable">
+              Class {{ getSortIcon('seatClass') }}
+            </th>
+            <th (click)="sort('departureTime')" class="sortable">
+              Departure {{ getSortIcon('departureTime') }}
+            </th>
+            <th (click)="sort('arrivalTime')" class="sortable">
+              Arrival {{ getSortIcon('arrivalTime') }}
+            </th>
+            <th (click)="sort('totalPrice')" class="sortable">
+              Price {{ getSortIcon('totalPrice') }}
+            </th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (booking of paginatedBookings; track booking.id) {
+            <tr class="booking-row">
+              <td class="booking-id">#{{ booking.id }}</td>
+              <td class="customer-info">
+                <div class="customer-email">{{ booking.customerEmail }}</div>
+                @if (booking.paymentStatus) {
+                  <div class="payment-status">
+                    <small [class]="'payment-' + booking.paymentStatus.toLowerCase()">
+                      💳 {{ booking.paymentStatus }}
+                    </small>
+                  </div>
+                }
+              </td>
+              <td>
+                <span class="status-badge" [class]="getStatusClass(booking.status)">
+                  {{ getStatusIcon(booking.status) }} {{ getStatusLabel(booking.status) }}
+                </span>
+              </td>
+              <td class="flight-details">
+                <div class="flight-route">
+                  <strong>{{ booking.departureAirport }}</strong>
+                  <span class="arrow">→</span>
+                  <strong>{{ booking.arrivalAirport }}</strong>
+                </div>
+                @if (booking.agencyDetails?.airlineName) {
+                  <div class="airline-info">
+                    <small>{{ booking.agencyDetails?.airlineName }}</small>
+                  </div>
+                }
+                @if (booking.flightId) {
+                  <div class="flight-id">
+                    <small>Flight ID: {{ booking.flightId }}</small>
+                  </div>
+                }
+              </td>
+              <td>
+                <span class="seat-class-badge" [class]="getSeatClassBadge(booking.seatClass)">
+                  {{ getSeatClassLabel(booking.seatClass) }}
+                </span>
+              </td>
+              <td class="date-time">
+                {{ formatDate(booking.departureTime) }}
+              </td>
+              <td class="date-time">
+                {{ formatDate(booking.arrivalTime) }}
+              </td>
+              <td class="price">
+                {{ formatPrice(booking.totalPrice) }}
+              </td>
+              <td class="actions">
+                <div class="action-buttons">
+                  <!-- Confirm -->
+                  @if (canConfirmBooking(booking)) {
+                    <button (click)="confirmBooking(booking.id)" class="action-btn confirm-btn" title="Confirm Booking">
+                      <i class="fas fa-check"></i>
+                    </button>
+                  }
 
-              <!-- Cancel -->
-              <button *ngIf="canCancelBooking(booking)" (click)="cancelBooking(booking.id)"
-                class="action-btn cancel-btn" title="Cancel Booking">
-                <i class="fas fa-times"></i>
-              </button>
+                  <!-- Cancel -->
+                  @if (canCancelBooking(booking)) {
+                    <button (click)="cancelBooking(booking.id)" class="action-btn cancel-btn" title="Cancel Booking">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  }
 
-              <!-- Delete -->
-              <button (click)="deleteBooking(booking.id)" class="action-btn delete-btn" title="Delete Booking">
-                <i class="fas fa-trash"></i>
-              </button>
-            </div>
-          </td>
+                  <!-- Delete -->
+                  <button (click)="deleteBooking(booking.id)" class="action-btn delete-btn" title="Delete Booking">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
 
-        </tr>
-      </tbody>
-    </table>
-
-    <!-- Empty State -->
-    <div *ngIf="filteredBookings.length === 0" class="empty-state">
-      <div class="empty-icon">✈️</div>
-      <h3>No Flight Bookings Found</h3>
-      <p>No bookings match your current filters. Try adjusting your search criteria.</p>
+      <!-- Empty State -->
+      @if (filteredBookings.length === 0) {
+        <div class="empty-state">
+          <div class="empty-icon">✈️</div>
+          <h3>No Flight Bookings Found</h3>
+          <p>No bookings match your current filters. Try adjusting your search criteria.</p>
+        </div>
+      }
     </div>
-  </div>
+  }
 
   <!-- Pagination -->
-  <div *ngIf="!loading && filteredBookings.length > 0" class="pagination">
-    <div class="pagination-info">
-      Showing {{ (currentPage - 1) * itemsPerPage + 1 }} -
-      {{ getMin(currentPage * itemsPerPage, filteredBookings.length) }}
-      of {{ filteredBookings.length }} bookings
+  @if (!loading && !error && filteredBookings.length > 0) {
+    <div class="pagination">
+      <div class="pagination-info">
+        Showing {{ (currentPage - 1) * itemsPerPage + 1 }} -
+        {{ getMin(currentPage * itemsPerPage, filteredBookings.length) }}
+        of {{ filteredBookings.length }} bookings
+      </div>
+
+      <div class="pagination-controls">
+        <button (click)="changePage(currentPage - 1)" [disabled]="currentPage === 1" class="pagination-btn">
+          Previous
+        </button>
+
+        @for (page of pageNumbers; track page) {
+          <button (click)="changePage(page)" [class.active]="page === currentPage" class="pagination-btn page-number">
+            {{ page }}
+          </button>
+        }
+
+        <button (click)="changePage(currentPage + 1)" [disabled]="currentPage === totalPages" class="pagination-btn">
+          Next
+        </button>
+      </div>
     </div>
-
-    <div class="pagination-controls">
-      <button (click)="changePage(currentPage - 1)" [disabled]="currentPage === 1" class="pagination-btn">
-        Previous
-      </button>
-
-      <button *ngFor="let page of pageNumbers" (click)="changePage(page)" [ngClass]="{'active': page === currentPage}"
-        class="pagination-btn page-number">
-        {{ page }}
-      </button>
-
-      <button (click)="changePage(currentPage + 1)" [disabled]="currentPage === totalPages" class="pagination-btn">
-        Next
-      </button>
-    </div>
-  </div>
+  }
 </div>

@@ -2,10 +2,9 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Status, SeatClass, BookingType, BookingService, BookingDto } from '../../../../core/services/booking-services';
-import { FlightService } from '../../../../core/services/flight-service';
-import { Auth } from '../../../../core/services/auth'; // Import Auth service
 import { firstValueFrom } from 'rxjs';
 import { FlightBooking } from '../../../../shared/Interfaces/iflight';
+import { Auth } from '../../../../core/services/auth';
 
 export interface BookingFilters {
   status: string;
@@ -32,7 +31,7 @@ export class FlightAgencyBookingList implements OnInit {
   loading = false;
   error: string | null = null;
   searchQuery: string = '';
-  flightCompanyId: number | null = null; // Add company ID tracking
+  flightCompanyId: number | null = null;
 
   // Filter properties
   filters: BookingFilters = {
@@ -44,7 +43,6 @@ export class FlightAgencyBookingList implements OnInit {
     dateTo: '',
     priceMin: null,
     priceMax: null,
-    
     customerEmail: ''
   };
 
@@ -86,9 +84,8 @@ export class FlightAgencyBookingList implements OnInit {
   }
 
   private async initializeComponent(): Promise<void> {
-    // Get FlightCompanyId from user roles/token
     this.flightCompanyId = this.getFlightCompanyIdFromToken();
-    
+
     if (!this.flightCompanyId) {
       this.error = 'Flight company information not found. Please contact support.';
       return;
@@ -98,32 +95,28 @@ export class FlightAgencyBookingList implements OnInit {
   }
 
   private getFlightCompanyIdFromToken(): number | null {
-    // This method extracts FlightCompanyId from the JWT token
-    // You'll need to decode the JWT token to get the FlightCompanyId claim
     const token = this.authService.getToken();
     if (!token) return null;
 
     try {
-      // Decode JWT token payload
       const payload = JSON.parse(atob(token.split('.')[1]));
       const flightCompanyId = payload['FlightCompanyId'];
       return flightCompanyId ? parseInt(flightCompanyId) : null;
     } catch (error) {
-      console.error('Error decoding token:', error);
       return null;
     }
   }
-  
+
   async loadBookings(): Promise<void> {
     this.loading = true;
     this.error = null;
+    this.cd.detectChanges(); // Force UI update
+
+    const startTime = Date.now();
 
     try {
-      // Get all bookings first
       const allBookings = await firstValueFrom(this.bookingService.getAllBookings());
-      console.log('All bookings from API:', allBookings);
 
-      // Filter for flight bookings only
       const flightBookings = allBookings
         ?.filter(b => b.bookingType === BookingType.Flight)
         .map((booking: BookingDto) => ({
@@ -145,24 +138,24 @@ export class FlightAgencyBookingList implements OnInit {
           agencyDetails: booking.agencyDetails
         })) || [];
 
-      // Filter bookings by flightCompanyId
-      // This requires the agencyDetails to include flightCompanyId
-      this.bookings = flightBookings.filter(booking => 
+      this.bookings = flightBookings.filter(booking =>
         booking.agencyDetails?.flightCompanyId === this.flightCompanyId
       );
 
-      console.log(`Filtered bookings for company ${this.flightCompanyId}:`, this.bookings);
       this.applyFilters();
     } catch (error) {
-      console.error('Error loading bookings:', error);
       this.error = 'Failed to load flight bookings. Please try again.';
     } finally {
-      this.loading = false;
-      this.cd.detectChanges(); 
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(1000 - elapsed, 0);
+
+      setTimeout(() => {
+        this.loading = false;
+        this.cd.detectChanges();
+      }, remaining);
     }
   }
 
-  // Rest of your methods remain the same...
   applyFilters(): void {
     if (!this.bookings) {
       this.filteredBookings = [];
@@ -172,20 +165,16 @@ export class FlightAgencyBookingList implements OnInit {
 
     let filtered = [...this.bookings];
 
-    // Status filter
     if (this.filters.status !== '') {
       const statusValue = parseInt(this.filters.status);
       filtered = filtered.filter(b => b.status === statusValue);
-      console.log(`Filtering by status: ${statusValue}, found: ${filtered.length} bookings`);
     }
 
-    // Seat class filter
     if (this.filters.seatClass !== '') {
       const seatClassValue = parseInt(this.filters.seatClass);
       filtered = filtered.filter(b => b.seatClass === seatClassValue);
     }
 
-    // Other filters...
     if (this.filters.departureAirport?.trim()) {
       const airport = this.filters.departureAirport.toLowerCase().trim();
       filtered = filtered.filter(b =>
@@ -225,7 +214,6 @@ export class FlightAgencyBookingList implements OnInit {
       );
     }
 
-    // Apply sorting
     if (this.sortBy) {
       filtered.sort((a, b) => {
         const aValue = (a as any)[this.sortBy];
@@ -241,8 +229,6 @@ export class FlightAgencyBookingList implements OnInit {
 
     this.filteredBookings = filtered;
     this.calculatePagination();
-
-    console.log('Applied filters - Total:', this.bookings.length, 'Filtered:', this.filteredBookings.length);
   }
 
   calculatePagination(): void {
@@ -259,7 +245,6 @@ export class FlightAgencyBookingList implements OnInit {
   }
 
   onFilterChange(): void {
-    console.log('Filter changed:', this.filters);
     this.currentPage = 1;
     this.applyFilters();
   }
@@ -278,13 +263,11 @@ export class FlightAgencyBookingList implements OnInit {
       dateTo: '',
       priceMin: null,
       priceMax: null,
-      
       customerEmail: ''
     };
     this.searchQuery = '';
     this.currentPage = 1;
     this.applyFilters();
-    console.log('Filters cleared');
   }
 
   sort(column: keyof FlightBooking): void {
@@ -327,7 +310,6 @@ export class FlightAgencyBookingList implements OnInit {
     return pages;
   }
 
-  // Status and formatting methods
   getStatusClass(status: Status): string {
     return this.bookingService.getStatusClass(status);
   }
@@ -382,7 +364,6 @@ export class FlightAgencyBookingList implements OnInit {
     }).format(price);
   }
 
-  // Action methods
   canConfirmBooking(booking: FlightBooking): boolean {
     return booking.status === Status.Pending;
   }
@@ -393,12 +374,9 @@ export class FlightAgencyBookingList implements OnInit {
 
   async confirmBooking(bookingId: number): Promise<void> {
     try {
-      console.log(`Confirming booking ${bookingId}`);
       await firstValueFrom(this.bookingService.confirmBooking(bookingId));
-      console.log(`Booking ${bookingId} confirmed successfully`);
       await this.loadBookings();
     } catch (error) {
-      console.error('Error confirming booking:', error);
       this.error = 'Failed to confirm booking. Please try again.';
     }
   }
@@ -406,12 +384,9 @@ export class FlightAgencyBookingList implements OnInit {
   async cancelBooking(bookingId: number): Promise<void> {
     if (confirm('Are you sure you want to cancel this booking?')) {
       try {
-        console.log(`Canceling booking ${bookingId}`);
         await firstValueFrom(this.bookingService.cancelBooking(bookingId));
-        console.log(`Booking ${bookingId} canceled successfully`);
         await this.loadBookings();
       } catch (error) {
-        console.error('Error canceling booking:', error);
         this.error = 'Failed to cancel booking. Please try again.';
       }
     }
@@ -420,18 +395,14 @@ export class FlightAgencyBookingList implements OnInit {
   async deleteBooking(bookingId: number): Promise<void> {
     if (confirm('Are you sure you want to delete this booking? This action cannot be undone.')) {
       try {
-        console.log(`Deleting booking ${bookingId}`);
         await firstValueFrom(this.bookingService.deleteBooking(bookingId));
-        console.log(`Booking ${bookingId} deleted successfully`);
         await this.loadBookings();
       } catch (error) {
-        console.error('Error deleting booking:', error);
         this.error = 'Failed to delete booking. Please try again.';
       }
     }
   }
 
-  // Helper method to get status statistics for this company only
   getStatusStats() {
     const pending = this.bookings.filter(b => b.status === Status.Pending).length;
     const confirmed = this.bookings.filter(b => b.status === Status.Confirmed).length;

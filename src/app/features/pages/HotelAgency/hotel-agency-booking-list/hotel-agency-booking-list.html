@@ -1,4 +1,15 @@
 <div class="room-booking-list-container">
+  <!-- Full-Screen Loader -->
+  @if (loading) {
+    <div class="loader-container">
+      <div class="loader">
+        <div class="loader__ball"></div>
+        <div class="loader__ball"></div>
+        <div class="loader__ball"></div>
+      </div>
+    </div>
+  }
+
   <!-- Header -->
   <div class="header">
     <h2>Room Bookings Management</h2>
@@ -28,212 +39,220 @@
   </div>
 
   <!-- Error Message -->
-  <div *ngIf="error" class="error-message">
-    <i class="error-icon">⚠️</i>
-    {{ error }}
-    <button (click)="loadBookings()" class="retry-btn">Retry</button>
-  </div>
+  @if (error) {
+    <div class="error-message">
+      <i class="error-icon">⚠️</i>
+      {{ error }}
+      <button (click)="loadBookings()" class="retry-btn">Retry</button>
+    </div>
+  }
 
   <!-- Filters Section -->
-  <div class="filters-section">
-    <h3>Filters</h3>
-    <div class="filters-grid">
-      <!-- Status Filter -->
-      <div class="filter-group">
-        <label for="status">Status</label>
-        <select id="status" [(ngModel)]="filters.status" (ngModelChange)="onFilterChange()" class="filter-select">
-          <option *ngFor="let option of statusOptions" [value]="option.value">
-            {{ option.label }}
-          </option>
-        </select>
+  @if (!loading) {
+    <div class="filters-section">
+      <h3>Filters</h3>
+      <div class="filters-grid">
+        <!-- Status Filter -->
+        <div class="filter-group">
+          <label for="status">Status</label>
+          <select id="status" [(ngModel)]="filters.status" (ngModelChange)="onFilterChange()" class="filter-select">
+            @for (option of statusOptions; track option.value) {
+              <option [value]="option.value">{{ option.label }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- Room Type Filter -->
+        <div class="filter-group">
+          <label for="roomType">Room Type</label>
+          <select id="roomType" [(ngModel)]="filters.roomType" (ngModelChange)="onFilterChange()" class="filter-select">
+            @for (option of roomTypeOptions; track option.value) {
+              <option [value]="option.value">{{ option.label }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- Hotel Name Filter -->
+        <div class="filter-group">
+          <label for="hotelName">Hotel Name</label>
+          <input type="text" id="hotelName" [(ngModel)]="filters.hotelName"
+            (ngModelChange)="onFilterChange()" placeholder="Enter hotel name" class="filter-input">
+        </div>
+
+        <!-- Date From Filter -->
+        <div class="filter-group">
+          <label for="dateFrom">Check-in From</label>
+          <input type="date" id="dateFrom" [(ngModel)]="filters.dateFrom" (ngModelChange)="onFilterChange()"
+            class="filter-input">
+        </div>
+
+        <!-- Date To Filter -->
+        <div class="filter-group">
+          <label for="dateTo">Check-in To</label>
+          <input type="date" id="dateTo" [(ngModel)]="filters.dateTo" (ngModelChange)="onFilterChange()"
+            class="filter-input">
+        </div>
+
+        <!-- Price Min Filter -->
+        <div class="filter-group">
+          <label for="priceMin">Min Price ($)</label>
+          <input type="number" id="priceMin" [(ngModel)]="filters.priceMin" (ngModelChange)="onFilterChange()"
+            placeholder="0" min="0" class="filter-input">
+        </div>
+
+        <!-- Price Max Filter -->
+        <div class="filter-group">
+          <label for="priceMax">Max Price ($)</label>
+          <input type="number" id="priceMax" [(ngModel)]="filters.priceMax" (ngModelChange)="onFilterChange()"
+            placeholder="10000" min="0" class="filter-input">
+        </div>
+
+        <!-- Customer Email Filter -->
+        <div class="filter-group">
+          <label for="customerEmail">Customer Email</label>
+          <input type="text" id="customerEmail" [(ngModel)]="filters.customerEmail" (ngModelChange)="onFilterChange()"
+            placeholder="Enter customer email" class="filter-input">
+        </div>
       </div>
 
-      <!-- Room Type Filter -->
-      <div class="filter-group">
-        <label for="roomType">Room Type</label>
-        <select id="roomType" [(ngModel)]="filters.roomType" (ngModelChange)="onFilterChange()" class="filter-select">
-          <option *ngFor="let option of roomTypeOptions" [value]="option.value">
-            {{ option.label }}
-          </option>
-        </select>
-      </div>
-
-      <!-- Hotel Name Filter -->
-      <div class="filter-group">
-        <label for="hotelName">Hotel Name</label>
-        <input type="text" id="hotelName" [(ngModel)]="filters.hotelName"
-          (ngModelChange)="onFilterChange()" placeholder="Enter hotel name" class="filter-input">
-      </div>
-
-      <!-- Date From Filter -->
-      <div class="filter-group">
-        <label for="dateFrom">Check-in From</label>
-        <input type="date" id="dateFrom" [(ngModel)]="filters.dateFrom" (ngModelChange)="onFilterChange()"
-          class="filter-input">
-      </div>
-
-      <!-- Date To Filter -->
-      <div class="filter-group">
-        <label for="dateTo">Check-in To</label>
-        <input type="date" id="dateTo" [(ngModel)]="filters.dateTo" (ngModelChange)="onFilterChange()"
-          class="filter-input">
-      </div>
-
-      <!-- Price Min Filter -->
-      <div class="filter-group">
-        <label for="priceMin">Min Price ($)</label>
-        <input type="number" id="priceMin" [(ngModel)]="filters.priceMin" (ngModelChange)="onFilterChange()"
-          placeholder="0" min="0" class="filter-input">
-      </div>
-
-      <!-- Price Max Filter -->
-      <div class="filter-group">
-        <label for="priceMax">Max Price ($)</label>
-        <input type="number" id="priceMax" [(ngModel)]="filters.priceMax" (ngModelChange)="onFilterChange()"
-          placeholder="10000" min="0" class="filter-input">
-      </div>
-
-      <!-- Customer Email Filter -->
-      <div class="filter-group">
-        <label for="customerEmail">Customer Email</label>
-        <input type="text" id="customerEmail" [(ngModel)]="filters.customerEmail" (ngModelChange)="onFilterChange()"
-          placeholder="Enter customer email" class="filter-input">
+      <div class="filter-actions">
+        <button (click)="clearFilters()" class="clear-filters-btn">
+          Clear All Filters
+        </button>
       </div>
     </div>
-
-    <div class="filter-actions">
-      <button (click)="clearFilters()" class="clear-filters-btn">
-        Clear All Filters
-      </button>
-    </div>
-  </div>
-
-  <!-- Loading Spinner -->
-  <div *ngIf="loading" class="loading-spinner">
-    <div class="spinner"></div>
-    <p>Loading room bookings...</p>
-  </div>
+  }
 
   <!-- Bookings Table -->
-  <div *ngIf="!loading" class="table-container">
-    <table class="bookings-table">
-      <thead>
-        <tr>
-          <th (click)="sort('id')" class="sortable">
-            Booking ID {{ getSortIcon('id') }}
-          </th>
-          <th>Customer</th>
-          <th (click)="sort('status')" class="sortable">
-            Status {{ getSortIcon('status') }}
-          </th>
-          <th>Room Details</th>
-          <th (click)="sort('checkInDate')" class="sortable">
-            Check-in {{ getSortIcon('checkInDate') }}
-          </th>
-          <th (click)="sort('checkOutDate')" class="sortable">
-            Check-out {{ getSortIcon('checkOutDate') }}
-          </th>
-          <th>Nights</th>
-          <th (click)="sort('totalPrice')" class="sortable">
-            Total Price {{ getSortIcon('totalPrice') }}
-          </th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let booking of paginatedBookings" class="booking-row">
-          <td class="booking-id" data-label="Booking ID">#{{ booking.id }}</td>
-          <td class="customer-info" data-label="Customer">
-            <div class="customer-email">{{ booking.customerEmail }}</div>
-            <div class="payment-status" *ngIf="booking.paymentStatus">
-              <small [ngClass]="'payment-' + booking.paymentStatus.toLowerCase()">
-                💳 {{ booking.paymentStatus }}
-              </small>
-            </div>
-          </td>
-          <td data-label="Status">
-            <span class="status-badge" [ngClass]="getStatusClass(booking.status)">
-              {{ getStatusIcon(booking.status) }} {{ getStatusLabel(booking.status) }}
-            </span>
-          </td>
-          <td class="room-details" data-label="Room Details">
-            <div class="room-type">
-              <strong>{{ booking.roomType }}</strong>
-            </div>
-            <div class="hotel-info">
-              <small>{{ booking.hotelName }}</small>
-            </div>
-            <div class="room-id" *ngIf="booking.roomId">
-              <small>Room ID: {{ booking.roomId }}</small>
-            </div>
-          </td>
-          <td class="date-time" data-label="Check-in">
-            {{ formatDate(booking.checkInDate) }}
-          </td>
-          <td class="date-time" data-label="Check-out">
-            {{ formatDate(booking.checkOutDate) }}
-          </td>
-          <td class="nights" data-label="Nights">
-            <span class="nights-badge">
-              {{ calculateNights(booking.checkInDate, booking.checkOutDate) }} nights
-            </span>
-          </td>
-          <td class="price" data-label="Total Price">
-            {{ formatPrice(booking.totalPrice) }}
-          </td>
-          <td class="actions" data-label="Actions">
-            <div class="action-buttons">
-              <!-- Confirm -->
-              <button *ngIf="canConfirmBooking(booking)" (click)="confirmBooking(booking.id)"
-                class="action-btn confirm-btn" title="Confirm Booking">
-                <i class="fas fa-check"></i>
-              </button>
+  @if (!loading && !error) {
+    <div class="table-container">
+      <table class="bookings-table">
+        <thead>
+          <tr>
+            <th (click)="sort('id')" class="sortable">
+              Booking ID {{ getSortIcon('id') }}
+            </th>
+            <th>Customer</th>
+            <th (click)="sort('status')" class="sortable">
+              Status {{ getSortIcon('status') }}
+            </th>
+            <th>Room Details</th>
+            <th (click)="sort('checkInDate')" class="sortable">
+              Check-in {{ getSortIcon('checkInDate') }}
+            </th>
+            <th (click)="sort('checkOutDate')" class="sortable">
+              Check-out {{ getSortIcon('checkOutDate') }}
+            </th>
+            <th>Nights</th>
+            <th (click)="sort('totalPrice')" class="sortable">
+              Total Price {{ getSortIcon('totalPrice') }}
+            </th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (booking of paginatedBookings; track booking.id) {
+            <tr class="booking-row">
+              <td class="booking-id" data-label="Booking ID">#{{ booking.id }}</td>
+              <td class="customer-info" data-label="Customer">
+                <div class="customer-email">{{ booking.customerEmail }}</div>
+                <div class="payment-status" *ngIf="booking.paymentStatus">
+                  <small [ngClass]="'payment-' + booking.paymentStatus.toLowerCase()">
+                    💳 {{ booking.paymentStatus }}
+                  </small>
+                </div>
+              </td>
+              <td data-label="Status">
+                <span class="status-badge" [ngClass]="getStatusClass(booking.status)">
+                  {{ getStatusIcon(booking.status) }} {{ getStatusLabel(booking.status) }}
+                </span>
+              </td>
+              <td class="room-details" data-label="Room Details">
+                <div class="room-type">
+                  <strong>{{ booking.roomType }}</strong>
+                </div>
+                <div class="hotel-info">
+                  <small>{{ booking.hotelName }}</small>
+                </div>
+                <div class="room-id" *ngIf="booking.roomId">
+                  <small>Room ID: {{ booking.roomId }}</small>
+                </div>
+              </td>
+              <td class="date-time" data-label="Check-in">
+                {{ formatDate(booking.checkInDate) }}
+              </td>
+              <td class="date-time" data-label="Check-out">
+                {{ formatDate(booking.checkOutDate) }}
+              </td>
+              <td class="nights" data-label="Nights">
+                <span class="nights-badge">
+                  {{ calculateNights(booking.checkInDate, booking.checkOutDate) }} nights
+                </span>
+              </td>
+              <td class="price" data-label="Total Price">
+                {{ formatPrice(booking.totalPrice) }}
+              </td>
+              <td class="actions" data-label="Actions">
+                <div class="action-buttons">
+                  <!-- Confirm -->
+                  <button *ngIf="canConfirmBooking(booking)" (click)="confirmBooking(booking.id)"
+                    class="action-btn confirm-btn" title="Confirm Booking">
+                    <i class="fas fa-check"></i>
+                  </button>
 
-              <!-- Cancel -->
-              <button *ngIf="canCancelBooking(booking)" (click)="cancelBooking(booking.id)"
-                class="action-btn cancel-btn" title="Cancel Booking">
-                <i class="fas fa-times"></i>
-              </button>
+                  <!-- Cancel -->
+                  <button *ngIf="canCancelBooking(booking)" (click)="cancelBooking(booking.id)"
+                    class="action-btn cancel-btn" title="Cancel Booking">
+                    <i class="fas fa-times"></i>
+                  </button>
 
-              <!-- Delete -->
-              <button (click)="deleteBooking(booking.id)" class="action-btn delete-btn" title="Delete Booking">
-                <i class="fas fa-trash"></i>
-              </button>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+                  <!-- Delete -->
+                  <button (click)="deleteBooking(booking.id)" class="action-btn delete-btn" title="Delete Booking">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
 
-    <!-- Empty State -->
-    <div *ngIf="filteredBookings.length === 0" class="empty-state">
-      <div class="empty-icon">🏨</div>
-      <h3>No Room Bookings Found</h3>
-      <p>No bookings match your current filters. Try adjusting your search criteria.</p>
+      <!-- Empty State -->
+      @if (filteredBookings.length === 0) {
+        <div class="empty-state">
+          <div class="empty-icon">🏨</div>
+          <h3>No Room Bookings Found</h3>
+          <p>No bookings match your current filters. Try adjusting your search criteria.</p>
+        </div>
+      }
     </div>
-  </div>
+  }
 
   <!-- Pagination -->
-  <div *ngIf="!loading && filteredBookings.length > 0" class="pagination">
-    <div class="pagination-info">
-      Showing {{ (currentPage - 1) * itemsPerPage + 1 }} -
-      {{ getMin(currentPage * itemsPerPage, filteredBookings.length) }}
-      of {{ filteredBookings.length }} bookings
+  @if (!loading && !error && filteredBookings.length > 0) {
+    <div class="pagination">
+      <div class="pagination-info">
+        Showing {{ (currentPage - 1) * itemsPerPage + 1 }} -
+        {{ getMin(currentPage * itemsPerPage, filteredBookings.length) }}
+        of {{ filteredBookings.length }} bookings
+      </div>
+
+      <div class="pagination-controls">
+        <button (click)="changePage(currentPage - 1)" [disabled]="currentPage === 1" class="pagination-btn">
+          Previous
+        </button>
+
+        @for (page of pageNumbers; track page) {
+          <button (click)="changePage(page)" [ngClass]="{'active': page === currentPage}"
+            class="pagination-btn page-number">
+            {{ page }}
+          </button>
+        }
+
+        <button (click)="changePage(currentPage + 1)" [disabled]="currentPage === totalPages" class="pagination-btn">
+          Next
+        </button>
+      </div>
     </div>
-
-    <div class="pagination-controls">
-      <button (click)="changePage(currentPage - 1)" [disabled]="currentPage === 1" class="pagination-btn">
-        Previous
-      </button>
-
-      <button *ngFor="let page of pageNumbers" (click)="changePage(page)" [ngClass]="{'active': page === currentPage}"
-        class="pagination-btn page-number">
-        {{ page }}
-      </button>
-
-      <button (click)="changePage(currentPage + 1)" [disabled]="currentPage === totalPages" class="pagination-btn">
-        Next
-      </button>
-    </div>
-  </div>
+  }
 </div>

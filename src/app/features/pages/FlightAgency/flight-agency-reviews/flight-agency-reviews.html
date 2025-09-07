@@ -1,255 +1,283 @@
 <div class="flight-reviews-container">
-    <!-- Header Section -->
-    <div class="reviews-header">
-        <div class="header-content">
-            <h2 class="reviews-title">
-                <i class="fas fa-plane"></i>
-                Flight Agency Reviews
-            </h2>
-            <div class="reviews-summary" *ngIf="reviewStats">
-                <div class="rating-overview">
-                    <div class="average-rating">
-                        <span class="rating-number">{{ reviewStats.averageRating }}</span>
-                        <div class="stars">
-                            <i *ngFor="let star of getStarsArray(reviewStats.averageRating)"
-                                [class]="getStarClass(star, reviewStats.averageRating)"></i>
-                        </div>
-                        <span class="total-reviews">({{ reviewStats.totalReviews }} reviews)</span>
-                    </div>
-                </div>
+  <!-- Full-Screen Loader -->
+  @if(isLoading) {
+    <div class="loader-container">
+      <div class="loader">
+        <div class="loader__ball"></div>
+        <div class="loader__ball"></div>
+        <div class="loader__ball"></div>
+      </div>
+    </div>
+  }
+
+  <!-- Header Section -->
+  <div class="reviews-header">
+    <div class="header-content">
+      <h2 class="reviews-title">
+        <i class="fas fa-plane"></i>
+        Flight Agency Reviews
+      </h2>
+      <div class="reviews-summary" *ngIf="reviewStats">
+        <div class="rating-overview">
+          <div class="average-rating">
+            <span class="rating-number">{{ reviewStats.averageRating }}</span>
+            <div class="stars">
+              <i *ngFor="let star of getStarsArray(reviewStats.averageRating)"
+                 [class]="getStarClass(star, reviewStats.averageRating)"></i>
             </div>
+            <span class="total-reviews">({{ reviewStats.totalReviews }} reviews)</span>
+          </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rating Distribution -->
+  @if(reviewStats && reviewStats.totalReviews > 0) {
+    <div class="rating-distribution">
+      <h3>Rating Breakdown</h3>
+      <div class="distribution-bars">
+        @for(rating of [5,4,3,2,1]; track rating) {
+          <div class="rating-bar">
+            <span class="rating-label">{{ rating }} <i class="fas fa-star"></i></span>
+            <div class="bar-container">
+              <div class="bar-fill" [style.width.%]="getDistributionPercentage(rating)"></div>
+            </div>
+            <span class="rating-count">{{ reviewStats.ratingDistribution[rating] || 0 }}</span>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Filters and Sorting -->
+  <div class="reviews-controls">
+    <div class="filters">
+      <select [(ngModel)]="selectedRatingFilter" (change)="onFilterChange()" class="filter-select">
+        <option value="">All Ratings</option>
+        <option value="5">5 Stars</option>
+        <option value="4">4 Stars</option>
+        <option value="3">3 Stars</option>
+        <option value="2">2 Stars</option>
+        <option value="1">1 Star</option>
+      </select>
+
+      <select [(ngModel)]="sortBy" (change)="onSortChange()" class="sort-select">
+        <option value="newest">Newest First</option>
+        <option value="oldest">Oldest First</option>
+        <option value="rating_high">Highest Rating</option>
+        <option value="rating_low">Lowest Rating</option>
+      </select>
     </div>
 
-    <!-- Rating Distribution -->
-    <div class="rating-distribution" *ngIf="reviewStats && reviewStats.totalReviews > 0">
-        <h3>Rating Breakdown</h3>
-        <div class="distribution-bars">
-            <div *ngFor="let rating of [5,4,3,2,1]" class="rating-bar">
-                <span class="rating-label">{{ rating }} <i class="fas fa-star"></i></span>
-                <div class="bar-container">
-                    <div class="bar-fill" [style.width.%]="getDistributionPercentage(rating)">
-                    </div>
-                </div>
-                <span class="rating-count">{{ reviewStats.ratingDistribution[rating] || 0 }}</span>
-            </div>
-        </div>
+    <div class="view-controls">
+      <button class="view-btn" [class.active]="viewMode === 'list'" (click)="viewMode = 'list'">
+        <i class="fas fa-list"></i>
+      </button>
+      <button class="view-btn" [class.active]="viewMode === 'grid'" (click)="viewMode = 'grid'">
+        <i class="fas fa-th"></i>
+      </button>
     </div>
+  </div>
 
-    <!-- Filters and Sorting -->
-    <div class="reviews-controls">
-        <div class="filters">
-            <select [(ngModel)]="selectedRatingFilter" (change)="onFilterChange()" class="filter-select">
-                <option value="">All Ratings</option>
-                <option value="5">5 Stars</option>
-                <option value="4">4 Stars</option>
-                <option value="3">3 Stars</option>
-                <option value="2">2 Stars</option>
-                <option value="1">1 Star</option>
-            </select>
+  <!-- Add Review Form -->
+  @if(showReviewForm) {
+    <div class="review-form-container">
+      <form [formGroup]="reviewForm" (ngSubmit)="onSubmitReview()" class="review-form">
+        <h3>Share Your Experience</h3>
 
-            <select [(ngModel)]="sortBy" (change)="onSortChange()" class="sort-select">
-                <option value="newest">Newest First</option>
-                <option value="oldest">Oldest First</option>
-                <option value="rating_high">Highest Rating</option>
-                <option value="rating_low">Lowest Rating</option>
-            </select>
-        </div>
-
-        <div class="view-controls">
-            <button class="view-btn" [class.active]="viewMode === 'list'" (click)="viewMode = 'list'">
-                <i class="fas fa-list"></i>
-            </button>
-            <button class="view-btn" [class.active]="viewMode === 'grid'" (click)="viewMode = 'grid'">
-                <i class="fas fa-th"></i>
-            </button>
-        </div>
-    </div>
-
-    <!-- Add Review Form -->
-    <div class="review-form-container" *ngIf="showReviewForm">
-        <form [formGroup]="reviewForm" (ngSubmit)="onSubmitReview()" class="review-form">
-            <h3>Share Your Experience</h3>
-
-            <div class="form-group">
-                <label for="rating">Rating *</label>
-                <div class="rating-input">
-                    <div class="star-rating">
-                        <i *ngFor="let star of [1,2,3,4,5]" class="fas fa-star star-input"
-                            [class.active]="star <= (reviewForm.get('rating')?.value || 0)" (click)="setRating(star)"
-                            (mouseover)="hoverRating = star" (mouseleave)="hoverRating = 0">
-                        </i>
-                    </div>
-                    <span class="rating-text">{{ getRatingText(reviewForm.get('rating')?.value || 0) }}</span>
-                </div>
+        <div class="form-group">
+          <label for="rating">Rating *</label>
+          <div class="rating-input">
+            <div class="star-rating">
+              @for(star of [1,2,3,4,5]; track star) {
+                <i class="fas fa-star star-input"
+                   [class.active]="star <= (reviewForm.get('rating')?.value || 0)"
+                   (click)="setRating(star)"
+                   (mouseover)="hoverRating = star"
+                   (mouseleave)="hoverRating = 0">
+                </i>
+              }
             </div>
+            <span class="rating-text">{{ getRatingText(reviewForm.get('rating')?.value || 0) }}</span>
+          </div>
+        </div>
 
-            <div class="form-group">
-                <label for="comment">Your Review</label>
-                <textarea formControlName="comment" placeholder="Share your experience with this flight agency..."
+        <div class="form-group">
+          <label for="comment">Your Review</label>
+          <textarea formControlName="comment" placeholder="Share your experience with this flight agency..."
                     rows="4" maxlength="500">
-            </textarea>
-                <div class="char-count">
-                    {{ reviewForm.get('comment')?.value?.length || 0 }}/500
-                </div>
-            </div>
+          </textarea>
+          <div class="char-count">
+            {{ reviewForm.get('comment')?.value?.length || 0 }}/500
+          </div>
+        </div>
 
-            <div class="form-actions">
-                <button type="button" class="btn btn-secondary" (click)="cancelReview()">
-                    Cancel
-                </button>
-                <button type="submit" class="btn btn-primary" [disabled]="reviewForm.invalid || isSubmitting">
-                    <i class="fas fa-paper-plane" *ngIf="!isSubmitting"></i>
-                    <i class="fas fa-spinner fa-spin" *ngIf="isSubmitting"></i>
-                    {{ isSubmitting ? 'Submitting...' : 'Submit Review' }}
-                </button>
-            </div>
-        </form>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" (click)="cancelReview()">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary" [disabled]="reviewForm.invalid || isSubmitting">
+            <i class="fas fa-paper-plane" *ngIf="!isSubmitting"></i>
+            <i class="fas fa-spinner fa-spin" *ngIf="isSubmitting"></i>
+            {{ isSubmitting ? 'Submitting...' : 'Submit Review' }}
+          </button>
+        </div>
+      </form>
     </div>
+  }
 
-    <!-- Loading State -->
-    <div class="loading-container" *ngIf="isLoading">
-        <div class="loading-spinner">
-            <i class="fas fa-spinner fa-spin"></i>
-            <p>Loading reviews...</p>
+  <!-- Reviews Content -->
+  @if(!isLoading && !errorMessage) {
+    <!-- No Reviews State -->
+    @if(reviews.length === 0) {
+      <div class="no-reviews">
+        <div class="no-reviews-content">
+          <i class="fas fa-comments"></i>
+          <h3>No Reviews Yet</h3>
+          <p>Be the first to share your experience with flight agencies!</p>
         </div>
-    </div>
+      </div>
+    }
 
-    <!-- Reviews List -->
-    <div class="reviews-content" *ngIf="!isLoading">
-        <!-- No Reviews State -->
-        <div class="no-reviews" *ngIf="reviews.length === 0">
-            <div class="no-reviews-content">
-                <i class="fas fa-comments"></i>
-                <h3>No Reviews Yet</h3>
-                <p>Be the first to share your experience with flight agencies!</p>
+    <!-- Reviews Grid/List -->
+    @if(reviews.length > 0) {
+      <div class="reviews-list" [class.grid-view]="viewMode === 'grid'" [class.list-view]="viewMode === 'list'">
+        @for(review of reviews; track review.id; let i = $index) {
+          <div class="review-card" [class.highlight]="review.id === highlightedReviewId">
 
-            </div>
-        </div>
-
-        <!-- Reviews Grid/List -->
-        <div class="reviews-list" [class.grid-view]="viewMode === 'grid'" [class.list-view]="viewMode === 'list'"
-            *ngIf="reviews.length > 0">
-
-            <div *ngFor="let review of reviews; trackBy: trackByReviewId" class="review-card"
-                [class.highlight]="review.id === highlightedReviewId">
-
-                <!-- Review Header -->
-                <div class="review-header">
-                    <div class="reviewer-info">
-                        <div class="avatar">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <div class="reviewer-details">
-                            <h4 class="reviewer-name">{{ review.userName || 'Anonymous User' }}</h4>
-                            <p class="review-date">{{ formatDate(review.createdAt) }}</p>
-                            <span class="verified-badge" *ngIf="review.userName">
-                                <i class="fas fa-check-circle"></i> Verified
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="review-actions" *ngIf="canEditReview(review)">
-                        <button class="action-btn delete" (click)="deleteReview(review.id)" title="Delete Review">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
+            <!-- Review Header -->
+            <div class="review-header">
+              <div class="reviewer-info">
+                <div class="avatar">
+                  <i class="fas fa-user"></i>
                 </div>
-
-                <!-- Company Info -->
-                <div class="company-info" *ngIf="review.companyName">
-                    <div class="company-details">
-                        <img *ngIf="review.companyImageUrl" [src]="review.companyImageUrl" [alt]="review.companyName"
-                            class="company-logo">
-                        <div class="company-text">
-                            <h5>{{ review.companyName }}</h5>
-                            <p *ngIf="review.companyLocation">
-                                <i class="fas fa-map-marker-alt"></i>
-                                {{ review.companyLocation }}
-                            </p>
-                        </div>
-                    </div>
+                <div class="reviewer-details">
+                  <h4 class="reviewer-name">{{ review.userName || 'Anonymous User' }}</h4>
+                  <p class="review-date">{{ formatDate(review.createdAt) }}</p>
+                  @if(review.userName) {
+                    <span class="verified-badge">
+                      <i class="fas fa-check-circle"></i> Verified
+                    </span>
+                  }
                 </div>
+              </div>
 
-                <!-- Rating -->
-                <div class="review-rating">
-                    <div class="stars">
-                        <i *ngFor="let star of getStarsArray(review.rating)"
-                            [class]="getStarClass(star, review.rating)"></i>
-                    </div>
-                    <span class="rating-value">{{ review.rating }}/5</span>
-                </div>
-
-                <!-- Review Content -->
-                <div class="review-content">
-                    <p *ngIf="review.comment" class="review-text">
-                        {{ review.comment }}
-                    </p>
-                    <p *ngIf="!review.comment" class="no-comment">
-                        <em>No written review provided</em>
-                    </p>
-                </div>
-
-                <!-- Review Footer -->
-                <div class="review-footer">
-                    <div class="review-meta">
-                        <span class="flight-type">
-                            <i class="fas fa-plane"></i>
-                            Flight Agency Review
-                        </span>
-                        <span *ngIf="review.updatedAt && review.updatedAt !== review.createdAt" class="updated-badge">
-                            <i class="fas fa-edit"></i>
-                            Updated {{ formatDate(review.updatedAt) }}
-                        </span>
-                    </div>
-
-                    <div class="helpful-actions">
-                        <button class="helpful-btn">
-                            <i class="fas fa-thumbs-up"></i>
-                            Helpful
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Pagination -->
-        <div class="pagination-container" *ngIf="totalPages > 1">
-            <div class="pagination">
-                <button class="page-btn" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
-                    <i class="fas fa-chevron-left"></i>
-                    Previous
+              <div class="review-actions" *ngIf="canEditReview(review)">
+                <button class="action-btn delete" (click)="deleteReview(review.id)" title="Delete Review">
+                  <i class="fas fa-trash"></i>
                 </button>
+              </div>
+            </div>
 
-                <div class="page-numbers">
-                    <button *ngFor="let page of getPageNumbers()" class="page-number"
-                        [class.active]="page === currentPage" (click)="goToPage(page)">
-                        {{ page }}
-                    </button>
+            <!-- Company Info -->
+            @if(review.companyName) {
+              <div class="company-info">
+                <div class="company-details">
+                  @if(review.companyImageUrl) {
+                    <img [src]="review.companyImageUrl" [alt]="review.companyName" class="company-logo">
+                  }
+                  <div class="company-text">
+                    <h5>{{ review.companyName }}</h5>
+                    @if(review.companyLocation) {
+                      <p>
+                        <i class="fas fa-map-marker-alt"></i>
+                        {{ review.companyLocation }}
+                      </p>
+                    }
+                  </div>
                 </div>
+              </div>
+            }
 
-                <button class="page-btn" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">
-                    Next
-                    <i class="fas fa-chevron-right"></i>
+            <!-- Rating -->
+            <div class="review-rating">
+              <div class="stars">
+                @for(star of getStarsArray(review.rating); track star) {
+                  <i [class]="getStarClass(star, review.rating)"></i>
+                }
+              </div>
+              <span class="rating-value">{{ review.rating }}/5</span>
+            </div>
+
+            <!-- Review Content -->
+            <div class="review-content">
+              @if(review.comment) {
+                <p class="review-text">{{ review.comment }}</p>
+              } @else {
+                <p class="no-comment"><em>No written review provided</em></p>
+              }
+            </div>
+
+            <!-- Review Footer -->
+            <div class="review-footer">
+              <div class="review-meta">
+                <span class="flight-type">
+                  <i class="fas fa-plane"></i>
+                  Flight Agency Review
+                </span>
+                @if(review.updatedAt && review.updatedAt !== review.createdAt) {
+                  <span class="updated-badge">
+                    <i class="fas fa-edit"></i>
+                    Updated {{ formatDate(review.updatedAt) }}
+                  </span>
+                }
+              </div>
+
+              <div class="helpful-actions">
+                <button class="helpful-btn">
+                  <i class="fas fa-thumbs-up"></i>
+                  Helpful
                 </button>
+              </div>
             </div>
+          </div>
+        }
+      </div>
 
-            <div class="pagination-info">
-                Showing {{ ((currentPage - 1) * pageSize) + 1 }} to
-                {{ Math.min(currentPage * pageSize, totalReviews) }} of
-                {{ totalReviews }} reviews
-            </div>
-        </div>
-    </div>
-
-    <!-- Error Message -->
-    <div class="error-message" *ngIf="errorMessage">
-        <div class="error-content">
-            <i class="fas fa-exclamation-triangle"></i>
-            <p>{{ errorMessage }}</p>
-            <button class="btn btn-primary" (click)="loadReviews()">
-                Try Again
+      <!-- Pagination -->
+      @if(totalPages > 1) {
+        <div class="pagination-container">
+          <div class="pagination">
+            <button class="page-btn" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
+              <i class="fas fa-chevron-left"></i>
+              Previous
             </button>
+
+            <div class="page-numbers">
+              @for(page of getPageNumbers(); track page) {
+                <button class="page-number" [class.active]="page === currentPage" (click)="goToPage(page)">
+                  {{ page }}
+                </button>
+              }
+            </div>
+
+            <button class="page-btn" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">
+              Next
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+
+          <div class="pagination-info">
+            Showing {{ ((currentPage - 1) * pageSize) + 1 }} to
+            {{ Math.min(currentPage * pageSize, totalReviews) }} of
+            {{ totalReviews }} reviews
+          </div>
         </div>
+      }
+    }
+  }
+
+  <!-- Error Message -->
+  @if(errorMessage) {
+    <div class="error-message">
+      <div class="error-content">
+        <i class="fas fa-exclamation-triangle"></i>
+        <p>{{ errorMessage }}</p>
+        <button class="btn btn-primary" (click)="loadReviews()">
+          Try Again
+        </button>
+      </div>
     </div>
+  }
 </div>

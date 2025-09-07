@@ -63,7 +63,6 @@ export class HotelAgencyBookingConfirm implements OnInit {
       const hotelCompanyId = payload['HotelCompanyId'];
       return hotelCompanyId ? parseInt(hotelCompanyId) : null;
     } catch (error) {
-      console.error('Error decoding token:', error);
       return null;
     }
   }
@@ -71,6 +70,9 @@ export class HotelAgencyBookingConfirm implements OnInit {
   async loadConfirmedBookings(): Promise<void> {
     this.loading = true;
     this.error = null;
+    this.cd.detectChanges(); // Force UI update
+
+    const startTime = Date.now();
 
     try {
       const allBookings = await firstValueFrom(this.bookingService.getAllBookings());
@@ -106,11 +108,15 @@ export class HotelAgencyBookingConfirm implements OnInit {
 
       this.applyFilters();
     } catch (error) {
-      console.error('Error loading confirmed bookings:', error);
       this.error = 'Failed to load confirmed bookings. Please try again.';
     } finally {
-      this.loading = false;
-      this.cd.detectChanges(); 
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(1000 - elapsed, 0);
+
+      setTimeout(() => {
+        this.loading = false;
+        this.cd.detectChanges();
+      }, remaining);
     }
   }
 
@@ -289,7 +295,6 @@ export class HotelAgencyBookingConfirm implements OnInit {
     this.applyFilters();
   }
 
-  // Add this method to your component class
   getMaxBookingIndex(): number {
     const endIndex = this.currentPage * this.itemsPerPage;
     return endIndex > this.filteredBookings.length ? this.filteredBookings.length : endIndex;

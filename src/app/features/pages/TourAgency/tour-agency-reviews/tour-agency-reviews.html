@@ -1,1 +1,173 @@
-<p>tour-agency-reviews works!</p>
+<div class="reviews-container">
+  <!-- Header -->
+  <header class="reviews-header">
+    <div class="header-content">
+      <h1 class="title">
+        <i class="fas fa-map-marked-alt"></i>
+        Tour Agency Reviews
+      </h1>
+      @if (reviewStats) {
+        <div class="summary">
+          <span class="avg-rating">{{ reviewStats.averageRating }}</span>
+          <div class="stars">
+            @for (star of getStarsArray(reviewStats.averageRating); track star) {
+              <i [class]="getStarClass(star, reviewStats.averageRating)"></i>
+            }
+          </div>
+          <span class="count">({{ reviewStats.totalReviews }} reviews)</span>
+        </div>
+      }
+    </div>
+  </header>
+
+  <!-- Stats -->
+  @if (reviewStats && reviewStats.totalReviews > 0) {
+    <section class="rating-stats">
+      <h3>Rating Breakdown</h3>
+      @for (rating of [5, 4, 3, 2, 1]; track rating) {
+        <div class="bar-group">
+          <div class="bar-label">{{ rating }} <i class="fas fa-star"></i></div>
+          <div class="bar-track">
+            <div class="bar-fill" [style.width.%]="getDistributionPercentage(rating)"></div>
+          </div>
+          <div class="bar-count">{{ reviewStats.ratingDistribution[rating] || 0 }}</div>
+        </div>
+      }
+    </section>
+  }
+
+  <!-- Controls -->
+  <div class="reviews-controls">
+    <div class="filters">
+      <select [(ngModel)]="selectedRatingFilter" (change)="onFilterChange()">
+        <option value="">All Ratings</option>
+        <option value="5">5 Stars</option>
+        <option value="4">4 Stars</option>
+        <option value="3">3 Stars</option>
+        <option value="2">2 Stars</option>
+        <option value="1">1 Star</option>
+      </select>
+      <select [(ngModel)]="sortBy" (change)="onSortChange()">
+        <option value="newest">Newest First</option>
+        <option value="oldest">Oldest First</option>
+        <option value="rating_high">Highest Rating</option>
+        <option value="rating_low">Lowest Rating</option>
+      </select>
+    </div>
+    <div class="view-toggle">
+      <button (click)="viewMode = 'list'" [class.active]="viewMode === 'list'">
+        <i class="fas fa-list"></i>
+      </button>
+      <button (click)="viewMode = 'grid'" [class.active]="viewMode === 'grid'">
+        <i class="fas fa-th"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+<!-- Loading -->
+@if (isLoading) {
+  <div class="loader-container">
+    <div class="loader">
+      <div class="loader__ball"></div>
+      <div class="loader__ball"></div>
+      <div class="loader__ball"></div>
+    </div>
+    <!-- <p style="color: white; margin-top: 20px; font-size: 1.2rem;">Loading reviews...</p> -->
+  </div>
+}
+  @else {
+
+    <!-- No Reviews -->
+    @if (!isLoading && reviews.length === 0) {
+      <div class="empty-state">
+        <i class="fas fa-comments"></i>
+        <h3>No Reviews Yet</h3>
+        <p>This tour agency has no reviews yet.</p>
+      </div>
+    }
+  
+    <!-- Reviews List -->
+    @if (!isLoading && reviews.length > 0) {
+      <div class="reviews-list" [class.grid]="viewMode === 'grid'">
+        @for (review of reviews; track trackByReviewId($index, review)) {
+          <div class="review-card" [class.highlight]="review.id === highlightedReviewId">
+            <!-- Header -->
+            <div class="review-header">
+              <div class="user">
+                <div class="avatar"><i class="fas fa-user"></i></div>
+                <div class="info">
+                  <strong>{{ review.userName || 'Anonymous' }}</strong>
+                  <small>{{ formatDate(review.createdAt) }}</small>
+                  @if (review.userName) {
+                    <span class="badge">Verified</span>
+                  }
+                </div>
+              </div>
+              @if (canEditReview(review)) {
+                <div class="actions">
+                  <button (click)="deleteReview(review.id)" title="Delete"><i class="fas fa-trash"></i></button>
+                </div>
+              }
+            </div>
+  
+            <!-- Rating -->
+            <div class="review-rating">
+              <div class="stars">
+                @for (star of getStarsArray(review.rating); track star) {
+                  <i [class]="getStarClass(star, review.rating)"></i>
+                }
+              </div>
+              <span>{{ review.rating }}/5</span>
+            </div>
+  
+            <!-- Comment -->
+            <div class="review-content">
+              @if (review.comment) {
+                <p>{{ review.comment }}</p>
+              } @else {
+                <p class="muted"><em>No written review</em></p>
+              }
+            </div>
+  
+            <!-- Footer -->
+            <div class="review-footer">
+              <small>Tour Agency Review</small>
+              @if (review.updatedAt && review.updatedAt !== review.createdAt) {
+                <small>Updated {{ formatDate(review.updatedAt) }}</small>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+  
+    <!-- Pagination -->
+    @if (!isLoading && totalPages > 1 ) {
+      <footer class="pagination">
+        <button [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
+          &laquo; Previous
+        </button>
+        <div class="pages">
+          @for (page of getPageNumbers(); track page) {
+            <button (click)="goToPage(page)" [class.active]="page === currentPage">
+              {{ page }}
+            </button>
+          }
+        </div>
+        <button [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">
+          Next &raquo;
+        </button>
+      </footer>
+    }
+  
+    <!-- Error -->
+    @if (errorMessage) {
+      <div class="error">
+        <i class="fas fa-exclamation-triangle"></i>
+        <p>{{ errorMessage }}</p>
+        <button class="btn-primary" (click)="loadReviews()">Try Again</button>
+      </div>
+    }
+  }
+</div>

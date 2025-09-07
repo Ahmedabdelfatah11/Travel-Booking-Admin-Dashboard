@@ -1,33 +1,61 @@
 <div class="sb-nav-fixed"> 
-        <nav class="sb-topnav navbar navbar-expand bg-light p-0  border-bottom border-1">
+         <nav class="sb-topnav navbar navbar-expand p-0  ">
             <!-- Navbar Brand-->
-            <a class="navbar-brand ps-3  border-end border-1 h-100 title" >Pyramigo</a>
+                <!-- <img src="assets/imgs/palms.png"alt=""> -->
+                 <div class="d-flex h-100">
+                     <a class="navbar-brand ps-2 h-100 title" [class.toggled]="isSidebarToggled">
+        <img 
+          src="assets/imgs/palms.png" 
+          alt="Dates" 
+          class="text-light pe-2" 
+          style="width: 40px;"
+          id="navbar-logo">
+        Pyramigo
+      </a>
+                 </div>
             <!-- Sidebar Toggle-->
-            <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0 ms-2" id="sidebarToggle"><i class="fas fa-bars"></i></button>
-            <!-- Navbar Search-->
+<button 
+  class="btn btn-link text-light btn-sm order-1 order-lg-0 me-4 me-lg-0 ms-2" 
+  (click)="toggleSidebar($event)"
+  type="button">
+  <i class="fas fa-bars"></i>
+</button>            <!-- Navbar Search-->
             <form class="d-none d-md-inline-block form-inline ms-auto me-0 me-md-3 my-2 my-md-0 ">
                 <div class="input-group ">
                     <input class="form-control" type="text" placeholder="Search for..." aria-label="Search for..." aria-describedby="btnNavbarSearch" />
-                    <button class="btn btn-primary" id="btnNavbarSearch" type="button"><i class="fas fa-search"></i></button>
+                    <button class="btn btn-light" id="btnNavbarSearch" type="button"><i class="fas fa-search"></i></button>
                 </div>
             </form>
             <!-- Navbar-->
-            <ul class="navbar-nav ms-auto ms-md-0 me-3 me-lg-4">
-                
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" id="navbarDropdown"  role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-user fa-fw"></i></a>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                        <li><a class="dropdown-item" >Settings</a></li>
-                        <li><a class="dropdown-item" >Activity Log</a></li>
-                        <li><hr class="dropdown-divider" /></li>
-                        <li><a class="dropdown-item" >Logout</a></li>
-                    </ul>
-                </li>
-            </ul>
+         <ul class="navbar-nav ms-auto ms-md-0 me-3 me-lg-4">
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle text-light d-flex align-items-center" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+          <!-- User Avatar -->
+          <div class="rounded-circle me-2" style="width: 32px; height: 32px; background: #ddd; overflow: hidden;">
+            @if (!isLoadingProfile && userProfile && profileImageUrl) {
+              <img [src]="profileImageUrl" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">
+            } @else if (isLoadingProfile) {
+              <i class="fas fa-spinner fa-spin p-2 text-muted"></i>
+            } @else {
+              <i class="fas fa-user p-2 text-muted" style="font-size: 1.2rem;"></i>
+            }
+          </div>
+          <!-- Show name on larger screens -->
+          <span class="d-none d-md-inline">{{ displayName }}</span>
+        </a>
+
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+          <li><a class="dropdown-item" routerLink="settings/profile"><i class="fas fa-cog me-2"></i>Settings</a></li>
+          <li><a class="dropdown-item" routerLink="dashboard"><i class="fas fa-history me-2"></i>Activity Log</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item" (click)="logout()"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+        </ul>
+      </li>
+    </ul>
         </nav>
         <div id="layoutSidenav">
             <div id="layoutSidenav_nav">
-                <nav class="sb-sidenav accordion sb-sidenav-light border-end border-1" id="sidenavAccordion">
+                <nav class="sb-sidenav accordion sb-sidenav-light " id="sidenavAccordion">
                     <div class="sb-sidenav-menu">
                         <div class="nav">
                             <!-- <div class="sb-sidenav-menu-heading">Core</div> -->
@@ -42,7 +70,7 @@
  @if (isHotelAdmin()){
 <a class="nav-link collapsed mb-1" data-bs-toggle="collapse" data-bs-target="#Hotel" aria-expanded="false" aria-controls="Hotel">
   <div class="sb-nav-link-icon">
-       <img src="assets/imgs/dates.png" alt="Dates" style="width: 20px; height: 20px;">
+      <i class="fa-solid fa-bed"></i>
   </div>
   <span>Rooms</span>
   <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
@@ -76,18 +104,28 @@
                                 </div>
 
                                 <!-- Reviews -->
-                          <a class="nav-link"  routerLink="reviews">
+                         <a class="nav-link"  routerLink="reviews">
                                 <div class="sb-nav-link-icon"><i class="fas fa-sync-alt"></i></div>
                                 Reviews
                             </a>
-                          <a class="nav-link"  routerLink="wishlist">
-                                <div class="sb-nav-link-icon"><i class="fa-solid fa-heart"></i></div>
-                                Wishlist
-                            </a>
-                          <a class="nav-link"  routerLink="settings">
-                                <div class="sb-nav-link-icon"><i class="fa-solid fa-gear"></i></div>
-                                Setting
-                            </a>
+                            <a class="nav-link collapsed mb-1" data-bs-toggle="collapse" data-bs-target="#Settings"
+                            aria-expanded="false" aria-controls="collapseLayouts">
+                            <div class="sb-nav-link-icon">
+                                <i class="fa-solid fa-lock"></i>
+                            </div>
+                            <div>
+                                <span>Settings</span>
+                            </div>
+                            <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+                        </a>
+                        <div class="collapse" id="Settings" aria-labelledby="headingOne"
+                            data-bs-parent="#sidenavAccordion">
+                            <nav class="sb-sidenav-menu-nested nav">
+                                <a class="nav-link" routerLink="settings/profile">My Profile</a>
+                                <a class="nav-link" routerLink="settings/password">Change Password</a>
+                            </nav>
+                        </div>
+                    
                           <a class="nav-link" (click)="logout()">
                                 <div class="sb-nav-link-icon"><i class="fas fa-power-off"></i></div>
                                 Log out

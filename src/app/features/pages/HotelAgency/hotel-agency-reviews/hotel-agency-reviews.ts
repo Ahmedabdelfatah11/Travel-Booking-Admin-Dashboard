@@ -1,9 +1,15 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { finalize, Subject, takeUntil } from 'rxjs';
 import { CreateReviewDto, ReviewDto, ReviewService, ReviewsResponse, ReviewStatsDto } from '../../../../core/services/review-service';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Auth } from '../../../../core/services/auth';
 import { CommonModule } from '@angular/common';
+
+// Interface for selected images
+interface SelectedImage {
+  file: File;
+  preview: string;
+}
 
 @Component({
   selector: 'app-hotel-agency-reviews',
@@ -12,7 +18,7 @@ import { CommonModule } from '@angular/common';
   styleUrl: './hotel-agency-reviews.css'
 })
 export class HotelAgencyReviews {
-hotelCompanyId: number | null = null;
+  hotelCompanyId: number | null = null;
   error: string | null = null;
 
   // Component State
@@ -48,17 +54,17 @@ hotelCompanyId: number | null = null;
   constructor(
     private reviewService: ReviewService,
     private authService: Auth,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private cd: ChangeDetectorRef
   ) {
     this.reviewForm = this.createReviewForm();
   }
 
   async ngOnInit() {
     await this.initializeComponent();
-
   }
+
   private async initializeComponent(): Promise<void> {
-    // Get hotelCompanyId from user roles/token
     this.hotelCompanyId = this.getHotelCompanyIdFromToken();
 
     if (!this.hotelCompanyId) {
@@ -67,22 +73,18 @@ hotelCompanyId: number | null = null;
     }
 
     await this.loadReviews();
-    await this.loadReviewStats();;
+    await this.loadReviewStats();
   }
 
   private getHotelCompanyIdFromToken(): number | null {
-    // This method extracts FlightCompanyId from the JWT token
-    // You'll need to decode the JWT token to get the FlightCompanyId claim
     const token = this.authService.getToken();
     if (!token) return null;
 
     try {
-      // Decode JWT token payload
       const payload = JSON.parse(atob(token.split('.')[1]));
       const hotelCompanyId = payload['hotelCompanyId'];
       return hotelCompanyId ? parseInt(hotelCompanyId) : null;
     } catch (error) {
-      console.error('Error decoding token:', error);
       return null;
     }
   }
@@ -104,7 +106,9 @@ hotelCompanyId: number | null = null;
   loadReviews(): void {
     this.isLoading = true;
     this.errorMessage = '';
+    this.cd.detectChanges();
 
+    const startTime = Date.now();
     const ratingFilter = this.selectedRatingFilter ? parseInt(this.selectedRatingFilter) : undefined;
 
     this.reviewService.getCompanyReviews(
@@ -115,7 +119,10 @@ hotelCompanyId: number | null = null;
       this.sortBy
     ).pipe(
       takeUntil(this.destroy$),
-      finalize(() => this.isLoading = false)
+      finalize(() => this.finalizeWithDelay(() => {
+        this.isLoading = false;
+        this.cd.detectChanges();
+      }))
     ).subscribe({
       next: (response: ReviewsResponse) => {
         this.reviews = ratingFilter ?
@@ -126,7 +133,6 @@ hotelCompanyId: number | null = null;
       },
       error: (error) => {
         this.errorMessage = error.userMessage || 'Failed to load reviews';
-        console.error('Error loading reviews:', error);
       }
     });
   }
@@ -139,7 +145,7 @@ hotelCompanyId: number | null = null;
           this.reviewStats = stats;
         },
         error: (error) => {
-          console.error('Error loading review stats:', error);
+          // Optional: handle stats load error silently
         }
       });
   }
@@ -172,6 +178,9 @@ hotelCompanyId: number | null = null;
     if (this.reviewForm.invalid) return;
 
     this.isSubmitting = true;
+    this.cd.detectChanges();
+
+    const startTime = Date.now();
     const formValue = this.reviewForm.value;
 
     const reviewData: CreateReviewDto = {
@@ -190,7 +199,10 @@ hotelCompanyId: number | null = null;
 
     operation.pipe(
       takeUntil(this.destroy$),
-      finalize(() => this.isSubmitting = false)
+      finalize(() => this.finalizeWithDelay(() => {
+        this.isSubmitting = false;
+        this.cd.detectChanges();
+      }))
     ).subscribe({
       next: () => {
         this.showReviewForm = false;
@@ -209,9 +221,14 @@ hotelCompanyId: number | null = null;
       },
       error: (error) => {
         this.errorMessage = error.userMessage || 'Failed to submit review';
-        console.error('Error submitting review:', error);
       }
     });
+  }
+
+  private finalizeWithDelay(callback: () => void, minMs = 1000): void {
+    const elapsed = Date.now() - performance.now();
+    const remaining = Math.max(minMs - elapsed, 0);
+    setTimeout(callback, remaining);
   }
 
   editReview(review: ReviewDto): void {
@@ -235,7 +252,6 @@ hotelCompanyId: number | null = null;
         },
         error: (error) => {
           this.errorMessage = error.userMessage || 'Failed to delete review';
-          console.error('Error deleting review:', error);
         }
       });
   }
@@ -290,9 +306,6 @@ hotelCompanyId: number | null = null;
   }
 
   canEditReview(review: ReviewDto): boolean {
-    // Implement your user permission logic here
-    // For example, check if current user ID matches review.userId
-    // or if user has admin role
     return false; // Placeholder - implement based on your auth system
   }
 

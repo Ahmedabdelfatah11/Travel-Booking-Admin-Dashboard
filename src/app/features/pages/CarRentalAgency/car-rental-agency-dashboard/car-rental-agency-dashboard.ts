@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Chart, ChartConfiguration } from 'chart.js/auto';
 import { CarRentalCompany, CarRentalService, DashboardStats } from '../../../../core/services/CarRental-Services';
+import { Subject, takeUntil, finalize } from 'rxjs';
 
 @Component({
   selector: 'app-car-rental-agency-dashboard',
@@ -12,61 +13,88 @@ import { CarRentalCompany, CarRentalService, DashboardStats } from '../../../../
   styleUrls: ['./car-rental-agency-dashboard.css']
 })
 export class CarRentalAgencyDashboard implements OnInit, OnDestroy {
+  // State
+  private destroy$ = new Subject<void>();
+  isLoading = false;
+  error: string | null = null;
+
+  // Data
   dashboardStats: DashboardStats | null = null;
   companies: CarRentalCompany[] = [];
-  loading = true;
-  error: string | null = null;
-  chart: Chart | null = null;
 
   // Modal properties
   selectedCompany: CarRentalCompany | null = null;
   showEditModal = false;
   showDeleteModal = false;
 
-  constructor(private carRentalService: CarRentalService, private cd: ChangeDetectorRef) {}
+  // Chart
+  private chart: Chart | null = null;
+
+  constructor(
+    private carRentalService: CarRentalService,
+    private cd: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.loadDashboardData();
     this.loadCompanies();
-         this.cd.detectChanges();
   }
 
   ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
     if (this.chart) {
       this.chart.destroy();
     }
   }
 
+  // === Data Loading ===
   loadDashboardData(): void {
-    this.loading = true;
-    this.carRentalService.getDashboardStats().subscribe({
-      next: (stats) => {
+    this.isLoading = true;
+    this.error = null;
+
+    // Capture start time for minimum 1s loading
+    const startTime = Date.now();
+
+    this.carRentalService.getDashboardStats().pipe(
+      takeUntil(this.destroy$),
+      finalize(async () => {
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(1000 - elapsed, 0); // Minimum 1 second
+
+        // Wait remaining time
+        await new Promise(resolve => setTimeout(resolve, remaining));
+
+        this.isLoading = false;
+        this.cd.detectChanges(); // Force UI update
+      })
+    ).subscribe({
+      next: (stats: DashboardStats) => {
         this.dashboardStats = stats;
-        this.loading = false;
-         this.cd.detectChanges();
-        setTimeout(() => this.createChart(), 100);
+        this.cd.detectChanges();
+        this.createChart();
       },
       error: (err) => {
         this.error = 'Failed to load dashboard data';
-        this.loading = false;
-        console.error(err);
-         this.cd.detectChanges();
+        this.cd.detectChanges();
       }
     });
   }
 
   loadCompanies(): void {
-    this.carRentalService.getMyCompanies().subscribe({
+    this.carRentalService.getMyCompanies().pipe(takeUntil(this.destroy$)).subscribe({
       next: (companies) => {
         this.companies = companies;
+        this.cd.detectChanges();
       },
       error: (err) => {
         this.error = 'Failed to load companies';
-        console.error(err);
+        this.cd.detectChanges();
       }
     });
   }
 
+  // === Chart ===
   createChart(): void {
     if (!this.dashboardStats?.bookingsChart) return;
 
@@ -77,7 +105,7 @@ export class CarRentalAgencyDashboard implements OnInit, OnDestroy {
       this.chart.destroy();
     }
 
-    const labels = this.dashboardStats.bookingsChart.map(item => 
+    const labels = this.dashboardStats.bookingsChart.map(item =>
       new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
     );
     const data = this.dashboardStats.bookingsChart.map(item => item.count);
@@ -105,9 +133,7 @@ export class CarRentalAgencyDashboard implements OnInit, OnDestroy {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: {
-            display: false
-          }
+          legend: { display: false }
         },
         scales: {
           y: {
@@ -115,36 +141,26 @@ export class CarRentalAgencyDashboard implements OnInit, OnDestroy {
             ticks: {
               precision: 0,
               color: '#6c757d',
-              font: {
-                size: 12
-              }
+              font: { size: 12 }
             },
-            grid: {
-              color: 'rgba(0,0,0,0.1)'
-            }
+            grid: { color: 'rgba(0,0,0,0.1)' }
           },
           x: {
             ticks: {
               color: '#6c757d',
-              font: {
-                size: 12
-              }
+              font: { size: 12 }
             },
-            grid: {
-              display: false
-            }
+            grid: { display: false }
           }
         },
-        interaction: {
-          intersect: false,
-          mode: 'index'
-        }
+        interaction: { intersect: false, mode: 'index' }
       }
     };
 
     this.chart = new Chart(ctx, config);
   }
 
+  // === Modal Actions ===
   openEditModal(company: CarRentalCompany): void {
     this.selectedCompany = { ...company };
     this.showEditModal = true;
@@ -172,7 +188,6 @@ export class CarRentalAgencyDashboard implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.error = 'Failed to update company';
-        console.error(err);
       }
     });
   }
@@ -188,11 +203,11 @@ export class CarRentalAgencyDashboard implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.error = 'Failed to delete company';
-        console.error(err);
       }
     });
   }
 
+  // === Utility Methods ===
   getRatingStars(rating: string): string[] {
     const numRating = parseFloat(rating) || 0;
     const stars = [];
@@ -218,6 +233,5 @@ export class CarRentalAgencyDashboard implements OnInit, OnDestroy {
   refreshDashboard(): void {
     this.loadDashboardData();
     this.loadCompanies();
-     this.cd.detectChanges();
   }
 }

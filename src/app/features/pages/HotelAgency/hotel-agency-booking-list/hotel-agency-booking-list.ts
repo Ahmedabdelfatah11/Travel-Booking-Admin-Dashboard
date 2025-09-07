@@ -6,10 +6,6 @@ import { Auth } from '../../../../core/services/auth';
 import { firstValueFrom } from 'rxjs';
 import { RoomBooking, RoomBookingFilters } from '../../../../shared/Interfaces/ihotel';
 
-
-
-
-
 @Component({
   selector: 'app-hotel-agency-booking-list',
   standalone: true,
@@ -75,7 +71,6 @@ export class HotelAgencyBookingList implements OnInit {
   }
 
   private async initializeComponent(): Promise<void> {
-    // Get HotelCompanyId from user roles/token
     this.hotelCompanyId = this.getHotelCompanyIdFromToken();
     
     if (!this.hotelCompanyId) {
@@ -91,7 +86,6 @@ export class HotelAgencyBookingList implements OnInit {
     if (!token) return null;
 
     try {
-      // Decode JWT token payload
       const payload = JSON.parse(atob(token.split('.')[1]));
       const hotelCompanyId = payload['HotelCompanyId'];
       return hotelCompanyId ? parseInt(hotelCompanyId) : null;
@@ -104,13 +98,14 @@ export class HotelAgencyBookingList implements OnInit {
   async loadBookings(): Promise<void> {
     this.loading = true;
     this.error = null;
+    this.cd.detectChanges(); // Force UI update
+
+    const startTime = Date.now();
 
     try {
-      // Get all bookings first
       const allBookings = await firstValueFrom(this.bookingService.getAllBookings());
       console.log('All bookings from API:', allBookings);
 
-      // Filter for room bookings only
       const roomBookings = allBookings
         ?.filter(b => b.bookingType === BookingType.Room)
         .map((booking: BookingDto) => ({
@@ -131,7 +126,6 @@ export class HotelAgencyBookingList implements OnInit {
           agencyDetails: booking.agencyDetails
         })) || [];
 
-      // Filter bookings by hotelCompanyId
       this.bookings = roomBookings.filter(booking => 
         booking.agencyDetails?.hotelCompanyId === this.hotelCompanyId
       );
@@ -142,8 +136,13 @@ export class HotelAgencyBookingList implements OnInit {
       console.error('Error loading bookings:', error);
       this.error = 'Failed to load room bookings. Please try again.';
     } finally {
-      this.loading = false;
-      this.cd.detectChanges(); 
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(1000 - elapsed, 0);
+
+      setTimeout(() => {
+        this.loading = false;
+        this.cd.detectChanges();
+      }, remaining);
     }
   }
 
@@ -156,20 +155,17 @@ export class HotelAgencyBookingList implements OnInit {
 
     let filtered = [...this.bookings];
 
-    // Status filter
     if (this.filters.status !== '') {
       const statusValue = parseInt(this.filters.status);
       filtered = filtered.filter(b => b.status === statusValue);
     }
 
-    // Room type filter
     if (this.filters.roomType !== '') {
       filtered = filtered.filter(b => 
         b.roomType?.toLowerCase() === this.filters.roomType.toLowerCase()
       );
     }
 
-    // Hotel name filter
     if (this.filters.hotelName?.trim()) {
       const hotelName = this.filters.hotelName.toLowerCase().trim();
       filtered = filtered.filter(b =>
@@ -177,7 +173,6 @@ export class HotelAgencyBookingList implements OnInit {
       );
     }
 
-    // Date filters
     if (this.filters.dateFrom) {
       const fromDate = new Date(this.filters.dateFrom);
       filtered = filtered.filter(b => new Date(b.checkInDate) >= fromDate);
@@ -188,7 +183,6 @@ export class HotelAgencyBookingList implements OnInit {
       filtered = filtered.filter(b => new Date(b.checkInDate) <= toDate);
     }
 
-    // Price filters
     if (this.filters.priceMin !== null && this.filters.priceMin > 0) {
       filtered = filtered.filter(b => b.totalPrice >= this.filters.priceMin!);
     }
@@ -197,7 +191,6 @@ export class HotelAgencyBookingList implements OnInit {
       filtered = filtered.filter(b => b.totalPrice <= this.filters.priceMax!);
     }
 
-    // Customer email filter
     if (this.filters.customerEmail?.trim()) {
       const email = this.filters.customerEmail.toLowerCase().trim();
       filtered = filtered.filter(b =>
@@ -205,23 +198,19 @@ export class HotelAgencyBookingList implements OnInit {
       );
     }
 
-    // Apply sorting
     if (this.sortBy) {
       filtered.sort((a, b) => {
         const aValue = (a as any)[this.sortBy];
         const bValue = (b as any)[this.sortBy];
-
         let comparison = 0;
         if (aValue < bValue) comparison = -1;
         else if (aValue > bValue) comparison = 1;
-
         return this.sortDirection === 'desc' ? -comparison : comparison;
       });
     }
 
     this.filteredBookings = filtered;
     this.calculatePagination();
-
     console.log('Applied filters - Total:', this.bookings.length, 'Filtered:', this.filteredBookings.length);
   }
 
@@ -288,7 +277,6 @@ export class HotelAgencyBookingList implements OnInit {
 
   get pageNumbers(): number[] {
     const pages = [];
-
     if (this.totalPages <= 10) {
       for (let i = 1; i <= this.totalPages; i++) {
         pages.push(i);
@@ -296,16 +284,13 @@ export class HotelAgencyBookingList implements OnInit {
     } else {
       const start = Math.max(1, this.currentPage - 4);
       const end = Math.min(this.totalPages, start + 9);
-
       for (let i = start; i <= end; i++) {
         pages.push(i);
       }
     }
-
     return pages;
   }
 
-  // Status and formatting methods
   getStatusClass(status: Status): string {
     return this.bookingService.getStatusClass(status);
   }
@@ -358,7 +343,6 @@ export class HotelAgencyBookingList implements OnInit {
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   }
 
-  // Action methods
   canConfirmBooking(booking: RoomBooking): boolean {
     return booking.status === Status.Pending;
   }
@@ -407,12 +391,10 @@ export class HotelAgencyBookingList implements OnInit {
     }
   }
 
-  // Helper method to get status statistics for this hotel company only
   getStatusStats() {
     const pending = this.bookings.filter(b => b.status === Status.Pending).length;
     const confirmed = this.bookings.filter(b => b.status === Status.Confirmed).length;
     const cancelled = this.bookings.filter(b => b.status === Status.Cancelled).length;
-
     return { pending, confirmed, cancelled };
   }
 }

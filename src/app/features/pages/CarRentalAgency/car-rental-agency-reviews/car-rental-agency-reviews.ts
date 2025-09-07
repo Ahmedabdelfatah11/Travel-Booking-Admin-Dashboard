@@ -1,4 +1,3 @@
-// car-rental-agency-reviews.component.ts
 import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -6,10 +5,18 @@ import { CarRentalCompany, CarRentalService } from '../../../../core/services/Ca
 import { Auth } from '../../../../core/services/auth';
 import { CreateReviewDto, ReviewDto, ReviewService, ReviewsResponse, ReviewStatsDto } from '../../../../core/services/review-service';
 
+// Toast interface
+interface Toast {
+  id: number;
+  message: string;
+  type: 'success' | 'error' | 'info';
+  visible: boolean;
+}
+
 @Component({
   selector: 'app-car-rental-agency-reviews',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule ],
   templateUrl: './car-rental-agency-reviews.html',
   styleUrls: ['./car-rental-agency-reviews.css']
 })
@@ -18,6 +25,7 @@ export class CarRentalAgencyReviews implements OnInit {
   private carRentalService = inject(CarRentalService);
   private authService = inject(Auth);
   private cd = inject(ChangeDetectorRef);
+
   // Component state
   reviews: ReviewDto[] = [];
   myCompanies: CarRentalCompany[] = [];
@@ -50,31 +58,36 @@ export class CarRentalAgencyReviews implements OnInit {
     rating: 5,
     comment: ''
   };
-  
+
   editReviewData = {
     rating: 5,
     comment: ''
   };
 
-  // Rating stars array for display
+  // Rating stars array
   stars = [1, 2, 3, 4, 5];
-  
+
   // User info
   isAuthenticated = false;
   currentUser: any = null;
 
+  // Toasts
+  private toastId = 0;
+  toasts: Toast[] = [];
+
   ngOnInit(): void {
     this.checkAuthentication();
     this.loadMyCompanies();
-       this.cd.detectChanges();
+    this.cd.detectChanges();
   }
 
-checkAuthentication(): void {
-  this.isAuthenticated = this.authService.isLoggedIn();
-  if (this.isAuthenticated) {
-    this.currentUser = this.authService.getUserId(); // or getAuthenticatedUser()
+  checkAuthentication(): void {
+    this.isAuthenticated = this.authService.isLoggedIn();
+    if (this.isAuthenticated) {
+      this.currentUser = this.authService.getUserId();
+    }
   }
-}
+
   loadMyCompanies(): void {
     this.carRentalService.getMyCompanies().subscribe({
       next: (companies) => {
@@ -83,13 +96,12 @@ checkAuthentication(): void {
           this.selectedCompany = companies[0];
           this.loadReviews();
           this.loadReviewStats();
-               this.cd.detectChanges();
         }
+        this.cd.detectChanges();
       },
       error: (error) => {
-        console.error('Error loading companies:', error);
-        this.error = 'Failed to load companies';
-             this.cd.detectChanges();
+        this.showToast('Failed to load your companies.', 'error');
+        this.cd.detectChanges();
       }
     });
   }
@@ -102,7 +114,6 @@ checkAuthentication(): void {
       this.currentPage = 1;
       this.loadReviews();
       this.loadReviewStats();
-           this.cd.detectChanges();
     }
   }
 
@@ -110,7 +121,9 @@ checkAuthentication(): void {
     if (!this.selectedCompany) return;
 
     this.isLoading = true;
-    this.error = null;
+    this.cd.detectChanges();
+
+    const startTime = Date.now();
 
     this.reviewService.getCompanyReviews(
       'carrental',
@@ -124,13 +137,12 @@ checkAuthentication(): void {
         this.totalReviews = response.totalCount;
         this.totalPages = Math.ceil(this.totalReviews / this.pageSize);
         this.isLoading = false;
-             this.cd.detectChanges();
+        this.finishLoading(startTime);
       },
       error: (error) => {
-        console.error('Error loading reviews:', error);
-        this.error = error.userMessage || 'Failed to load reviews';
         this.isLoading = false;
-             this.cd.detectChanges();
+        this.showToast(error.userMessage || 'Failed to load reviews', 'error');
+        this.finishLoading(startTime);
       }
     });
   }
@@ -139,46 +151,56 @@ checkAuthentication(): void {
     if (!this.selectedCompany) return;
 
     this.isLoadingStats = true;
+    this.cd.detectChanges();
+
+    const startTime = Date.now();
+
     this.reviewService.getCompanyReviewStats('carrental', this.selectedCompany.id).subscribe({
       next: (stats) => {
         this.reviewStats = stats;
         this.isLoadingStats = false;
-             this.cd.detectChanges();
+        this.finishLoading(startTime);
       },
       error: (error) => {
-        console.error('Error loading review stats:', error);
         this.isLoadingStats = false;
-             this.cd.detectChanges();
+        this.showToast('Failed to load review statistics.', 'error');
+        this.finishLoading(startTime);
       }
     });
+  }
+
+  private finishLoading(startTime: number): void {
+    const elapsed = Date.now() - startTime;
+    const remaining = Math.max(1000 - elapsed, 0);
+
+    setTimeout(() => {
+      this.cd.detectChanges();
+    }, remaining);
   }
 
   onSortChange(sortBy: string): void {
     this.sortBy = sortBy;
     this.currentPage = 1;
     this.loadReviews();
-         this.cd.detectChanges();
   }
 
   onRatingFilter(rating: number | null): void {
     this.filterRating = rating;
     this.currentPage = 1;
     this.loadReviews();
-         this.cd.detectChanges();
   }
 
   onPageChange(page: number): void {
     if (page >= 1 && page <= this.totalPages) {
       this.currentPage = page;
       this.loadReviews();
-           this.cd.detectChanges();
     }
   }
 
   // Modal methods
   openAddReviewModal(): void {
     if (!this.selectedCompany) return;
-    
+
     this.newReview = {
       companyType: 'carrental',
       carRentalCompanyId: this.selectedCompany.id,
@@ -226,19 +248,19 @@ checkAuthentication(): void {
   // Review operations
   submitReview(): void {
     if (!this.isAuthenticated) {
-      this.error = 'You must be logged in to submit a review';
+      this.showToast('You must be logged in to submit a review.', 'error');
       return;
     }
 
     this.reviewService.createReview(this.newReview).subscribe({
       next: () => {
         this.closeAddReviewModal();
+        this.showToast('Review submitted successfully!', 'success');
         this.loadReviews();
         this.loadReviewStats();
       },
       error: (error) => {
-        console.error('Error creating review:', error);
-        this.error = error.userMessage || 'Failed to create review';
+        this.showToast(error.userMessage || 'Failed to create review.', 'error');
       }
     });
   }
@@ -249,13 +271,12 @@ checkAuthentication(): void {
     this.reviewService.updateReview(this.selectedReview.id, this.editReviewData).subscribe({
       next: () => {
         this.closeEditReviewModal();
+        this.showToast('Review updated successfully!', 'success');
         this.loadReviews();
         this.loadReviewStats();
-             this.cd.detectChanges();
       },
       error: (error) => {
-        console.error('Error updating review:', error);
-        this.error = error.userMessage || 'Failed to update review';
+        this.showToast(error.userMessage || 'Failed to update review.', 'error');
       }
     });
   }
@@ -266,13 +287,12 @@ checkAuthentication(): void {
     this.reviewService.deleteReview(this.selectedReview.id).subscribe({
       next: () => {
         this.closeDeleteModal();
+        this.showToast('Review deleted successfully!', 'success');
         this.loadReviews();
         this.loadReviewStats();
-             this.cd.detectChanges();
       },
       error: (error) => {
-        console.error('Error deleting review:', error);
-        this.error = error.userMessage || 'Failed to delete review';
+        this.showToast(error.userMessage || 'Failed to delete review.', 'error');
       }
     });
   }
@@ -308,16 +328,34 @@ checkAuthentication(): void {
     });
   }
 
-  closeAllModals(): void {
-    this.showAddReviewModal = false;
-    this.showEditReviewModal = false;
-    this.showDeleteModal = false;
-  }
-
   getPaginationArray(): number[] {
     return Array(this.totalPages).fill(0).map((_, i) => i + 1);
   }
+
   getMath(): any {
-  return Math;
-}
+    return Math;
+  }
+
+  // === Toast Management ===
+  showToast(message: string, type: 'success' | 'error' | 'info'): void {
+    const id = ++this.toastId;
+    this.toasts.push({ id, message, type, visible: true });
+
+    this.cd.detectChanges();
+
+    setTimeout(() => {
+      this.hideToast(id);
+    }, 5000);
+  }
+
+  hideToast(id: number): void {
+    const toast = this.toasts.find(t => t.id === id);
+    if (toast) {
+      toast.visible = false;
+      setTimeout(() => {
+        this.toasts = this.toasts.filter(t => t.id !== id);
+        this.cd.detectChanges();
+      }, 300);
+    }
+  }
 }

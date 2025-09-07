@@ -38,7 +38,6 @@ export class BookingCancelledComponent implements OnInit {
       error: (err) => {
         this.error = 'Failed to load cancelled bookings. Please try again.';
         this.loading = false;
-        console.error('Error loading cancelled bookings:', err);
       }
     });
   }
@@ -51,14 +50,9 @@ export class BookingCancelledComponent implements OnInit {
         },
         error: (err) => {
           alert('Failed to delete booking. Please try again.');
-          console.error('Error deleting booking:', err);
         }
       });
     }
-  }
-
-  viewDetails(booking: BookingDto): void {
-    console.log('View cancelled booking details:', booking);
   }
 
   getTotalLostRevenue(): number {

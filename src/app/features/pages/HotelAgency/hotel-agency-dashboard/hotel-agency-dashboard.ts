@@ -1,9 +1,10 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, ChangeDetectorRef } from '@angular/core';
 import { HotelDashboardStats } from '../../../../shared/Interfaces/ihotel';
 import { HotelService } from '../../../../core/services/hotel-service';
 import { finalize } from 'rxjs';
 import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
+
 interface RecentActivity {
   id: number;
   type: 'booking' | 'Room_created' | 'Room_updated';
@@ -11,13 +12,13 @@ interface RecentActivity {
   timestamp: Date;
   status: 'success' | 'pending' | 'cancelled';
 }
+
 @Component({
   selector: 'app-hotel-agency-dashboard',
-  imports: [CommonModule,RouterLink],
+  imports: [CommonModule, RouterLink],
   templateUrl: './hotel-agency-dashboard.html',
   styleUrl: './hotel-agency-dashboard.css'
 })
-
 export class HotelAgencyDashboard implements OnInit {
   // State signals
   loading = signal<boolean>(true);
@@ -32,6 +33,7 @@ export class HotelAgencyDashboard implements OnInit {
   recentActivities = signal<RecentActivity[]>([]);
 
   private hotelService = inject(HotelService);
+  private cd = inject(ChangeDetectorRef);
 
   ngOnInit(): void {
     this.loadDashboardData();
@@ -40,16 +42,26 @@ export class HotelAgencyDashboard implements OnInit {
   loadDashboardData(): void {
     this.loading.set(true);
     this.error.set(null);
+    this.cd.detectChanges(); // Force UI update
+
+    const startTime = Date.now();
 
     this.hotelService.getDashboardStats().pipe(
-      finalize(() => this.loading.set(false))
+      finalize(() => {
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(1000 - elapsed, 0);
+
+        setTimeout(() => {
+          this.loading.set(false);
+          this.cd.detectChanges();
+        }, remaining);
+      })
     ).subscribe({
       next: (data) => {
         this.stats.set(data);
         this.processChartData(data.bookingChart);
       },
       error: (err) => {
-        console.error('Error loading dashboard data:', err);
         this.error.set('Failed to load dashboard data. Please try again.');
       }
     });
@@ -103,6 +115,7 @@ export class HotelAgencyDashboard implements OnInit {
       return `${diffDays} days ago`;
     }
   }
+
   getMaxValue(): number {
     return Math.max(...this.chartData());
   }
@@ -110,9 +123,7 @@ export class HotelAgencyDashboard implements OnInit {
   getPercentage(value: number): number {
     return (value / this.getMaxValue()) * 100;
   }
-  // Add these methods to your Angular component class
 
-  // Helper Methods
   formatCurrency(amount: number): string {
     if (!amount) return '$0';
     return new Intl.NumberFormat('en-US', {
@@ -122,7 +133,7 @@ export class HotelAgencyDashboard implements OnInit {
       maximumFractionDigits: 0
     }).format(amount);
   }
-  // Activity Helper Methods
+
   getActivityTextColor(status: string): string {
     switch (status?.toLowerCase()) {
       case 'success': return 'text-success';
@@ -145,27 +156,11 @@ export class HotelAgencyDashboard implements OnInit {
     }
   }
 
-
-
-  // Chart Interaction
   onChartBarClick(index: number, value: number): void {
     const label = this.chartLabels()[index];
-    console.log(`Clicked on ${label}: $${value.toLocaleString()}`);
-    // You can add more interaction logic here
-    // For example, show detailed view for that day
+    console.log(`Clicked on ${label}: $${value}`);
   }
 
-
-
-  openSettings(): void {
-    // Navigate to settings or open settings modal
-    console.log('Opening settings...');
-    // You can navigate to settings page or open a modal
-  }
-
-
-
-  // Animation helper for counters
   animateCounters(): void {
     const counters = document.querySelectorAll('.counter');
     counters.forEach(counter => {
@@ -185,20 +180,19 @@ export class HotelAgencyDashboard implements OnInit {
     });
   }
 
-  // Lifecycle hook to start animations
   ngAfterViewInit(): void {
-    // Start counter animation after view is initialized
     setTimeout(() => this.animateCounters(), 500);
-
-    // Initialize Bootstrap tooltips
     this.initializeTooltips();
   }
 
   private initializeTooltips(): void {
-    // Initialize Bootstrap tooltips for chart bars
     const tooltipTriggerList = Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.forEach(tooltipTriggerEl => {
       new (window as any).bootstrap.Tooltip(tooltipTriggerEl);
     });
+  }
+
+  openSettings(): void {
+    console.log('Opening settings...');
   }
 }

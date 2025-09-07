@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
+import { Component, OnInit, signal, inject, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -18,16 +18,16 @@ function futureDateValidator(control: any) {
   const selectedDate = new Date(control.value);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  
+
   return selectedDate >= today ? null : { futureDate: true };
 }
 
 function endDateAfterStartValidator(group: FormGroup) {
   const from = group.get('from')?.value;
   const to = group.get('to')?.value;
-  
+
   if (!from || !to) return null;
-  
+
   return new Date(to) > new Date(from) ? null : { endDateInvalid: true };
 }
 
@@ -39,18 +39,19 @@ function endDateAfterStartValidator(group: FormGroup) {
 })
 export class HotelAgencyRoomCreation implements OnInit {
   roomForm!: FormGroup;
-  
+
   // Signals for reactive state management
   hotels = signal<HotelDTO[]>([]);
   selectedImages = signal<SelectedImage[]>([]);
   isDragOver = signal<boolean>(false);
   isSubmitting = signal<boolean>(false);
+  isLoading = signal<boolean>(false);
   successMessage = signal<string | null>(null);
   errorMessage = signal<string | null>(null);
-  
+
   // Minimum date (today)
   minDate: string | undefined;
-  
+
   // Maximum file size (5MB)
   private readonly MAX_FILE_SIZE = 5 * 1024 * 1024;
   private readonly MAX_IMAGES = 3;
@@ -59,6 +60,7 @@ export class HotelAgencyRoomCreation implements OnInit {
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private hotelService = inject(HotelService);
+  private cd = inject(ChangeDetectorRef);
 
   ngOnInit() {
     this.initializeForm();
@@ -75,8 +77,8 @@ export class HotelAgencyRoomCreation implements OnInit {
       from: ['', [Validators.required, futureDateValidator]],
       to: ['', [Validators.required, futureDateValidator]],
       isAvailable: [true]
-    }, { 
-      validators: endDateAfterStartValidator 
+    }, {
+      validators: endDateAfterStartValidator
     });
 
     // Update minimum date for 'to' field when 'from' changes
@@ -93,12 +95,23 @@ export class HotelAgencyRoomCreation implements OnInit {
   }
 
   private loadHotels() {
-    this.hotelService.getMyHotels().subscribe({
+    this.isLoading.set(true);
+    this.hotelService.getMyHotels().pipe(
+      finalize(() => {
+        const startTime = Date.now();
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(1000 - elapsed, 0);
+
+        setTimeout(() => {
+          this.isLoading.set(false);
+          this.cd.detectChanges();
+        }, remaining);
+      })
+    ).subscribe({
       next: (hotels) => {
         this.hotels.set(hotels);
       },
       error: (error) => {
-        console.error('Error loading hotels:', error);
         this.setErrorMessage('Failed to load hotels. Please refresh the page.');
       }
     });
@@ -126,7 +139,7 @@ export class HotelAgencyRoomCreation implements OnInit {
     event.preventDefault();
     event.stopPropagation();
     this.isDragOver.set(false);
-    
+
     const files = Array.from(event.dataTransfer?.files || []) as File[];
     this.processFiles(files);
   }
@@ -134,7 +147,7 @@ export class HotelAgencyRoomCreation implements OnInit {
   private processFiles(files: File[]) {
     const currentImages = this.selectedImages();
     const remainingSlots = this.MAX_IMAGES - currentImages.length;
-    
+
     if (remainingSlots <= 0) {
       this.setErrorMessage('You can only upload up to 3 images.');
       return;
@@ -206,7 +219,7 @@ export class HotelAgencyRoomCreation implements OnInit {
     if (field.errors['minlength']) return `${this.getFieldLabel(fieldName)} must be at least ${field.errors['minlength'].requiredLength} characters.`;
     if (field.errors['maxlength']) return `${this.getFieldLabel(fieldName)} must not exceed ${field.errors['maxlength'].requiredLength} characters.`;
     if (field.errors['futureDate']) return `${this.getFieldLabel(fieldName)} must be in the future.`;
-    
+
     // Handle form-level validator for date range
     if (fieldName === 'to' && this.roomForm.errors?.['endDateInvalid']) {
       return 'End date must be after start date.';
@@ -262,8 +275,9 @@ export class HotelAgencyRoomCreation implements OnInit {
     }
 
     this.isSubmitting.set(true);
-    
-    // Prepare form data
+    this.cd.detectChanges();
+
+    const startTime = Date.now();
     const formData = new FormData();
     const formValue = this.roomForm.value;
 
@@ -283,26 +297,33 @@ export class HotelAgencyRoomCreation implements OnInit {
 
     // Submit to API
     this.hotelService.createRoom(formData).pipe(
-      finalize(() => this.isSubmitting.set(false))
+      finalize(() => {
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(1000 - elapsed, 0);
+
+        setTimeout(() => {
+          this.isSubmitting.set(false);
+          this.cd.detectChanges();
+        }, remaining);
+      })
     ).subscribe({
       next: (response) => {
         this.setSuccessMessage('Room created successfully!');
-        
+
         // Reset form after successful creation
         setTimeout(() => {
           this.router.navigate(['/hotel-admin/Rooms']);
         }, 2000);
       },
       error: (error) => {
-        console.error('Error creating room:', error);
         let errorMsg = 'Failed to create room. Please try again.';
-        
+
         if (error.error?.message) {
           errorMsg = error.error.message;
         } else if (error.message) {
           errorMsg = error.message;
         }
-        
+
         this.setErrorMessage(errorMsg);
       }
     });

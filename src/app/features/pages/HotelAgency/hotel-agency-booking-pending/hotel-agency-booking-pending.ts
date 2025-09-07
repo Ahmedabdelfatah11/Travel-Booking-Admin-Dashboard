@@ -65,7 +65,6 @@ export class HotelAgencyBookingPending implements OnInit {
       const hotelCompanyId = payload['HotelCompanyId'];
       return hotelCompanyId ? parseInt(hotelCompanyId) : null;
     } catch (error) {
-      console.error('Error decoding token:', error);
       return null;
     }
   }
@@ -73,6 +72,9 @@ export class HotelAgencyBookingPending implements OnInit {
   async loadPendingBookings(): Promise<void> {
     this.loading = true;
     this.error = null;
+    this.cd.detectChanges(); // Force UI update
+
+    const startTime = Date.now();
 
     try {
       const allBookings = await firstValueFrom(this.bookingService.getAllBookings());
@@ -108,11 +110,15 @@ export class HotelAgencyBookingPending implements OnInit {
 
       this.applyFilters();
     } catch (error) {
-      console.error('Error loading pending bookings:', error);
       this.error = 'Failed to load pending bookings. Please try again.';
     } finally {
-      this.loading = false;
-      this.cd.detectChanges();
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(1000 - elapsed, 0);
+
+      setTimeout(() => {
+        this.loading = false;
+        this.cd.detectChanges();
+      }, remaining);
     }
   }
 
@@ -188,9 +194,11 @@ export class HotelAgencyBookingPending implements OnInit {
     this.filteredBookings = filtered;
     this.calculatePagination();
   }
+
   getMin(a: number, b: number): number {
     return Math.min(a, b);
   }
+
   calculatePagination(): void {
     this.totalPages = Math.ceil(this.filteredBookings.length / this.itemsPerPage);
     if (this.currentPage > this.totalPages && this.totalPages > 0) {
@@ -306,34 +314,14 @@ export class HotelAgencyBookingPending implements OnInit {
     };
   }
 
-  // Action methods
-  // async confirmBooking(bookingId: number): Promise<void> {
-  //   this.processingBookingId = bookingId;
-
-  //   try {
-  //     console.log(`Confirming booking ${bookingId}`);
-  //     await firstValueFrom(this.bookingService.confirmBooking(bookingId));
-  //     console.log(`Booking ${bookingId} confirmed successfully`);
-  //     await this.loadPendingBookings();
-  //   } catch (error) {
-  //     console.error('Error confirming booking:', error);
-  //     this.error = 'Failed to confirm booking. Please try again.';
-  //   } finally {
-  //     this.processingBookingId = null;
-  //   }
-  // }
-
   async cancelBooking(bookingId: number): Promise<void> {
     if (confirm('Are you sure you want to cancel this booking request?')) {
       this.processingBookingId = bookingId;
 
       try {
-        console.log(`Canceling booking ${bookingId}`);
         await firstValueFrom(this.bookingService.cancelBooking(bookingId));
-        console.log(`Booking ${bookingId} canceled successfully`);
         await this.loadPendingBookings();
       } catch (error) {
-        console.error('Error canceling booking:', error);
         this.error = 'Failed to cancel booking. Please try again.';
       } finally {
         this.processingBookingId = null;

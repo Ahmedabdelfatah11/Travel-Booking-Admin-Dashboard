@@ -1,8 +1,8 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
+import { Component, OnInit, signal, inject, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { finalize, of } from 'rxjs';
+import { finalize } from 'rxjs';
 import { HotelDTO, Room } from '../../../../shared/Interfaces/ihotel';
 import { HotelService } from '../../../../core/services/hotel-service';
 
@@ -18,16 +18,13 @@ function futureDateValidator(control: any) {
   const selectedDate = new Date(control.value);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-
   return selectedDate >= today ? null : { futureDate: true };
 }
 
 function endDateAfterStartValidator(group: FormGroup) {
   const from = group.get('from')?.value;
   const to = group.get('to')?.value;
-
   if (!from || !to) return null;
-
   return new Date(to) > new Date(from) ? null : { endDateInvalid: true };
 }
 
@@ -65,6 +62,7 @@ export class HotelAgencyRoomEdit implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private hotelService = inject(HotelService);
+  private cd = inject(ChangeDetectorRef);
 
   ngOnInit(): void {
     this.initializeForm();
@@ -86,7 +84,6 @@ export class HotelAgencyRoomEdit implements OnInit {
       validators: endDateAfterStartValidator
     });
 
-    // Update minimum date for 'to' field when 'from' changes
     this.roomForm.get('from')?.valueChanges.subscribe(value => {
       if (value) {
         this.roomForm.get('to')?.updateValueAndValidity();
@@ -111,6 +108,10 @@ export class HotelAgencyRoomEdit implements OnInit {
 
   private loadRoomData(): void {
     this.isLoading.set(true);
+    this.cd.detectChanges();
+
+    const startTime = Date.now();
+
     this.hotelService.getRoomById(this.roomId).subscribe({
       next: (room) => {
         this.room.set(room);
@@ -122,13 +123,18 @@ export class HotelAgencyRoomEdit implements OnInit {
           }
         }
         this.existingImages.set(imageUrls);
-
-        this.isLoading.set(false);
       },
       error: (error) => {
-        console.error('Error loading room:', error);
         this.setErrorMessage('Failed to load room data');
-        this.isLoading.set(false);
+      },
+      complete: () => {
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(1000 - elapsed, 0);
+
+        setTimeout(() => {
+          this.isLoading.set(false);
+          this.cd.detectChanges();
+        }, remaining);
       }
     });
   }
@@ -139,7 +145,6 @@ export class HotelAgencyRoomEdit implements OnInit {
         this.hotels.set(hotels);
       },
       error: (error) => {
-        console.error('Error loading hotels:', error);
         this.setErrorMessage('Failed to load hotels. Please refresh the page.');
       }
     });
@@ -180,7 +185,6 @@ export class HotelAgencyRoomEdit implements OnInit {
     event.preventDefault();
     event.stopPropagation();
     this.isDragOver.set(false);
-
     const files = Array.from(event.dataTransfer?.files || []) as File[];
     this.processFiles(files);
   }
@@ -198,19 +202,16 @@ export class HotelAgencyRoomEdit implements OnInit {
     const validFiles: SelectedImage[] = [];
 
     for (const file of filesToProcess) {
-      // Validate file type
       if (!this.ALLOWED_TYPES.includes(file.type)) {
         this.setErrorMessage(`Invalid file type: ${file.name}. Only JPG, JPEG, PNG, WEBP are allowed.`);
         continue;
       }
 
-      // Validate file size
       if (file.size > this.MAX_FILE_SIZE) {
         this.setErrorMessage(`File too large: ${file.name}. Maximum size is 5MB.`);
         continue;
       }
 
-      // Create preview URL
       const reader = new FileReader();
       reader.onload = (e) => {
         validFiles.push({
@@ -218,7 +219,6 @@ export class HotelAgencyRoomEdit implements OnInit {
           preview: e.target?.result as string
         });
 
-        // Update selected images when all files are processed
         if (validFiles.length === filesToProcess.length) {
           this.selectedImages.set([...currentImages, ...validFiles]);
         }
@@ -261,7 +261,6 @@ export class HotelAgencyRoomEdit implements OnInit {
     if (field.errors['maxlength']) return `${this.getFieldLabel(fieldName)} must not exceed ${field.errors['maxlength'].requiredLength} characters.`;
     if (field.errors['futureDate']) return `${this.getFieldLabel(fieldName)} must be in the future.`;
 
-    // Handle form-level validator for date range
     if (fieldName === 'to' && this.roomForm.errors?.['endDateInvalid']) {
       return 'End date must be after start date.';
     }
@@ -303,73 +302,64 @@ export class HotelAgencyRoomEdit implements OnInit {
   }
 
   // Form submission
-
-onSubmit(): void {
-  if (this.roomForm.invalid) {
-    this.markFormGroupTouched();
-    this.setErrorMessage('Please fix all validation errors before submitting.');
-    return;
-  }
-
-  this.isSubmitting.set(true);
-
-  // Prepare form data
-  const formData = new FormData();
-  const formValue = this.roomForm.value;
-
-  // Add form fields - matching the backend DTO property names
-  formData.append('RoomType', formValue.roomType);
-  formData.append('Price', formValue.price.toString());
-  formData.append('HotelCompanyId', formValue.hotelCompanyId.toString());
-  formData.append('IsAvailable', formValue.isAvailable.toString());
-  
-  // Add description if you have it in your DTO (you might need to add this to RoomUpdateDTO)
-  if (formValue.description) {
-    formData.append('Description', formValue.description);
-  }
-
-  // Add images only if new ones are selected
-  this.selectedImages().forEach((imageData) => {
-    formData.append('RoomImages', imageData.file, imageData.file.name);
-  });
-
-  // Log FormData for debugging
-  console.log('Submitting FormData for room ID:', this.roomId);
-  formData.forEach((value, key) => {
-    console.log(`${key}:`, value);
-  });
-
-  // Submit to API
-  this.hotelService.updateRoom(this.roomId, formData).pipe(
-    finalize(() => this.isSubmitting.set(false))
-  ).subscribe({
-    next: () => {
-      this.setSuccessMessage('Room updated successfully!');
-
-      // Redirect after successful update
-      setTimeout(() => {
-        this.router.navigate(['/hotel-admin/rooms']);
-      }, 2000);
-    },
-    error: (error) => {
-      console.error('Error updating room:', error);
-      let errorMsg = 'Failed to update room. Please try again.';
-
-      if (error.error?.message) {
-        errorMsg = error.error.message;
-      } else if (error.error?.errors) {
-        // Handle validation errors from ASP.NET Core
-        const errors = Object.values(error.error.errors).flat().join(', ');
-        errorMsg = errors || errorMsg;
-      } else if (error.message) {
-        errorMsg = error.message;
-      }
-
-      this.setErrorMessage(errorMsg);
+  onSubmit(): void {
+    if (this.roomForm.invalid) {
+      this.markFormGroupTouched();
+      this.setErrorMessage('Please fix all validation errors before submitting.');
+      return;
     }
-  });
-}
 
+    this.isSubmitting.set(true);
+    this.cd.detectChanges();
+
+    const startTime = Date.now();
+    const formData = new FormData();
+    const formValue = this.roomForm.value;
+
+    formData.append('RoomType', formValue.roomType);
+    formData.append('Price', formValue.price.toString());
+    formData.append('HotelCompanyId', formValue.hotelCompanyId.toString());
+    formData.append('IsAvailable', formValue.isAvailable.toString());
+    
+    if (formValue.description) {
+      formData.append('Description', formValue.description);
+    }
+
+    this.selectedImages().forEach((imageData) => {
+      formData.append('RoomImages', imageData.file, imageData.file.name);
+    });
+
+    this.hotelService.updateRoom(this.roomId, formData).pipe(
+      finalize(() => {
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(1000 - elapsed, 0);
+
+        setTimeout(() => {
+          this.isSubmitting.set(false);
+          this.cd.detectChanges();
+        }, remaining);
+      })
+    ).subscribe({
+      next: () => {
+        this.setSuccessMessage('Room updated successfully!');
+        setTimeout(() => {
+          this.router.navigate(['/hotel-admin/rooms']);
+        }, 2000);
+      },
+      error: (error) => {
+        let errorMsg = 'Failed to update room. Please try again.';
+        if (error.error?.message) {
+          errorMsg = error.error.message;
+        } else if (error.error?.errors) {
+          const errors = Object.values(error.error.errors).flat().join(', ');
+          errorMsg = errors || errorMsg;
+        } else if (error.message) {
+          errorMsg = error.message;
+        }
+        this.setErrorMessage(errorMsg);
+      }
+    });
+  }
 
   private markFormGroupTouched(): void {
     Object.keys(this.roomForm.controls).forEach(field => {

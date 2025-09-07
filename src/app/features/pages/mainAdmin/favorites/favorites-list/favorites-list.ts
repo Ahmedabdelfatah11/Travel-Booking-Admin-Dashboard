@@ -156,7 +156,6 @@ export class FavoritesListComponent implements OnInit, OnDestroy {
       .pipe(
         takeUntil(this.destroy$),
         catchError(error => {
-          console.error('Error loading favorites:', error);
           this.error = error.userMessage || 'Failed to load favorites';
           this.showToast('Failed to load favorites', 'error');
           this.loading = false;
@@ -183,7 +182,6 @@ export class FavoritesListComponent implements OnInit, OnDestroy {
       .pipe(
         takeUntil(this.destroy$),
         catchError(error => {
-          console.error('Error loading stats:', error);
           return of(null);
         })
       )
@@ -250,7 +248,6 @@ export class FavoritesListComponent implements OnInit, OnDestroy {
         .pipe(
           takeUntil(this.destroy$),
           catchError(error => {
-            console.error('Error removing favorite:', error);
             this.showToast(error.userMessage || 'Failed to remove item', 'error');
             return of(null);
           })
@@ -282,7 +279,6 @@ export class FavoritesListComponent implements OnInit, OnDestroy {
         .pipe(
           takeUntil(this.destroy$),
           catchError(error => {
-            console.error('Error bulk removing favorites:', error);
             this.showToast(error.userMessage || 'Failed to remove items', 'error');
             return of(null);
           })
@@ -409,14 +405,12 @@ export class FavoritesListComponent implements OnInit, OnDestroy {
   }
 
   viewCompanyDetails(favorite: FavoriteItem): void {
-    console.log('Navigating to company details:', favorite);
     
     switch (favorite.companyType.toLowerCase()) {
       case 'hotel':
         if (favorite.hotelCompanyId) {
           this.router.navigate(['/admin/hotel', favorite.hotelCompanyId]);
         } else {
-          console.warn('Hotel company ID is missing');
           this.showToast('Unable to navigate: Hotel ID is missing', 'error');
         }
         break;
@@ -425,13 +419,11 @@ export class FavoritesListComponent implements OnInit, OnDestroy {
         if (favorite.tourId) {
           this.router.navigate(['/admin/tour', favorite.tourId]);
         } else {
-          console.warn('Tour ID is missing');
           this.showToast('Unable to navigate: Tour ID is missing', 'error');
         }
         break;
         
       default:
-        console.warn('Unknown company type:', favorite.companyType);
         this.showToast('Unknown company type', 'error');
     }
   }

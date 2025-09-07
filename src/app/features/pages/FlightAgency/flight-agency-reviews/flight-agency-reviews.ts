@@ -1,10 +1,9 @@
-import { Component, OnInit, OnDestroy, Input } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Subject, takeUntil, finalize } from 'rxjs';
 import { CreateReviewDto, ReviewDto, ReviewService, ReviewsResponse, ReviewStatsDto } from '../../../../core/services/review-service';
 import { Auth } from '../../../../core/services/auth';
-
 
 @Component({
   selector: 'app-flight-agency-reviews',
@@ -50,17 +49,17 @@ export class FlightAgencyReviews implements OnInit, OnDestroy {
   constructor(
     private reviewService: ReviewService,
     private authService: Auth,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private cd: ChangeDetectorRef
   ) {
     this.reviewForm = this.createReviewForm();
   }
 
   async ngOnInit() {
     await this.initializeComponent();
-
   }
+
   private async initializeComponent(): Promise<void> {
-    // Get FlightCompanyId from user roles/token
     this.flightCompanyId = this.getFlightCompanyIdFromToken();
 
     if (!this.flightCompanyId) {
@@ -69,22 +68,18 @@ export class FlightAgencyReviews implements OnInit, OnDestroy {
     }
 
     await this.loadReviews();
-    await this.loadReviewStats();;
+    await this.loadReviewStats();
   }
 
   private getFlightCompanyIdFromToken(): number | null {
-    // This method extracts FlightCompanyId from the JWT token
-    // You'll need to decode the JWT token to get the FlightCompanyId claim
     const token = this.authService.getToken();
     if (!token) return null;
 
     try {
-      // Decode JWT token payload
       const payload = JSON.parse(atob(token.split('.')[1]));
       const flightCompanyId = payload['FlightCompanyId'];
       return flightCompanyId ? parseInt(flightCompanyId) : null;
     } catch (error) {
-      console.error('Error decoding token:', error);
       return null;
     }
   }
@@ -106,6 +101,9 @@ export class FlightAgencyReviews implements OnInit, OnDestroy {
   loadReviews(): void {
     this.isLoading = true;
     this.errorMessage = '';
+    this.cd.detectChanges(); // Force UI update
+
+    const startTime = Date.now();
 
     const ratingFilter = this.selectedRatingFilter ? parseInt(this.selectedRatingFilter) : undefined;
 
@@ -117,7 +115,15 @@ export class FlightAgencyReviews implements OnInit, OnDestroy {
       this.sortBy
     ).pipe(
       takeUntil(this.destroy$),
-      finalize(() => this.isLoading = false)
+      finalize(() => {
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(1000 - elapsed, 0);
+
+        setTimeout(() => {
+          this.isLoading = false;
+          this.cd.detectChanges();
+        }, remaining);
+      })
     ).subscribe({
       next: (response: ReviewsResponse) => {
         this.reviews = ratingFilter ?
@@ -128,7 +134,6 @@ export class FlightAgencyReviews implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.errorMessage = error.userMessage || 'Failed to load reviews';
-        console.error('Error loading reviews:', error);
       }
     });
   }
@@ -141,7 +146,7 @@ export class FlightAgencyReviews implements OnInit, OnDestroy {
           this.reviewStats = stats;
         },
         error: (error) => {
-          console.error('Error loading review stats:', error);
+          console.error('Failed to load review stats', error);
         }
       });
   }
@@ -174,6 +179,10 @@ export class FlightAgencyReviews implements OnInit, OnDestroy {
     if (this.reviewForm.invalid) return;
 
     this.isSubmitting = true;
+    this.cd.detectChanges();
+
+    const startTime = Date.now();
+
     const formValue = this.reviewForm.value;
 
     const reviewData: CreateReviewDto = {
@@ -192,7 +201,15 @@ export class FlightAgencyReviews implements OnInit, OnDestroy {
 
     operation.pipe(
       takeUntil(this.destroy$),
-      finalize(() => this.isSubmitting = false)
+      finalize(() => {
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(1000 - elapsed, 0);
+
+        setTimeout(() => {
+          this.isSubmitting = false;
+          this.cd.detectChanges();
+        }, remaining);
+      })
     ).subscribe({
       next: () => {
         this.showReviewForm = false;
@@ -211,7 +228,6 @@ export class FlightAgencyReviews implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.errorMessage = error.userMessage || 'Failed to submit review';
-        console.error('Error submitting review:', error);
       }
     });
   }
@@ -237,7 +253,6 @@ export class FlightAgencyReviews implements OnInit, OnDestroy {
         },
         error: (error) => {
           this.errorMessage = error.userMessage || 'Failed to delete review';
-          console.error('Error deleting review:', error);
         }
       });
   }
@@ -292,9 +307,6 @@ export class FlightAgencyReviews implements OnInit, OnDestroy {
   }
 
   canEditReview(review: ReviewDto): boolean {
-    // Implement your user permission logic here
-    // For example, check if current user ID matches review.userId
-    // or if user has admin role
     return false; // Placeholder - implement based on your auth system
   }
 

@@ -3,6 +3,20 @@
     --main-color: #a0d9cb;
     --secondary-color: #0eb39d;
     --third-color: #31dac3;
+    --primary-green: #2d5a3d;
+    --accent-green: #4a7c59;
+    --Admin:#1f2329;
+    --Admin2:#2a3038;
+    --light-green: #5a8d6b;
+    --nav:#0db185;
+    --success-green: #28a745;
+    --gradient-primary: linear-gradient(135deg, #2d5a3d 0%, #4a7c59 100%);
+    --gradient-accent: linear-gradient(135deg, #4a7c59 0%, #5a8d6b 100%);
+    --gradient-light: linear-gradient(135deg, #5a8d6b 0%, #6fa076 100%);
+    --shadow-primary: 0 10px 40px rgba(45, 90, 61, 0.15);
+    --shadow-hover: 0 20px 60px rgba(45, 90, 61, 0.25);
+    --shadow-light: 0 5px 20px rgba(45, 90, 61, 0.1);
+
     --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
     --info-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);

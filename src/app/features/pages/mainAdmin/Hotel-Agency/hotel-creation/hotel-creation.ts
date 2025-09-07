@@ -12,17 +12,6 @@ import { HttpClientModule } from '@angular/common/http';
 export class HotelCreation {
 constructor(private superadminServices: SuperadminServices) { }
 
-  // للاختبار - أضف هذا الـ method
-  testAPI() {
-    this.superadminServices.testEndpoint().subscribe({
-      next: (response) => {
-        console.log('API test successful:', response);
-      },
-      error: (error) => {
-        console.log('API test error:', error);
-      }
-    });
-  }
 
   createhotelForm: FormGroup = new FormGroup({
     name: new FormControl('', [Validators.required]),
@@ -37,23 +26,17 @@ constructor(private superadminServices: SuperadminServices) { }
   onFileChange(event: any) {
     if (event.target.files && event.target.files.length > 0) {
       this.imageFile = event.target.files[0];
-      console.log('File selected:', this.imageFile!.name);
     }
   }
 
   createHotelCompany() {
-    console.log('Form submitted');
-    console.log('Form valid:', this.createhotelForm.valid);
-    console.log('Image file:', this.imageFile);
 
     if (!this.createhotelForm.valid) {
-      console.error('Form is invalid');
-      console.log('Form errors:', this.createhotelForm.errors);
+
       return;
     }
 
     if (!this.imageFile) {
-      console.error('Image is required');
       return;
     }
 
@@ -67,11 +50,9 @@ constructor(private superadminServices: SuperadminServices) { }
       image: this.imageFile
     };
 
-    console.log('Sending model:', model);
 
     this.superadminServices.createHotelCompany(model).subscribe({
       next: (response) => {
-        console.log('Tour created successfully', response);
         alert('Tour company created successfully!');
         
         // Reset form after successful creation
@@ -85,15 +66,7 @@ constructor(private superadminServices: SuperadminServices) { }
         }
       },
       error: (error) => {
-        console.error('Error creating tour', error);
-        
-        if (error.status === 405) {
-          console.error('405 Method Not Allowed - Check if the API endpoint exists and accepts POST requests');
-        }
-        
-        if (error.error) {
-          console.error('Server error details:', error.error);
-        }
+
         
         alert('Error creating tour company. Check console for details.');
       }

@@ -45,7 +45,6 @@ export class FlightAgencyFlightList {
         }
       },
       error: (err) => {
-        console.error('Error loading Flights:', err);
         this.error.set('Failed to load Flights.');
       }
     });
@@ -84,7 +83,6 @@ export class FlightAgencyFlightList {
         }, 3000);
       },
       error: (err) => {
-        console.error('Error deleting flight:', err);
         this.error.set('Failed to delete flight. Please try again.');
       }
     });

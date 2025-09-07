@@ -73,16 +73,10 @@ export class FlightService {
       if (error.error) {
         try {
           errorDetails = JSON.stringify(error.error, null, 2);
-          console.error('Backend Error Details:', error.error);
         } catch (e) {
           errorDetails = error.error;
         }
       }
-    }
-
-    console.error('API Error:', errorMsg);
-    if (errorDetails) {
-      console.error('Error Body:', errorDetails);
     }
 
     return throwError(() => new Error(`${errorMsg} | Details: ${errorDetails}`));
@@ -91,7 +85,6 @@ export class FlightService {
   // GET: Flights for current TourAdmin
   getMyFlights(): Observable<FlightCompanyDto[]> {
     const url = `${this.flightCompanyApiUrl}/my-companies`;
-    console.log('🚀 Calling my-Flights:', url); // 🔍 DEBUG
     return this.http.get<FlightCompanyDto[]>(url, { headers: this.getAuthHeaders() })
       .pipe(catchError(this.handleError));
   }

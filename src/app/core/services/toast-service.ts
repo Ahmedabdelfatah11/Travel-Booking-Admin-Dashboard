@@ -1,9 +1,13 @@
 import { Injectable } from '@angular/core';
 
+// Define allowed toast types
+export type ToastType = 'success' | 'error' | 'warning' | 'info';
+
 export interface Toast {
   id: number;
   message: string;
-  type: 'success' | 'error' | 'info';
+  type: ToastType;
+  duration: number;
 }
 
 @Injectable({
@@ -11,23 +15,44 @@ export interface Toast {
 })
 export class ToastService {
   private toasts: Toast[] = [];
-  private toastId = 0;
 
-  show(message: string, type: 'success' | 'error' | 'info' = 'info') {
-    const id = this.toastId++;
-    this.toasts.push({ id, message, type });
-    this.removeToastAfterDelay(id);
+  /**
+   * Show a toast notification
+   * @param message The message to display
+   * @param type Type of toast: 'success' | 'error' | 'warning' | 'info'
+   * @param duration Duration in milliseconds (default: 5000)
+   */
+  show(message: string, type: ToastType = 'info', duration: number = 5000): void {
+    const id = Date.now() + Math.random(); // Unique ID
+    const toast: Toast = { id, message, type, duration };
+
+    this.toasts.push(toast);
+    this.startRemoveTimer(id, duration);
   }
 
-  getToasts() {
+  /**
+   * Get all current toasts (immutable copy)
+   */
+  getToasts(): Toast[] {
     return [...this.toasts];
   }
 
-  remove(id: number) {
+  /**
+   * Remove a toast by ID
+   * @param id Toast ID
+   */
+  remove(id: number): void {
     this.toasts = this.toasts.filter(t => t.id !== id);
   }
 
-  private removeToastAfterDelay(id: number) {
-    setTimeout(() => this.remove(id), 5000);
+  /**
+   * Start timer to auto-remove toast
+   * @param id Toast ID
+   * @param duration Duration in ms
+   */
+  private startRemoveTimer(id: number, duration: number): void {
+    setTimeout(() => {
+      this.remove(id);
+    }, duration);
   }
 }

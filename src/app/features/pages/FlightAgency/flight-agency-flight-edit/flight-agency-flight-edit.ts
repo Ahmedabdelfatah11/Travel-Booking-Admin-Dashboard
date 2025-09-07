@@ -74,7 +74,6 @@ export class FlightAgencyFlightEdit implements OnInit {
           this.populateForm(flight);
         },
         error: (err) => {
-          console.error('Error loading flight details:', err);
           this.error.set('Failed to load flight details. Please try again.');
         }
       });
@@ -111,7 +110,6 @@ export class FlightAgencyFlightEdit implements OnInit {
       
       return `${year}-${month}-${day}T${hours}:${minutes}`;
     } catch (error) {
-      console.error('Error formatting date:', error);
       return '';
     }
   }
@@ -153,7 +151,6 @@ export class FlightAgencyFlightEdit implements OnInit {
       firstClassPrice: this.flightForm.value.firstClassPrice
     };
 
-    console.log('Sending flight update:', updatedFlight); // Debug log
 
     this.flightService.updateFlight(this.flightId, updatedFlight)
       .pipe(
@@ -168,7 +165,6 @@ export class FlightAgencyFlightEdit implements OnInit {
           }, 3000);
         },
         error: (err) => {
-          console.error('Error updating flight:', err);
           this.error.set('Failed to update flight. Please check your input and try again.');
         }
       });

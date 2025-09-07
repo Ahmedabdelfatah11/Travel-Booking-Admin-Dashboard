@@ -1,4 +1,3 @@
-// flight-agency-booking-confirmed.component.ts
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -6,7 +5,6 @@ import { Status, SeatClass, BookingType, BookingService, BookingDto, paymentStat
 import { firstValueFrom } from 'rxjs';
 import { FlightBooking } from '../../../../shared/Interfaces/iflight';
 import { Auth } from '../../../../core/services/auth';
-
 
 @Component({
   selector: 'app-flight-agency-booking-confirmed',
@@ -20,6 +18,7 @@ export class FlightAgencyBookingConfirmed implements OnInit {
   loading = false;
   error: string | null = null;
   flightCompanyId: number | null = null;
+
   // Statistics
   totalBookings = 0;
   totalRevenue = 0;
@@ -29,10 +28,9 @@ export class FlightAgencyBookingConfirmed implements OnInit {
 
   async ngOnInit() {
     await this.initializeComponent();
-
   }
+
   private async initializeComponent(): Promise<void> {
-    // Get FlightCompanyId from user roles/token
     this.flightCompanyId = this.getFlightCompanyIdFromToken();
 
     if (!this.flightCompanyId) {
@@ -42,35 +40,35 @@ export class FlightAgencyBookingConfirmed implements OnInit {
 
     await this.loadConfirmedBookings();
   }
+
   private getFlightCompanyIdFromToken(): number | null {
-    // This method extracts FlightCompanyId from the JWT token
-    // You'll need to decode the JWT token to get the FlightCompanyId claim
     const token = this.authService.getToken();
     if (!token) return null;
 
     try {
-      // Decode JWT token payload
       const payload = JSON.parse(atob(token.split('.')[1]));
       const flightCompanyId = payload['FlightCompanyId'];
       return flightCompanyId ? parseInt(flightCompanyId) : null;
     } catch (error) {
-      console.error('Error decoding token:', error);
       return null;
     }
   }
+
   async loadConfirmedBookings(): Promise<void> {
     this.loading = true;
     this.error = null;
+    this.cd.detectChanges(); // Force UI update
+
+    const startTime = Date.now();
 
     try {
       const allBookings = await firstValueFrom(this.bookingService.getAllBookings());
 
-      // Filter only confirmed flight bookings (after mapping status)
       this.confirmedBookings = allBookings
         ?.map((booking: BookingDto) => ({
           id: booking.id,
           customerEmail: booking.customerEmail,
-          status: this.bookingService.mapStatus(booking.status), // ✅ تحويل
+          status: this.bookingService.mapStatus(booking.status),
           price: booking.totalPrice ?? 0,
           departureTime: booking.agencyDetails?.departureTime ?? booking.startDate,
           arrivalTime: booking.agencyDetails?.arrivalTime ?? booking.endDate,
@@ -85,19 +83,21 @@ export class FlightAgencyBookingConfirmed implements OnInit {
           paymentStatus: booking.paymentStatus,
           agencyDetails: booking.agencyDetails
         }))
-        .filter(b => b.bookingType === BookingType.Flight && b.status === Status.Confirmed && b.agencyDetails?.flightCompanyId === this.flightCompanyId) || []; // ✅ بعد التحويل
+        .filter(b => b.bookingType === BookingType.Flight && b.status === Status.Confirmed && b.agencyDetails?.flightCompanyId === this.flightCompanyId) || [];
 
       this.updateStatistics();
-      console.log('Confirmed bookings loaded:', this.confirmedBookings);
     } catch (error) {
-      console.error('Error loading confirmed bookings:', error);
       this.error = 'Failed to load confirmed flight bookings. Please try again.';
     } finally {
-      this.loading = false;
-      this.cd.detectChanges();
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(1000 - elapsed, 0);
+
+      setTimeout(() => {
+        this.loading = false;
+        this.cd.detectChanges();
+      }, remaining);
     }
   }
-
 
   updateStatistics(): void {
     this.totalBookings = this.confirmedBookings.length;

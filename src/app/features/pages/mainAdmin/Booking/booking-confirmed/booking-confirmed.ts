@@ -45,7 +45,6 @@ export class BookingConfirmedComponent implements OnInit {
         this.loading = false;
               this.cd.detectChanges();
 
-        console.error('Error loading confirmed bookings:', err);
       }
     });
   }
@@ -116,7 +115,6 @@ export class BookingConfirmedComponent implements OnInit {
         },
         error: (err) => {
           alert('Failed to delete booking. Please try again.');
-          console.error('Error deleting booking:', err);
                 this.cd.detectChanges();
 
         }

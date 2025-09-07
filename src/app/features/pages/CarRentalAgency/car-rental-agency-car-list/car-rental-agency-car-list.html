@@ -35,12 +35,6 @@
         .btn-action {
             margin: 0 2px;
         }
-        .loading-spinner {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 400px;
-        }
         .empty-state {
             text-align: center;
             padding: 3rem 0;
@@ -58,6 +52,71 @@
         .warning-card {
             border-left: 4px solid #ffc107;
             background-color: #fff3cd;
+        }
+
+        /* === Full-Screen Loader === */
+        .loader-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #69C2A3; /* $bgColor */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .loader {
+            animation: rotate 2.5s linear infinite normal;
+            position: relative;
+            transform-origin: 50% 50%;
+            width: 3.5rem;
+            height: 3.5rem;
+        }
+
+        .loader__ball {
+            height: 1.75rem;
+            width: 1.75rem;
+            position: absolute;
+            left: -0.875rem;
+            top: -0.875rem;
+            transform-origin: 50% 50%;
+        }
+
+        .loader__ball:nth-of-type(2) {
+            transform: rotate(120deg);
+        }
+
+        .loader__ball:nth-of-type(3) {
+            transform: rotate(240deg);
+        }
+
+        .loader__ball::after {
+            content: "";
+            display: inline-block;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            border-radius: 50%;
+            animation: moveAndScale 1.25s ease-in-out infinite alternate;
+            transform-origin: 50% 50%;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes moveAndScale {
+            0%, 15% {
+                transform: translateY(0) scale(0.65);
+            }
+            100% {
+                transform: translateY(-150%) scale(1);
+            }
         }
     </style>
 </head>
@@ -78,6 +137,7 @@
                             class="btn btn-light btn-lg"
                             (click)="CreateCar()"
                             title="Add New Car"
+                            [disabled]="loading"
                         >
                             <i class="fas fa-plus me-2"></i>Add Car
                         </button>
@@ -86,7 +146,17 @@
             </div>
         </div>
 
-        <div class="container">
+        <!-- Full-Screen Loader -->
+        <div *ngIf="loading" class="loader-container">
+            <div class="loader">
+                <div class="loader__ball"></div>
+                <div class="loader__ball"></div>
+                <div class="loader__ball"></div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="container" *ngIf="!loading">
             <!-- Company Information -->
             <div class="company-info" *ngIf="userCompanyId">
                 <div class="row align-items-center">
@@ -98,11 +168,10 @@
                         <small class="text-muted">Company ID: {{ userCompanyId }}</small>
                     </div>
                     <div class="col-md-4 text-end">
-                        <!-- Company Selector (if user has multiple companies) -->
                         <select 
                             *ngIf="myCompanies.length > 1" 
                             class="form-select company-selector"
-                            [ngModel]="userCompanyId"
+                            [(ngModel)]="userCompanyId"
                             (ngModelChange)="onCompanyChange($event)"
                         >
                             <option *ngFor="let company of myCompanies" [value]="company.id">
@@ -159,15 +228,8 @@
                 <button type="button" class="btn-close" (click)="error = ''"></button>
             </div>
 
-            <!-- Loading State -->
-            <div *ngIf="loading" class="loading-spinner">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-            </div>
-
             <!-- Cars Grid -->
-            <div *ngIf="!loading && cars.length > 0" class="row">
+            <div *ngIf="cars.length > 0" class="row">
                 <div class="col-xl-3 col-lg-4 col-md-6 mb-4" *ngFor="let car of cars">
                     <div class="card car-card h-100">
                         <!-- Warning if car doesn't belong to current company -->
@@ -217,7 +279,7 @@
                                 <span class="h5 text-primary mb-0">${{ car.price }}/day</span>
                             </div>
                             
-                            <!-- Action Buttons - Only show if car belongs to current company -->
+                            <!-- Action Buttons -->
                             <div class="btn-group" role="group" *ngIf="isCarFromMyCompany(car)">
                                 <button 
                                     class="btn btn-outline-primary btn-sm"
@@ -242,7 +304,7 @@
                                 </button>
                             </div>
 
-                            <!-- Read-only message for cars not belonging to current company -->
+                            <!-- Read-only message -->
                             <div *ngIf="!isCarFromMyCompany(car)" class="alert alert-info py-2">
                                 <small><i class="fas fa-info-circle me-1"></i>View only - Different company</small>
                             </div>
@@ -252,7 +314,7 @@
             </div>
 
             <!-- Empty State -->
-            <div *ngIf="!loading && cars.length === 0" class="empty-state">
+            <div *ngIf="cars.length === 0" class="empty-state">
                 <i class="fas fa-car fa-4x mb-4 text-muted"></i>
                 <h3>No Cars Found</h3>
                 <p class="mb-4">
@@ -265,7 +327,7 @@
             </div>
 
             <!-- Pagination -->
-            <nav *ngIf="!loading && cars.length > 0 && totalPages > 1" aria-label="Car pagination">
+            <nav *ngIf="cars.length > 0 && totalPages > 1" aria-label="Car pagination">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <div>
                         <small class="text-muted">

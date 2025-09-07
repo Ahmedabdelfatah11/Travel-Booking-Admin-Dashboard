@@ -1,0 +1,25 @@
+diff --git a/node_modules/rxjs/dist/esm5/operators/index.js b/node_modules/rxjs/dist/esm5/operators/index.js
+index 79bbd88..b3c923c 100644
+--- a/node_modules/rxjs/dist/esm5/operators/index.js
++++ b/node_modules/rxjs/dist/esm5/operators/index.js
+@@ -77,8 +77,8 @@ export { sampleTime } from '../internal/operators/sampleTime';
+ export { scan } from '../internal/operators/scan';
+ export { sequenceEqual } from '../internal/operators/sequenceEqual';
+ export { share } from '../internal/operators/share';
+-export { shareReplay } from '../internal/operators/shareReplay';
+-export { single } from '../internal/operators/single';
++export { shareReplay } from './operators/index';
++export { single } from './operators/index';
+ export { skip } from '../internal/operators/skip';
+ export { skipLast } from '../internal/operators/skipLast';
+ export { skipUntil } from '../internal/operators/skipUntil';
+@@ -109,6 +109,6 @@ export { windowToggle } from '../internal/operators/windowToggle';
+ export { windowWhen } from '../internal/operators/windowWhen';
+ export { withLatestFrom } from '../internal/operators/withLatestFrom';
+ export { zip } from '../internal/operators/zip';
+-export { zipAll } from '../internal/operators/zipAll';
+-export { zipWith } from '../internal/operators/zipWith';
++// export { zipAll } from '../internal/operators/zipAll';
++// export { zipWith } from '../internal/operators/zipWith';
+ //# sourceMappingURL=index.js.map
+\ No newline at end of file
