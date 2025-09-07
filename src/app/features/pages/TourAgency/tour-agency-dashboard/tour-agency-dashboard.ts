@@ -24,8 +24,9 @@ interface RecentActivity {
 export class TourAgencyDashboardComponent implements OnInit, OnDestroy {
   // State
   isLoading = false;
-error = signal<string | null>(null);
-stats = signal<ITourStats | null>(null);
+  error = signal<string | null>(null);
+  stats = signal<ITourStats | null>(null);
+
   // Data
   chartLabels: string[] = [];
   chartData: number[] = [];
@@ -50,42 +51,48 @@ stats = signal<ITourStats | null>(null);
   // === Data Loading ===
   loadDashboardData(): void {
     this.isLoading = true;
-     this.error.set(null);
+    this.error.set(null);
 
-    // Capture start time for minimum 1s loading
     const startTime = Date.now();
 
-    this.tourService.getDashboardStats().pipe(
+    // ✅ Get TourCompanyId from JWT token
+    const companyId = this.getTourCompanyIdFromToken();
+    if (!companyId) {
+      this.error.set('Tour company information not found. Please log in again.');
+      this.isLoading = false;
+      this.cd.detectChanges();
+      return;
+    }
+
+    this.tourService.getDashboardStats(companyId).pipe(
       takeUntil(this.destroy$),
-      finalize(async () => {
+      finalize(() => {
         const elapsed = Date.now() - startTime;
         const remaining = Math.max(1000 - elapsed, 0); // Minimum 1 second
-
-        // Wait remaining time
-        await new Promise(resolve => setTimeout(resolve, remaining));
-
-        this.isLoading = false;
-        this.cd.detectChanges(); // Force UI update
+        setTimeout(() => {
+          this.isLoading = false;
+          this.cd.detectChanges();
+        }, remaining);
       })
     ).subscribe({
-      next: (data: ITourStats) => {
-        this.stats.set(data)
-        this.processChartData(data.bookingsChart || []);
+     next: (data: ITourStats) => {
+  this.stats.set(data);
+  this.processChartData(data.bookingsChart || []);
 
-        // Map recent bookings to activity feed
-        const activities = (data as any).recentBookings?.map((booking: any) => ({
-          id: booking.id,
-          type: 'booking' as const,
-          description: `New booking for ${booking.tourName}`,
-          timestamp: new Date(booking.bookingDate),
-          status: booking.status === 'Confirmed' ? 'success' : 'cancelled'
-        })) || [];
+  // Map recent bookings to activity feed
+  const activities = (data as any).recentBookings?.map((booking: any) => ({
+    id: booking.id,
+    type: 'booking' as const,
+    description: `New booking for ${booking.tourName}`,
+    timestamp: new Date(booking.bookingDate),
+    status: booking.status === 'Confirmed' ? 'success' : 'cancelled'
+  })) || [];
 
-        this.recentActivities = activities;
-        this.cd.detectChanges();
-      },
+  this.recentActivities = activities;
+  this.cd.detectChanges();
+},
       error: (err) => {
-        this.error.set('Failed to load tour dashboard data. Please try again.'); 
+        this.error.set('Failed to load dashboard data. Please try again.');
         this.cd.detectChanges();
       }
     });
@@ -192,6 +199,20 @@ stats = signal<ITourStats | null>(null);
 
   openSettings(): void {
     console.log('Opening settings...');
-    // Add navigation or modal logic later
+  }
+
+  // ✅ Extract TourCompanyId from JWT token
+  private getTourCompanyIdFromToken(): number | null {
+    const token = localStorage.getItem('authToken');
+    if (!token) return null;
+
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const companyId = payload['TourCompanyId'];
+      return companyId ? parseInt(companyId, 10) : null;
+    } catch (error) {
+      console.error('Error decoding JWT token:', error);
+      return null;
+    }
   }
 }

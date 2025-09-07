@@ -6,7 +6,7 @@ export const serverRoutes: ServerRoute[] = [
     path: 'login',
     renderMode: RenderMode.Prerender
   },
-  
+
   // Super Admin routes
   {
     path: 'admin/car/edit/:id',
@@ -32,7 +32,7 @@ export const serverRoutes: ServerRoute[] = [
     path: 'admin/flight',
     renderMode: RenderMode.Server
   },
-  
+
   // Tour Admin routes
   {
     path: 'tour-admin/edit-tour/:id',
@@ -46,7 +46,7 @@ export const serverRoutes: ServerRoute[] = [
     path: 'tour-admin/tours',
     renderMode: RenderMode.Server
   },
-  
+
   // Flight Admin routes
   {
     path: 'flight-admin/edit-flight/:id',
@@ -60,8 +60,16 @@ export const serverRoutes: ServerRoute[] = [
     path: 'flight-admin/flights',
     renderMode: RenderMode.Server
   },
-  
+
   // Hotel Admin routes
+  {
+    path: 'admin/hotel/:id',
+    renderMode: RenderMode.Server
+  },
+  {
+    path: 'admin/tour/:id',
+    renderMode: RenderMode.Server
+  },
   {
     path: 'hotel-admin/edit-Room/:id',
     renderMode: RenderMode.Server
@@ -74,7 +82,7 @@ export const serverRoutes: ServerRoute[] = [
     path: 'hotel-admin/Rooms',
     renderMode: RenderMode.Server
   },
-  
+
   // Car Rental Admin routes
   {
     path: 'car-admin/edit-Car/:id',
@@ -88,7 +96,7 @@ export const serverRoutes: ServerRoute[] = [
     path: 'car-admin/Cars',
     renderMode: RenderMode.Server
   },
-  
+
   // Catch-all route - should be last
   {
     path: '**',

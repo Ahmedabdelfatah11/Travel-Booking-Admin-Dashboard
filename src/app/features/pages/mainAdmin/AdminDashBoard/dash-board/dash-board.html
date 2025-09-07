@@ -1,361 +1,375 @@
- <!-- Loading Spinner -->
-    <div *ngIf="loading" class="d-flex justify-content-center align-items-center" style="min-height: 400px;">
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading...</span>
-      </div>
+<!-- Full-Screen Loader -->
+@if(loading) {
+  <div class="loader-container">
+    <div class="loader">
+      <div class="loader__ball"></div>
+      <div class="loader__ball"></div>
+      <div class="loader__ball"></div>
     </div>
+  </div>
+}
 
-    <!-- Error State -->
-    <div *ngIf="error && !loading" class="alert alert-danger" role="alert">
-      <i class="fas fa-exclamation-triangle me-2"></i>
-      {{ error }}
-      <button class="btn btn-sm btn-outline-danger ms-2" (click)="refreshData()">
-        <i class="fas fa-refresh me-1"></i>Retry
+<!-- Error State -->
+@if(error && !loading) 
+{
+  <div class="alert alert-danger" role="alert">
+    <i class="fas fa-exclamation-triangle me-2"></i>
+    {{ error }}
+    <button class="btn btn-sm btn-outline-danger ms-2" (click)="refreshData()">
+      <i class="fas fa-refresh me-1"></i>Retry
+    </button>
+  </div>
+}
+
+<!-- Debug Info (for development) -->
+@if(debugInfo && !loading && !dashboardData) {
+  <div class="alert alert-info">
+    <small>{{ debugInfo }}</small>
+  </div>
+}
+
+<!-- Dashboard Content -->
+@if(dashboardData && !loading) {
+  <div class="dashboard-container">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h1 class="h3 mb-1">Super Admin Dashboard</h1>
+        <p class="text-muted mb-0">Welcome back! Here's an overview of your travel booking platform.</p>
+      </div>
+      <button class="btn btn-outline-primary" (click)="refreshData()">
+        <i class="fas fa-sync-alt me-2"></i>Refresh
       </button>
     </div>
 
-    <!-- Dashboard Content -->
-    <div *ngIf="dashboardData && !loading" class="dashboard-container">
-      <!-- Header -->
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h1 class="h3 mb-1">Super Admin Dashboard</h1>
-          <p class="text-muted mb-0">Welcome back! Here's an overview of your travel booking platform.</p>
-        </div>
-        <button class="btn btn-outline-primary" (click)="refreshData()">
-          <i class="fas fa-sync-alt me-2"></i>Refresh
-        </button>
-      </div>
-
-      <!-- Key Metrics Row -->
-      <div class="row g-4 mb-4">
-        <div class="col-md-3">
-          <div class="card stat-card border-0 shadow-sm h-100">
-            <div class="card-body">
-              <div class="d-flex align-items-center">
-                <div class="stat-icon bg-primary">
-                  <i class="fas fa-users text-white"></i>
-                </div>
-                <div class="ms-3">
-                  <h5 class="card-title mb-0">{{ dashboardData.userStatistics.totalUsers | number }}</h5>
-                  <p class="text-muted mb-0">Total Users</p>
-                </div>
+    <!-- Key Metrics Row -->
+    <div class="row g-4 mb-4">
+      <div class="col-md-3">
+        <div class="card stat-card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <div class="d-flex align-items-center">
+              <div class="stat-icon bg-primary">
+                <i class="fas fa-users text-white"></i>
               </div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="col-md-3">
-          <div class="card stat-card border-0 shadow-sm h-100">
-            <div class="card-body">
-              <div class="d-flex align-items-center">
-                <div class="stat-icon bg-success">
-                  <i class="fas fa-building text-white"></i>
-                </div>
-                <div class="ms-3">
-                  <h5 class="card-title mb-0">{{ dashboardData.companyStatistics.totalCompanies | number }}</h5>
-                  <p class="text-muted mb-0">Total Companies</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="col-md-3">
-          <div class="card stat-card border-0 shadow-sm h-100">
-            <div class="card-body">
-              <div class="d-flex align-items-center">
-                <div class="stat-icon bg-info">
-                  <i class="fas fa-concierge-bell text-white"></i>
-                </div>
-                <div class="ms-3">
-                  <h5 class="card-title mb-0">{{ dashboardData.serviceStatistics.totalServices | number }}</h5>
-                  <p class="text-muted mb-0">Total Services</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="col-md-3">
-          <div class="card stat-card border-0 shadow-sm h-100">
-            <div class="card-body">
-              <div class="d-flex align-items-center">
-                <div class="stat-icon bg-warning">
-                  <i class="fas fa-calendar-check text-white"></i>
-                </div>
-                <div class="ms-3">
-                  <h5 class="card-title mb-0">{{ dashboardData.bookingStatistics.totalBookings | number }}</h5>
-                  <p class="text-muted mb-0">Total Bookings</p>
-                </div>
+              <div class="ms-3">
+                <h5 class="card-title mb-0">{{ dashboardData.userStatistics.totalUsers | number }}</h5>
+                <p class="text-muted mb-0">Total Users</p>
               </div>
             </div>
           </div>
         </div>
       </div>
-
-      <!-- Detailed Statistics -->
-      <div class="row g-4 mb-4">
-        <!-- User Statistics -->
-        <div class="col-md-6">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white border-bottom">
-              <h5 class="card-title mb-0">
-                <i class="fas fa-users text-primary me-2"></i>User Distribution
-              </h5>
-            </div>
-            <div class="card-body">
-              <div class="row g-3">
-                <div class="col-6">
-                  <div class="stat-item">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                      <span class="text-muted">Super Admins</span>
-                      <span class="fw-bold">{{ dashboardData.userStatistics.superAdmins }}</span>
-                    </div>
-                    <div class="progress" style="height: 4px;">
-                      <div class="progress-bar bg-danger" 
-                           [style.width.%]="calculatePercentage(dashboardData.userStatistics.superAdmins, dashboardData.userStatistics.totalUsers)">
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-6">
-                  <div class="stat-item">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                      <span class="text-muted">Hotel Admins</span>
-                      <span class="fw-bold">{{ dashboardData.userStatistics.hotelAdmins }}</span>
-                    </div>
-                    <div class="progress" style="height: 4px;">
-                      <div class="progress-bar bg-primary" 
-                           [style.width.%]="calculatePercentage(dashboardData.userStatistics.hotelAdmins, dashboardData.userStatistics.totalUsers)">
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-6">
-                  <div class="stat-item">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                      <span class="text-muted">Flight Admins</span>
-                      <span class="fw-bold">{{ dashboardData.userStatistics.flightAdmins }}</span>
-                    </div>
-                    <div class="progress" style="height: 4px;">
-                      <div class="progress-bar bg-success" 
-                           [style.width.%]="calculatePercentage(dashboardData.userStatistics.flightAdmins, dashboardData.userStatistics.totalUsers)">
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-6">
-                  <div class="stat-item">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                      <span class="text-muted">Car Admins</span>
-                      <span class="fw-bold">{{ dashboardData.userStatistics.carAdmins }}</span>
-                    </div>
-                    <div class="progress" style="height: 4px;">
-                      <div class="progress-bar bg-info" 
-                           [style.width.%]="calculatePercentage(dashboardData.userStatistics.carAdmins, dashboardData.userStatistics.totalUsers)">
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-6">
-                  <div class="stat-item">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                      <span class="text-muted">Tour Admins</span>
-                      <span class="fw-bold">{{ dashboardData.userStatistics.tourAdmins }}</span>
-                    </div>
-                    <div class="progress" style="height: 4px;">
-                      <div class="progress-bar bg-warning" 
-                           [style.width.%]="calculatePercentage(dashboardData.userStatistics.tourAdmins, dashboardData.userStatistics.totalUsers)">
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-6">
-                  <div class="stat-item">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                      <span class="text-muted">Regular Users</span>
-                      <span class="fw-bold">{{ dashboardData.userStatistics.regularUsers }}</span>
-                    </div>
-                    <div class="progress" style="height: 4px;">
-                      <div class="progress-bar bg-secondary" 
-                           [style.width.%]="calculatePercentage(dashboardData.userStatistics.regularUsers, dashboardData.userStatistics.totalUsers)">
-                      </div>
-                    </div>
-                  </div>
-                </div>
+      
+      <div class="col-md-3">
+        <div class="card stat-card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <div class="d-flex align-items-center">
+              <div class="stat-icon bg-success">
+                <i class="fas fa-building text-white"></i>
               </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Company Statistics -->
-        <div class="col-md-6">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white border-bottom">
-              <h5 class="card-title mb-0">
-                <i class="fas fa-building text-success me-2"></i>Company Breakdown
-              </h5>
-            </div>
-            <div class="card-body">
-              <div class="row g-3">
-                <div class="col-6">
-                  <div class="company-stat text-center p-3 rounded bg-light">
-                    <i class="fas fa-bed text-primary mb-2" style="font-size: 1.5rem;"></i>
-                    <h4 class="mb-1">{{ dashboardData.companyStatistics.hotelCompanies }}</h4>
-                    <p class="text-muted mb-0">Hotels</p>
-                  </div>
-                </div>
-                <div class="col-6">
-                  <div class="company-stat text-center p-3 rounded bg-light">
-                    <i class="fas fa-plane text-info mb-2" style="font-size: 1.5rem;"></i>
-                    <h4 class="mb-1">{{ dashboardData.companyStatistics.flightCompanies }}</h4>
-                    <p class="text-muted mb-0">Airlines</p>
-                  </div>
-                </div>
-                <div class="col-6">
-                  <div class="company-stat text-center p-3 rounded bg-light">
-                    <i class="fas fa-car text-warning mb-2" style="font-size: 1.5rem;"></i>
-                    <h4 class="mb-1">{{ dashboardData.companyStatistics.carRentalCompanies }}</h4>
-                    <p class="text-muted mb-0">Car Rentals</p>
-                  </div>
-                </div>
-                <div class="col-6">
-                  <div class="company-stat text-center p-3 rounded bg-light">
-                    <i class="fas fa-map-marked-alt text-success mb-2" style="font-size: 1.5rem;"></i>
-                    <h4 class="mb-1">{{ dashboardData.companyStatistics.tourCompanies }}</h4>
-                    <p class="text-muted mb-0">Tours</p>
-                  </div>
-                </div>
+              <div class="ms-3">
+                <h5 class="card-title mb-0">{{ dashboardData.companyStatistics.totalCompanies | number }}</h5>
+                <p class="text-muted mb-0">Total Companies</p>
               </div>
             </div>
           </div>
         </div>
       </div>
-
-      <!-- Service & Booking Statistics -->
-      <div class="row g-4 mb-4">
-        <!-- Service Statistics -->
-        <div class="col-md-6">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white border-bottom">
-              <h5 class="card-title mb-0">
-                <i class="fas fa-concierge-bell text-info me-2"></i>Service Inventory
-              </h5>
-            </div>
-            <div class="card-body">
-              <div class="service-stats">
-                <div class="d-flex justify-content-between align-items-center mb-3 p-3 rounded bg-light">
-                  <div class="d-flex align-items-center">
-                    <i class="fas fa-door-open text-primary me-3"></i>
-                    <span>Rooms</span>
-                  </div>
-                  <span class="fs-5 fw-bold text-primary">{{ dashboardData.serviceStatistics.rooms | number }}</span>
-                </div>
-                <div class="d-flex justify-content-between align-items-center mb-3 p-3 rounded bg-light">
-                  <div class="d-flex align-items-center">
-                    <i class="fas fa-plane-departure text-info me-3"></i>
-                    <span>Flights</span>
-                  </div>
-                  <span class="fs-5 fw-bold text-info">{{ dashboardData.serviceStatistics.flights | number }}</span>
-                </div>
-                <div class="d-flex justify-content-between align-items-center mb-3 p-3 rounded bg-light">
-                  <div class="d-flex align-items-center">
-                    <i class="fas fa-car-side text-warning me-3"></i>
-                    <span>Cars</span>
-                  </div>
-                  <span class="fs-5 fw-bold text-warning">{{ dashboardData.serviceStatistics.cars | number }}</span>
-                </div>
-                <div class="d-flex justify-content-between align-items-center p-3 rounded bg-light">
-                  <div class="d-flex align-items-center">
-                    <i class="fas fa-route text-success me-3"></i>
-                    <span>Tours</span>
-                  </div>
-                  <span class="fs-5 fw-bold text-success">{{ dashboardData.serviceStatistics.tours | number }}</span>
-                </div>
+      
+      <div class="col-md-3">
+        <div class="card stat-card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <div class="d-flex align-items-center">
+              <div class="stat-icon bg-info">
+                <i class="fas fa-concierge-bell text-white"></i>
+              </div>
+              <div class="ms-3">
+                <h5 class="card-title mb-0">{{ dashboardData.serviceStatistics.totalServices | number }}</h5>
+                <p class="text-muted mb-0">Total Services</p>
               </div>
             </div>
           </div>
         </div>
-
-        <!-- Booking Status -->
-        <div class="col-md-6">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white border-bottom">
-              <h5 class="card-title mb-0">
-                <i class="fas fa-chart-pie text-warning me-2"></i>Booking Status
-              </h5>
-            </div>
-            <div class="card-body">
-              <div class="row g-3 mb-4">
-                <div class="col-4">
-                  <div class="text-center">
-                    <div class="status-indicator pending mb-2"></div>
-                    <h5 class="mb-1">{{ dashboardData.bookingStatistics.pendingBookings }}</h5>
-                    <p class="text-muted small mb-0">Pending</p>
-                  </div>
-                </div>
-                <div class="col-4">
-                  <div class="text-center">
-                    <div class="status-indicator confirmed mb-2"></div>
-                    <h5 class="mb-1">{{ dashboardData.bookingStatistics.confirmedBookings }}</h5>
-                    <p class="text-muted small mb-0">Confirmed</p>
-                  </div>
-                </div>
-                <div class="col-4">
-                  <div class="text-center">
-                    <div class="status-indicator cancelled mb-2"></div>
-                    <h5 class="mb-1">{{ dashboardData.bookingStatistics.cancelledBookings }}</h5>
-                    <p class="text-muted small mb-0">Cancelled</p>
-                  </div>
-                </div>
+      </div>
+      
+      <div class="col-md-3">
+        <div class="card stat-card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <div class="d-flex align-items-center">
+              <div class="stat-icon bg-warning">
+                <i class="fas fa-calendar-check text-white"></i>
               </div>
-              
-              <!-- Bookings by Type -->
-              <div class="booking-types">
-                <h6 class="text-muted mb-3">Bookings by Type</h6>
-                <div class="booking-type-item mb-2">
+              <div class="ms-3">
+                <h5 class="card-title mb-0">{{ dashboardData.bookingStatistics.totalBookings | number }}</h5>
+                <p class="text-muted mb-0">Total Bookings</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detailed Statistics -->
+    <div class="row g-4 mb-4">
+      <!-- User Statistics -->
+      <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-white border-bottom">
+            <h5 class="card-title mb-0">
+              <i class="fas fa-users text-primary me-2"></i>User Distribution
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-6">
+                <div class="stat-item">
                   <div class="d-flex justify-content-between align-items-center mb-1">
-                    <span><i class="fas fa-bed text-primary me-2"></i>Hotel Bookings</span>
-                    <span class="fw-bold">{{ dashboardData.bookingStatistics.bookingsByType.hotelBookings }}</span>
+                    <span class="text-muted">Super Admins</span>
+                    <span class="fw-bold">{{ dashboardData.userStatistics.superAdmins }}</span>
                   </div>
-                  <div class="progress" style="height: 6px;">
+                  <div class="progress" style="height: 4px;">
+                    <div class="progress-bar bg-danger" 
+                         [style.width.%]="calculatePercentage(dashboardData.userStatistics.superAdmins, dashboardData.userStatistics.totalUsers)">
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="stat-item">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="text-muted">Hotel Admins</span>
+                    <span class="fw-bold">{{ dashboardData.userStatistics.hotelAdmins }}</span>
+                  </div>
+                  <div class="progress" style="height: 4px;">
                     <div class="progress-bar bg-primary" 
-                         [style.width.%]="calculatePercentage(dashboardData.bookingStatistics.bookingsByType.hotelBookings, dashboardData.bookingStatistics.totalBookings)">
+                         [style.width.%]="calculatePercentage(dashboardData.userStatistics.hotelAdmins, dashboardData.userStatistics.totalUsers)">
                     </div>
                   </div>
                 </div>
-                <div class="booking-type-item mb-2">
+              </div>
+              <div class="col-6">
+                <div class="stat-item">
                   <div class="d-flex justify-content-between align-items-center mb-1">
-                    <span><i class="fas fa-plane text-info me-2"></i>Flight Bookings</span>
-                    <span class="fw-bold">{{ dashboardData.bookingStatistics.bookingsByType.flightBookings }}</span>
+                    <span class="text-muted">Flight Admins</span>
+                    <span class="fw-bold">{{ dashboardData.userStatistics.flightAdmins }}</span>
                   </div>
-                  <div class="progress" style="height: 6px;">
-                    <div class="progress-bar bg-info" 
-                         [style.width.%]="calculatePercentage(dashboardData.bookingStatistics.bookingsByType.flightBookings, dashboardData.bookingStatistics.totalBookings)">
-                    </div>
-                  </div>
-                </div>
-                <div class="booking-type-item mb-2">
-                  <div class="d-flex justify-content-between align-items-center mb-1">
-                    <span><i class="fas fa-car text-warning me-2"></i>Car Bookings</span>
-                    <span class="fw-bold">{{ dashboardData.bookingStatistics.bookingsByType.carBookings }}</span>
-                  </div>
-                  <div class="progress" style="height: 6px;">
-                    <div class="progress-bar bg-warning" 
-                         [style.width.%]="calculatePercentage(dashboardData.bookingStatistics.bookingsByType.carBookings, dashboardData.bookingStatistics.totalBookings)">
-                    </div>
-                  </div>
-                </div>
-                <div class="booking-type-item">
-                  <div class="d-flex justify-content-between align-items-center mb-1">
-                    <span><i class="fas fa-map-marked-alt text-success me-2"></i>Tour Bookings</span>
-                    <span class="fw-bold">{{ dashboardData.bookingStatistics.bookingsByType.tourBookings }}</span>
-                  </div>
-                  <div class="progress" style="height: 6px;">
+                  <div class="progress" style="height: 4px;">
                     <div class="progress-bar bg-success" 
-                         [style.width.%]="calculatePercentage(dashboardData.bookingStatistics.bookingsByType.tourBookings, dashboardData.bookingStatistics.totalBookings)">
+                         [style.width.%]="calculatePercentage(dashboardData.userStatistics.flightAdmins, dashboardData.userStatistics.totalUsers)">
                     </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="stat-item">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="text-muted">Car Admins</span>
+                    <span class="fw-bold">{{ dashboardData.userStatistics.carAdmins }}</span>
+                  </div>
+                  <div class="progress" style="height: 4px;">
+                    <div class="progress-bar bg-info" 
+                         [style.width.%]="calculatePercentage(dashboardData.userStatistics.carAdmins, dashboardData.userStatistics.totalUsers)">
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="stat-item">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="text-muted">Tour Admins</span>
+                    <span class="fw-bold">{{ dashboardData.userStatistics.tourAdmins }}</span>
+                  </div>
+                  <div class="progress" style="height: 4px;">
+                    <div class="progress-bar bg-warning" 
+                         [style.width.%]="calculatePercentage(dashboardData.userStatistics.tourAdmins, dashboardData.userStatistics.totalUsers)">
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="stat-item">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="text-muted">Regular Users</span>
+                    <span class="fw-bold">{{ dashboardData.userStatistics.regularUsers }}</span>
+                  </div>
+                  <div class="progress" style="height: 4px;">
+                    <div class="progress-bar bg-secondary" 
+                         [style.width.%]="calculatePercentage(dashboardData.userStatistics.regularUsers, dashboardData.userStatistics.totalUsers)">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Company Statistics -->
+      <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-white border-bottom">
+            <h5 class="card-title mb-0">
+              <i class="fas fa-building text-success me-2"></i>Company Breakdown
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-6">
+                <div class="company-stat text-center p-3 rounded bg-light">
+                  <i class="fas fa-bed text-primary mb-2" style="font-size: 1.5rem;"></i>
+                  <h4 class="mb-1">{{ dashboardData.companyStatistics.hotelCompanies }}</h4>
+                  <p class="text-muted mb-0">Hotels</p>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="company-stat text-center p-3 rounded bg-light">
+                  <i class="fas fa-plane text-info mb-2" style="font-size: 1.5rem;"></i>
+                  <h4 class="mb-1">{{ dashboardData.companyStatistics.flightCompanies }}</h4>
+                  <p class="text-muted mb-0">Airlines</p>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="company-stat text-center p-3 rounded bg-light">
+                  <i class="fas fa-car text-warning mb-2" style="font-size: 1.5rem;"></i>
+                  <h4 class="mb-1">{{ dashboardData.companyStatistics.carRentalCompanies }}</h4>
+                  <p class="text-muted mb-0">Car Rentals</p>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="company-stat text-center p-3 rounded bg-light">
+                  <i class="fas fa-map-marked-alt text-success mb-2" style="font-size: 1.5rem;"></i>
+                  <h4 class="mb-1">{{ dashboardData.companyStatistics.tourCompanies }}</h4>
+                  <p class="text-muted mb-0">Tours</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Service & Booking Statistics -->
+    <div class="row g-4 mb-4">
+      <!-- Service Statistics -->
+      <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-white border-bottom">
+            <h5 class="card-title mb-0">
+              <i class="fas fa-concierge-bell text-info me-2"></i>Service Inventory
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="service-stats">
+              <div class="d-flex justify-content-between align-items-center mb-3 p-3 rounded bg-light">
+                <div class="d-flex align-items-center">
+                  <i class="fas fa-door-open text-primary me-3"></i>
+                  <span>Rooms</span>
+                </div>
+                <span class="fs-5 fw-bold text-primary">{{ dashboardData.serviceStatistics.rooms | number }}</span>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mb-3 p-3 rounded bg-light">
+                <div class="d-flex align-items-center">
+                  <i class="fas fa-plane-departure text-info me-3"></i>
+                  <span>Flights</span>
+                </div>
+                <span class="fs-5 fw-bold text-info">{{ dashboardData.serviceStatistics.flights | number }}</span>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mb-3 p-3 rounded bg-light">
+                <div class="d-flex align-items-center">
+                  <i class="fas fa-car-side text-warning me-3"></i>
+                  <span>Cars</span>
+                </div>
+                <span class="fs-5 fw-bold text-warning">{{ dashboardData.serviceStatistics.cars | number }}</span>
+              </div>
+              <div class="d-flex justify-content-between align-items-center p-3 rounded bg-light">
+                <div class="d-flex align-items-center">
+                  <i class="fas fa-route text-success me-3"></i>
+                  <span>Tours</span>
+                </div>
+                <span class="fs-5 fw-bold text-success">{{ dashboardData.serviceStatistics.tours | number }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Booking Status -->
+      <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-white border-bottom">
+            <h5 class="card-title mb-0">
+              <i class="fas fa-chart-pie text-warning me-2"></i>Booking Status
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="row g-3 mb-4">
+              <div class="col-4">
+                <div class="text-center">
+                  <div class="status-indicator pending mb-2"></div>
+                  <h5 class="mb-1">{{ dashboardData.bookingStatistics.pendingBookings }}</h5>
+                  <p class="text-muted small mb-0">Pending</p>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="text-center">
+                  <div class="status-indicator confirmed mb-2"></div>
+                  <h5 class="mb-1">{{ dashboardData.bookingStatistics.confirmedBookings }}</h5>
+                  <p class="text-muted small mb-0">Confirmed</p>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="text-center">
+                  <div class="status-indicator cancelled mb-2"></div>
+                  <h5 class="mb-1">{{ dashboardData.bookingStatistics.cancelledBookings }}</h5>
+                  <p class="text-muted small mb-0">Cancelled</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Bookings by Type -->
+            <div class="booking-types">
+              <h6 class="text-muted mb-3">Bookings by Type</h6>
+              <div class="booking-type-item mb-2">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <span><i class="fas fa-bed text-primary me-2"></i>Hotel Bookings</span>
+                  <span class="fw-bold">{{ dashboardData.bookingStatistics.bookingsByType.hotelBookings }}</span>
+                </div>
+                <div class="progress" style="height: 6px;">
+                  <div class="progress-bar bg-primary" 
+                       [style.width.%]="calculatePercentage(dashboardData.bookingStatistics.bookingsByType.hotelBookings, dashboardData.bookingStatistics.totalBookings)">
+                  </div>
+                </div>
+              </div>
+              <div class="booking-type-item mb-2">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <span><i class="fas fa-plane text-info me-2"></i>Flight Bookings</span>
+                  <span class="fw-bold">{{ dashboardData.bookingStatistics.bookingsByType.flightBookings }}</span>
+                </div>
+                <div class="progress" style="height: 6px;">
+                  <div class="progress-bar bg-info" 
+                       [style.width.%]="calculatePercentage(dashboardData.bookingStatistics.bookingsByType.flightBookings, dashboardData.bookingStatistics.totalBookings)">
+                  </div>
+                </div>
+              </div>
+              <div class="booking-type-item mb-2">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <span><i class="fas fa-car text-warning me-2"></i>Car Bookings</span>
+                  <span class="fw-bold">{{ dashboardData.bookingStatistics.bookingsByType.carBookings }}</span>
+                </div>
+                <div class="progress" style="height: 6px;">
+                  <div class="progress-bar bg-warning" 
+                       [style.width.%]="calculatePercentage(dashboardData.bookingStatistics.bookingsByType.carBookings, dashboardData.bookingStatistics.totalBookings)">
+                  </div>
+                </div>
+              </div>
+              <div class="booking-type-item">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <span><i class="fas fa-map-marked-alt text-success me-2"></i>Tour Bookings</span>
+                  <span class="fw-bold">{{ dashboardData.bookingStatistics.bookingsByType.tourBookings }}</span>
+                </div>
+                <div class="progress" style="height: 6px;">
+                  <div class="progress-bar bg-success" 
+                       [style.width.%]="calculatePercentage(dashboardData.bookingStatistics.bookingsByType.tourBookings, dashboardData.bookingStatistics.totalBookings)">
                   </div>
                 </div>
               </div>
@@ -364,3 +378,5 @@
         </div>
       </div>
     </div>
+  </div>
+}

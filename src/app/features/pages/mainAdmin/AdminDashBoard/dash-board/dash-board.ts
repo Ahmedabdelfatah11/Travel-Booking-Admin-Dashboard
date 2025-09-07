@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Observable, Subject, takeUntil, catchError, of } from 'rxjs';
 
-// ... (keep all your interfaces the same)
+// Interfaces
 interface UserStatistics {
   totalUsers: number;
   superAdmins: number;
@@ -65,9 +65,9 @@ export class DashBoardComponent implements OnInit, OnDestroy {
   loading = true;
   error: string | null = null;
   debugInfo: string = '';
-  
+
   private destroy$ = new Subject<void>();
-  
+
   // Configuration - Update these based on your setup
   private baseUrl = 'http://pyramigo.runasp.net'; // Your API base URL
   private apiUrl = `${this.baseUrl}/api/SuperAdmin/dashboard`;
@@ -88,7 +88,6 @@ export class DashBoardComponent implements OnInit, OnDestroy {
       'Content-Type': 'application/json'
     });
 
-    // Get JWT token from localStorage, sessionStorage, or your auth service
     const token = this.getAuthToken();
     if (token) {
       headers = headers.set('Authorization', `Bearer ${token}`);
@@ -98,9 +97,8 @@ export class DashBoardComponent implements OnInit, OnDestroy {
   }
 
   private getAuthToken(): string | null {
-    // Update this method based on how you store your JWT token
-    return localStorage.getItem('authToken') || 
-           localStorage.getItem('token') || 
+    return localStorage.getItem('authToken') ||
+           localStorage.getItem('token') ||
            sessionStorage.getItem('authToken') ||
            sessionStorage.getItem('token');
   }
@@ -110,10 +108,9 @@ export class DashBoardComponent implements OnInit, OnDestroy {
     this.error = null;
     this.debugInfo = 'Testing API connection...';
 
-    // Test basic connectivity
-    this.http.get(`${this.baseUrl}/api/SuperAdmin/users?pageIndex=1&pageSize=1`, { 
+    this.http.get(`${this.baseUrl}/api/SuperAdmin/users?pageIndex=1&pageSize=1`, {
       headers: this.getHttpHeaders(),
-      observe: 'response' 
+      observe: 'response'
     })
     .pipe(
       takeUntil(this.destroy$),
@@ -146,7 +143,9 @@ export class DashBoardComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.http.get<DashboardData>(this.apiUrl, { 
+    const startTime = Date.now();
+
+    this.http.get<DashboardData>(this.apiUrl, {
       headers: this.getHttpHeaders(),
       observe: 'response'
     })
@@ -154,7 +153,6 @@ export class DashBoardComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$),
       catchError((error: HttpErrorResponse) => {
         this.handleApiError(error, 'Dashboard Data Load');
-         this.cd.detectChanges();
         return of(null);
       })
     )
@@ -162,17 +160,23 @@ export class DashBoardComponent implements OnInit, OnDestroy {
       next: (response) => {
         if (response && response.body) {
           this.dashboardData = response.body;
-          this.loading = false;
-          this.debugInfo = '';
-          this.cd.detectChanges();
         }
+      },
+      complete: () => {
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(1000 - elapsed, 0);
+
+        setTimeout(() => {
+          this.loading = false;
+          this.cd.detectChanges();
+        }, remaining);
       }
     });
   }
 
   private handleApiError(error: HttpErrorResponse, context: string): void {
     this.loading = false;
-        
+
     switch (error.status) {
       case 0:
         this.error = 'Cannot connect to server';
@@ -201,14 +205,10 @@ export class DashBoardComponent implements OnInit, OnDestroy {
   }
 
   refreshData(): void {
-    this.cd.detectChanges();
     this.loadDashboardData();
-
   }
 
   calculatePercentage(value: number, total: number): number {
-
     return total > 0 ? Math.round((value / total) * 100) : 0;
-     
   }
 }

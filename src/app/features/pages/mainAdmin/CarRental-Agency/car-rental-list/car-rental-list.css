@@ -1,158 +1,10 @@
-/* car-rental-creation.css */
-.container-fluid {
-  background-color: #f8f9fa;
-  min-height: 100vh;
-}
-
-.card {
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
-  border: none;
-}
-
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-}
-
-.card-header {
-  border-radius: 12px 12px 0 0 !important;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  padding: 1.25rem 1.5rem;
-}
-
-.form-label {
-  color: #374151;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-}
-
-.input-group-text {
-  background-color: #f8f9fa;
-  border-right: none;
-  border-color: #e5e7eb;
-  color: #6b7280;
-}
-
-.form-control, .form-select {
-  border-left: none;
-  border-color: #e5e7eb;
-  padding: 0.75rem 1rem;
-  font-size: 0.95rem;
-  transition: all 0.2s ease;
-}
-
-.form-control:focus, .form-select:focus {
-  box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.15);
-  border-color: #3b82f6;
-}
-
-.form-control:focus + .input-group-text,
-.input-group-text + .form-control:focus {
-  border-color: #3b82f6;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-  border: none;
-  padding: 0.75rem 1.5rem;
-  font-weight: 600;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-}
-
-.btn-primary:hover {
-  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-}
-
-.btn-primary:disabled {
-  background: #9ca3af;
-  transform: none;
-  box-shadow: none;
-}
-
-.btn-outline-secondary {
-  border-color: #d1d5db;
-  color: #6b7280;
-  border-radius: 8px;
-  padding: 0.75rem 1.5rem;
-  font-weight: 600;
-  transition: all 0.2s ease;
-}
-
-.btn-outline-secondary:hover {
-  background-color: #f3f4f6;
-  border-color: #9ca3af;
-  color: #374151;
-  transform: translateY(-1px);
-}
-
-.border-dashed {
-  border-style: dashed !important;
-  border-width: 2px !important;
-  border-color: #d1d5db !important;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.border-dashed:hover {
-  border-color: #3b82f6 !important;
-  background-color: rgba(59, 130, 246, 0.05) !important;
-}
-
-.image-preview {
-  max-height: 200px;
-  max-width: 100%;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.alert {
-  border: none;
-  border-radius: 8px;
-  padding: 1rem 1.25rem;
-  font-weight: 500;
-}
-
-.alert-success {
-  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-  color: #065f46;
-  border-left: 4px solid #10b981;
-}
-
-.alert-danger {
-  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-  color: #991b1b;
-  border-left: 4px solid #ef4444;
-}
-
-.invalid-feedback {
-  font-size: 0.85rem;
-  color: #ef4444;
-  margin-top: 0.25rem;
-}
-
-.is-invalid {
-  border-color: #ef4444 !important;
-}
-
-.text-danger {
-  color: #ef4444 !important;
-}
-
-.spinner-border-sm {
-  width: 1rem;
-  height: 1rem;
-}
-
-/* car-rental-list.css */
+/* Use your theme colors */
 .bg-gradient-primary {
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+  background: linear-gradient(135deg, var(--secondary-color) 0%, var(--third-color) 100%) !important;
+  border-color: var(--secondary-color) !important;
 }
 
+/* Card styling */
 .company-card {
   border-radius: 12px;
   overflow: hidden;
@@ -176,6 +28,7 @@
   transition: transform 0.4s ease;
 }
 
+/* Badges */
 .badge {
   font-size: 0.75rem;
   padding: 0.4rem 0.7rem;
@@ -183,12 +36,17 @@
   font-weight: 600;
 }
 
-.badge-rating {
-  background: rgba(255, 193, 7, 0.9) !important;
-  color: #000 !important;
-  backdrop-filter: blur(4px);
+.badge.bg-success {
+  background-color: var(--success-green) !important;
+  color: white;
 }
 
+.badge.bg-warning {
+  background-color: #fbbf24 !important;
+  color: #000;
+}
+
+/* Buttons */
 .btn-sm {
   padding: 0.4rem 0.8rem;
   font-size: 0.85rem;
@@ -197,15 +55,23 @@
   transition: all 0.2s ease;
 }
 
+.btn-outline-primary {
+  border-color: var(--secondary-color);
+  color: var(--secondary-color);
+}
 .btn-outline-primary:hover {
-  background-color: #3b82f6;
-  border-color: #3b82f6;
+  background-color: var(--secondary-color);
+  color: white;
   transform: translateY(-1px);
 }
 
+.btn-outline-success {
+  border-color: var(--success-green);
+  color: var(--success-green);
+}
 .btn-outline-success:hover {
-  background-color: #10b981;
-  border-color: #10b981;
+  background-color: var(--success-green);
+  color: white;
   transform: translateY(-1px);
 }
 
@@ -215,6 +81,7 @@
   transform: translateY(-1px);
 }
 
+/* Pagination */
 .pagination .page-link {
   border: none;
   color: #6b7280;
@@ -226,17 +93,18 @@
 }
 
 .pagination .page-item.active .page-link {
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, var(--secondary-color) 0%, var(--third-color) 100%);
   color: white;
   box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
 }
 
 .pagination .page-link:hover {
   background-color: #f3f4f6;
-  color: #3b82f6;
+  color: var(--secondary-color);
   transform: translateY(-1px);
 }
 
+/* Modal */
 .modal-content {
   border-radius: 12px;
   border: none;
@@ -257,11 +125,7 @@
   border-radius: 0 0 12px 12px;
 }
 
-.star-rating .fa-star {
-  font-size: 0.9rem;
-  margin-right: 1px;
-}
-
+/* Text & Layout */
 .text-warning {
   color: #fbbf24 !important;
 }
@@ -292,7 +156,7 @@
   color: #6b7280;
 }
 
-/* Animation classes */
+/* Animations */
 @keyframes fadeIn {
   from { 
     opacity: 0; 
@@ -323,7 +187,7 @@
   animation: slideIn 0.4s ease-out;
 }
 
-/* Responsive adjustments */
+/* Responsive */
 @media (max-width: 768px) {
   .company-card {
     margin-bottom: 1rem;
@@ -356,4 +220,27 @@
   .card-img-top {
     height: 140px;
   }
+} 
+.btn-primary-custom {
+    border: solid 1px var(--Admin2);
+  background-color: var(--Admin2);
+  border-color: var(--Admin2);
+  color: white;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.btn-primary-custom:hover {
+  background-color: var(--Admin);
+  border-color: var(--Admin);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(14, 179, 157, 0.3);
+}
+
+.btn-primary-custom:disabled {
+  background-color: #9ca3af;
+  border-color: #9ca3af;
+  transform: none;
 }

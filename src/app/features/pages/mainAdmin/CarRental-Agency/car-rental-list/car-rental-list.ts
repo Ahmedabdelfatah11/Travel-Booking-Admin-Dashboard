@@ -252,7 +252,7 @@ export class CarRentalListComponent implements OnInit {
   }
 
   getDefaultImage(): string {
-    return 'assets/images/default-car-company.jpg';
+    return '';
   }
 
   onImageError(event: any): void {

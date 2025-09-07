@@ -25,7 +25,6 @@ export class TourBookingService {
   // Get all bookings for the current tour company
   getBookingsByCompany(companyId: number): Observable<BookingTourDto[]> {
     const url = `${this.baseUrl}/${companyId}/bookings`;
-
     return this.http.get<BookingTourDto[]>(url, { headers: this.getAuthHeaders() });
   }
 }

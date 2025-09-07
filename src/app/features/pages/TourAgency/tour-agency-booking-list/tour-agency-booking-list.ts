@@ -69,21 +69,18 @@ export class TourAgencyBookingList implements OnInit {
     this.loadTourCompanyIdAndBookings();
   }
 
-  private loadTourCompanyIdAndBookings(): void {
-    this.tourService.getMyTourCompanies().subscribe({
-      next: (companies) => {
-        if (Array.isArray(companies) && companies.length > 0) {
-          this.tourCompanyId = companies[0].id;
-          this.loadBookings();
-        } else {
-          this.error = 'No tour company assigned to your account.';
-        }
-      },
-      error: (err) => {
-        this.handleError(err, 'Failed to load company. Please try again.');
-      }
-    });
+ private loadTourCompanyIdAndBookings(): void {
+  this.tourCompanyId = this.getTourCompanyIdFromToken();
+
+  if (!this.tourCompanyId) {
+    this.error = 'Tour company information not found in your account.';
+    this.loading = false;
+    this.cd.detectChanges();
+    return;
   }
+
+  this.loadBookings();
+}
 
   public loadBookings(): void {
     if (!this.tourCompanyId) {
@@ -347,4 +344,17 @@ export class TourAgencyBookingList implements OnInit {
       { label: 'Cancelled', value: stats.cancelled, class: 'cancelled' }
     ];
   }
+  private getTourCompanyIdFromToken(): number | null {
+  const token = localStorage.getItem('authToken');
+  if (!token) return null;
+
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const tourCompanyId = payload['TourCompanyId'];
+    return tourCompanyId ? parseInt(tourCompanyId, 10) : null;
+  } catch (error) {
+    console.error('Error decoding JWT token:', error);
+    return null;
+  }
+}
 }
